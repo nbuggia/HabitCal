@@ -13,6 +13,14 @@ Rejected: Alternatives considered and why not. (optional)
 Affects: Task IDs and files this touches. (optional)
 -->
 
+## D-008 · Menu bar icon is a tear-off calendar page with no progress indicator; Phosphor for in-app icons · 2026-10-29
+Status: Active
+Context: T-001 prototyped five menu bar and popover concepts.
+Decision: The icon is a tear-off calendar page: the month cut out of a solid header bar, the day number below, all four corners rounded, and nothing else. The popover uses the Habit Rows layout. Icons inside the app come from Phosphor (regular weight, MIT license), bundled as image assets rather than a code dependency.
+Why: The icon's first job is the date, and a calm icon fits "small and calm". Phosphor's line style matches SF Symbols and has every icon the prototype uses.
+Rejected: A progress ring around the icon, and a line along its top and bottom, both too busy. The date as text. The longest streak in the menu bar (Concept 4). Calendar days shaded by completion (Concept 5's grid; see D-003).
+Affects: T-002, T-003, T-004
+
 ## D-007 · App Sandbox with no network entitlement · 2026-10-29
 Status: Active
 Context: The PRD promises the app works offline and sends no data anywhere, and D-004 keeps data on the Mac. GitHub distribution doesn't require the sandbox.

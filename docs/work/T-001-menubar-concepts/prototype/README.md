@@ -14,7 +14,7 @@ What should HabitCal look like in the menu bar and its popover, so that checking
 
 **Menu bar icon — locked (2026-10-29):** Concept 5's calendar-page icon, revised by the customer: the month abbreviation (OCT) cut out of a solid header bar like an old tear-off calendar, the day number below. All four corners rounded. No progress indicator: the customer tried an outline ring, then a line along the top and the bottom, and removed it to keep the icon calm. See the "Menu bar icon" section at the top of `index.html`.
 
-**Popover — in progress (2026-10-29):** the customer chose Concept 3 (Habit Rows), with Phosphor icons (https://phosphoricons.com, MIT). The "Final" card in `index.html` merges it with the locked icon and adds a tick button per habit for today.
+**Popover — locked (2026-10-29):** the customer chose Concept 3 (Habit Rows), with Phosphor icons (https://phosphoricons.com, MIT). The "Final" card in `index.html` merges it with the locked icon and adds a tick button per habit for today.
 
 **Concepts removed (2026-10-29):** the five original concepts were deleted from `index.html` once the customer chose the direction. The page now holds the locked icon, the live Final popover, and static snapshots of its screens.
 

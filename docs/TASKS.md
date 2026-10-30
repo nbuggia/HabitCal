@@ -9,11 +9,13 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 -->
 
 ## Phase 1 — v1
-- [ ] T-001 Prototype menu bar design concepts · high
-      Five concepts on one page in docs/work/T-001-menubar-concepts/prototype/; awaiting the customer's pick.
+- [x] T-001 Prototype menu bar design concepts · high · done 2026-10-29
+      Produced D-003 and D-008; the design is specified in T-002, T-003, and T-004.
 - [ ] T-002 Menu bar date and month calendar · high
       Spec in docs/work/T-002-menubar-calendar/spec.md.
 - [ ] T-003 Habits: add, edit, check off · high
       Spec in docs/work/T-003-habits/spec.md.
 - [ ] T-004 Streaks · high
       Spec in docs/work/T-004-streaks/spec.md.
+- [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
+      Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.

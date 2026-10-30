@@ -15,7 +15,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-D-005–D-007 and CONTEXT.md approved and written. Next: close T-001, and start st-design for T-002 (Complex: it adds the app's components). T-002's first slice should prove FM-008, that UI tests can click the status item.
+D-005–D-007 and CONTEXT.md approved and written. T-001 closed (D-008 added). Next: start st-design for T-002 (Complex: it adds the app's components). T-002's first slice should prove FM-008, that UI tests can click the status item.
 
 ## Suggested Start
 
@@ -23,7 +23,6 @@ Get the customer's sign-off on `docs/PRD.md` (my calls: yes/no habits only, no c
 
 ## Proposed Updates
 
-- T-001: close it with st-close. Its prototype is answered, and its specs are written.
 
 - DECISIONS.md: menu bar icon is the tear-off calendar page with no progress indicator (ring and progress line tried and rejected as too busy); Phosphor for UI icons.
 
