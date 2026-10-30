@@ -135,8 +135,11 @@ E.7 THE SYSTEM SHALL draw the icon and popover correctly in light mode, dark mod
 
 E.8 WHEN the menu bar is crowded and macOS hides the icon THE SYSTEM SHALL do nothing special. This is accepted: menu bar apps can't control it.
 
-E.9 WHEN HabitCal runs from outside the Applications folder, for example straight from Downloads, THE SYSTEM SHALL NOT register for launch at login. B.17 applies on the first launch from /Applications.
+E.9 WHEN HabitCal runs from anywhere but /Applications, for example straight from Downloads, THE SYSTEM SHALL NOT register for launch at login. B.17 applies on the first launch from /Applications.
 Why: a GitHub download's first launch often runs from Downloads or a temporary path macOS creates, and a login item pointing there breaks once the app is moved.
+
+E.10 WHILE HabitCal runs from anywhere but /Applications THE SYSTEM SHALL show the Launch at login switch as off and disabled, with the caption "Move HabitCal to Applications to launch at login".
+Why: E.9 forbids registering from there, so a switch the user could turn on would be lying. Added during T-002's design.
 
 ## 10. Contracts
 
