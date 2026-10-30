@@ -31,4 +31,9 @@ public enum HabitLabels {
         guard dueToday else { return "Not scheduled today" }
         return doneToday ? "Done today — click to undo" : "Mark done today"
     }
+
+    /// "Edit Push-ups": the name button's spoken label.
+    public static func editSpoken(name: String) -> String {
+        "Edit \(name)"
+    }
 }

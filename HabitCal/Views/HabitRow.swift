@@ -5,21 +5,43 @@ import SwiftUI
 struct HabitRow: View {
     @Environment(AppModel.self) private var model
     let habit: Habit
+    @State private var hovering = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 DoneButton(habit: habit)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(habit.name).fontWeight(.semibold).lineLimit(1)
-                    Text(ScheduleLabel.text(for: habit.days(today: model.today)))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                Button {
+                    model.openEditForm(habit.id)
+                } label: {
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 4) {
+                            Text(habit.name).fontWeight(.semibold).lineLimit(1)
+                            PhosphorIcon("pencil-simple", size: 11)
+                                .foregroundStyle(.secondary)
+                                .opacity(hovering ? 1 : 0)
+                        }
+                        Text(ScheduleLabel.text(for: habit.days(today: model.today)))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .onHover { hovering = $0 }
+                .help("Edit habit")
+                .accessibilityLabel(HabitLabels.editSpoken(name: habit.name))
+                .accessibilityValue(ScheduleLabel.text(for: habit.days(today: model.today)))
                 Spacer(minLength: 0)
             }
             StripView(habit: habit)
                 .padding(.leading, 32)
+        }
+        .contentShape(Rectangle())
+        .contextMenu {
+            Button("Edit…") { model.openEditForm(habit.id) }
+            Divider()
+            Button("Delete…") { model.openDeleteConfirmation(habit.id) }
         }
     }
 }

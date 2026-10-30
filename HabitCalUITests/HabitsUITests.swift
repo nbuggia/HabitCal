@@ -79,7 +79,7 @@ final class HabitsUITests: HabitCalUITestCase {
         launch(dataFolder: folder)
         openPopover()
         XCTAssertTrue(element("Push-ups, done today").exists, "check-off didn't survive a relaunch")
-        XCTAssertTrue(text("Run").exists)
+        XCTAssertTrue(element("Edit Run").exists)
     }
 
     func testStripIsOneTabStopThatArrowsAndSpaceDrive() {

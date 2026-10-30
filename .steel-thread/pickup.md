@@ -17,7 +17,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-T-003 Slice 2 (habit form). Slice 1 is done: model, store (format v1), rows, strip; 43 unit/integration and 20 UI tests pass. Then Slice 3, review, close; then T-004 and T-005.
+T-003 Slice 3 (E.5 message, E.6 banner, spoken labels, docs/manual-tests/habits.md). Slices 1–2 are done; 44 unit and 29 UI tests pass. Then the diff review and close, then T-004 and T-005.
 
 ## Suggested Start
 

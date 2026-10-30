@@ -1,0 +1,157 @@
+import HabitCalKit
+import SwiftUI
+
+/// Add or edit a habit (T-003 §5, B.8–B.17). Replaces the list inside the popover.
+struct HabitFormScreen: View {
+    @Environment(AppModel.self) private var model
+    @FocusState private var nameFocused: Bool
+
+    var body: some View {
+        if let form = model.form {
+            VStack(alignment: .leading, spacing: 10) {
+                header(form)
+                label("Name")
+                TextField("e.g. Push-ups", text: draftBinding(\.name))
+                    .textFieldStyle(.roundedBorder)
+                    .focused($nameFocused)
+                    .onSubmit { model.saveForm() }
+                    .accessibilityIdentifier("nameField")
+                label("Repeats on")
+                dayButtons(form.draft.days)
+                label("Notes")
+                notes
+                hints(form)
+                if case .edit = form.mode {
+                    Divider()
+                    deleteSection(form)
+                }
+            }
+            .padding(12)
+            .onAppear {
+                // Focus after the form is in the window; set synchronously, it's lost.
+                DispatchQueue.main.async { nameFocused = true }
+            }
+        }
+    }
+
+    private func header(_ form: HabitForm) -> some View {
+        let adding = form.mode == .add
+        return ZStack {
+            Text(adding ? "New habit" : "Edit habit").font(.headline)
+            HStack {
+                // The window handles this shortcut before a focused field sees Esc (T-003 B.12).
+                Button("Cancel") { model.cancelForm() }
+                    .buttonStyle(.borderless)
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                Button(adding ? "Add" : "Save") { model.saveForm() }
+                    .buttonStyle(.borderless)
+                    .fontWeight(.semibold)
+                    .disabled(!form.draft.isValid)
+            }
+        }
+    }
+
+    private func label(_ text: String) -> some View {
+        Text(text).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+    }
+
+    private func dayButtons(_ selected: Set<Int>) -> some View {
+        HStack(spacing: 4) {
+            ForEach(model.weekStart.orderedWeekdays, id: \.self) { weekday in
+                let on = selected.contains(weekday)
+                Button {
+                    model.updateDraft { draft in
+                        if on { draft.days.remove(weekday) } else { draft.days.insert(weekday) }
+                    }
+                } label: {
+                    Text(MonthNames.weekdayInitial(weekday))
+                        .font(.callout.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 26)
+                        .foregroundStyle(on ? Color.white : Color.primary)
+                        .background(on ? Color.accentColor : Color.secondary.opacity(0.15), in: Circle())
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help(MonthNames.weekdayName(weekday))
+                .accessibilityLabel(MonthNames.weekdayName(weekday))
+                .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
+    }
+
+    private var notes: some View {
+        let text = draftBinding(\.note)
+        return TextEditor(text: text)
+            .font(.callout)
+            .scrollContentBackground(.hidden)
+            .padding(4)
+            .frame(height: 54)
+            .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+            .overlay(alignment: .topLeading) {
+                if text.wrappedValue.isEmpty {
+                    Text("Optional details, e.g. 3 sets of 20, or the route you run")
+                        .font(.callout)
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4)
+                        .allowsHitTesting(false)
+                }
+            }
+            .accessibilityIdentifier("notesField")
+            .accessibilityLabel("Notes")
+    }
+
+    @ViewBuilder
+    private func hints(_ form: HabitForm) -> some View {
+        if form.draft.days.isEmpty {
+            hint("Pick at least one day.")
+        } else if model.formChangesSchedule {
+            hint("The new schedule starts today. Past days, and your streak, keep the old one.")
+        }
+    }
+
+    private func hint(_ text: String) -> some View {
+        Text(text).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder
+    private func deleteSection(_ form: HabitForm) -> some View {
+        if form.confirmingDelete, case .edit(let id) = form.mode, let habit = model.habits[id] {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Delete “\(habit.name)”?").fontWeight(.semibold)
+                Text("Its history and streaks are deleted too. This can't be undone.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Spacer()
+                    Button("Cancel") { model.setConfirmingDelete(false) }
+                        .accessibilityIdentifier("confirmCancel")
+                    Button("Delete", role: .destructive) { model.deleteFromForm() }
+                        .tint(.red)
+                }
+            }
+        } else {
+            Button {
+                model.setConfirmingDelete(true)
+            } label: {
+                HStack(spacing: 6) {
+                    PhosphorIcon("trash", size: 14)
+                    Text("Delete habit")
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 6)
+                .foregroundStyle(.red)
+                .background(Color.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Delete habit")
+        }
+    }
+
+    private func draftBinding(_ keyPath: WritableKeyPath<HabitDraft, String>) -> Binding<String> {
+        Binding(
+            get: { model.form?.draft[keyPath: keyPath] ?? "" },
+            set: { value in model.updateDraft { $0[keyPath: keyPath] = value } })
+    }
+}

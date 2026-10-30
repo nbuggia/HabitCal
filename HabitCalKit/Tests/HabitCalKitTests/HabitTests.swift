@@ -172,5 +172,6 @@ struct HabitTests {
         #expect(HabitLabels.doneButtonTooltip(dueToday: true, doneToday: false) == "Mark done today")
         #expect(HabitLabels.doneButtonTooltip(dueToday: true, doneToday: true) == "Done today — click to undo")
         #expect(HabitLabels.doneButtonTooltip(dueToday: false, doneToday: false) == "Not scheduled today")
+        #expect(HabitLabels.editSpoken(name: "Push-ups") == "Edit Push-ups")
     }
 }

@@ -9,6 +9,7 @@ struct PopoverRoot: View {
             switch model.screen {
             case .list: HabitListScreen()
             case .settings: SettingsScreen()
+            case .form: HabitFormScreen()
             }
         }
         .frame(width: 330)

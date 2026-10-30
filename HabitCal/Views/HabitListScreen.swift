@@ -23,6 +23,17 @@ struct HabitListScreen: View {
             habitList
             Divider()
             HStack {
+                Button {
+                    model.openAddForm()
+                } label: {
+                    HStack(spacing: 4) {
+                        PhosphorIcon("plus", size: 13)
+                        Text("Add habit")
+                    }
+                }
+                .buttonStyle(.borderless)
+                .disabled(!model.canAddHabits)
+                .accessibilityLabel("Add habit")
                 Spacer()
                 Button {
                     model.openSettings()

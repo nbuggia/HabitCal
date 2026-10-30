@@ -3,10 +3,24 @@ import HabitCalKit
 import Observation
 import os
 
-/// The popover's screens. T-003 adds the habit form.
+/// The popover's screens. The form's contents live in `AppModel.form`, not here: changing `screen`
+/// resets first responder, so a draft inside it would pull focus out of the name field on every keystroke.
 enum Screen: Equatable {
     case list
     case settings
+    case form
+}
+
+/// The habit form's state (T-003 §5).
+struct HabitForm: Equatable {
+    enum Mode: Equatable {
+        case add
+        case edit(UUID)
+    }
+
+    var mode: Mode
+    var draft: HabitDraft
+    var confirmingDelete = false
 }
 
 /// Whether habits can be shown and saved (T-003 E.5, E.6).
@@ -49,6 +63,8 @@ final class AppModel {
     /// The user's habits. Changed only through the methods below, each of which saves (T-003 B.18).
     private(set) var habits: Habits
     private(set) var dataState: DataState
+    /// The open form, while `screen == .form`.
+    private(set) var form: HabitForm?
     /// Bumped on every refresh, so the switch redraws even when a failed change leaves the state
     /// equal to what it was: AppKit has already flipped the switch on the click (T-002 E.4).
     private(set) var loginItemRevision = 0
@@ -97,6 +113,7 @@ final class AppModel {
 
     /// Every open starts from the habit list and the current month (T-002 B.4).
     func resetForOpen() {
+        form = nil
         screen = .list
         displayedMonth = Month(today)
     }
@@ -120,6 +137,9 @@ final class AppModel {
             return .closePopover
         case .settings:
             closeSettings()
+            return .handled
+        case .form:
+            cancelForm()
             return .handled
         }
     }
@@ -148,6 +168,79 @@ final class AppModel {
             Self.log.error("Saving habits failed: \(error.localizedDescription, privacy: .public)")
             dataState = .saveFailed
         }
+    }
+
+    // MARK: Habit form
+
+    var canAddHabits: Bool {
+        if case .unreadable = dataState { return false }
+        return true
+    }
+
+    /// An empty form, every day selected (T-003 B.8).
+    func openAddForm() {
+        guard canAddHabits else { return }
+        form = HabitForm(mode: .add, draft: HabitDraft(name: "", note: "", days: Set(1...7)))
+        screen = .form
+    }
+
+    /// The form filled with the habit's name, current days, and note (B.9).
+    func openEditForm(_ id: UUID) {
+        guard let habit = habits[id] else { return }
+        form = HabitForm(
+            mode: .edit(id), draft: HabitDraft(name: habit.name, note: habit.note, days: habit.days(today: today)))
+        screen = .form
+    }
+
+    /// Delete… from the right-click menu: the Edit form with the confirmation showing (B.15).
+    func openDeleteConfirmation(_ id: UUID) {
+        openEditForm(id)
+        form?.confirmingDelete = true
+    }
+
+    /// Edits the draft, cut to the length limits (E.4).
+    func updateDraft(_ change: (inout HabitDraft) -> Void) {
+        guard var draft = form?.draft else { return }
+        change(&draft)
+        form?.draft = draft.clamped
+    }
+
+    func setConfirmingDelete(_ confirming: Bool) {
+        form?.confirmingDelete = confirming
+    }
+
+    /// Whether the form's days differ from the habit's current ones, for the "starts today" hint.
+    var formChangesSchedule: Bool {
+        guard let form, case .edit(let id) = form.mode, let habit = habits[id] else { return false }
+        return form.draft.days != habit.days(today: today)
+    }
+
+    /// Add or Save (B.11). Does nothing until the draft is valid (B.10).
+    func saveForm() {
+        guard let form, form.draft.isValid else { return }
+        switch form.mode {
+        case .add: habits.add(form.draft, today: today)
+        case .edit(let id): habits.update(id, with: form.draft, today: today)
+        }
+        persist()
+        closeForm()
+    }
+
+    func cancelForm() {
+        closeForm()
+    }
+
+    /// Deletes the habit and all its history (B.16).
+    func deleteFromForm() {
+        guard let form, case .edit(let id) = form.mode else { return }
+        habits.delete(id)
+        persist()
+        closeForm()
+    }
+
+    private func closeForm() {
+        form = nil
+        screen = .list
     }
 
     // MARK: Settings

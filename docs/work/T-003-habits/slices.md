@@ -38,7 +38,7 @@ Form first (add a habit, then show it). Rejected because the form would need a t
 
 | Field               | Value |
 | ------------------- | ----- |
-| Status              | Pending |
+| Status              | Done |
 | Scope               | Name click (with the hover pencil) to edit, `Screen.form` + `AppModel.form`, `openAddForm`, `openEditForm`, `openDeleteConfirmation`, `saveForm`, `cancelForm`, `deleteFromForm`, `escape()` for the form; `HabitFormScreen` (header, name with focus and Return, day buttons in week-start order, notes, hints, delete and its confirmation, length clamp); "+ Add habit"; `.contextMenu` with Edit… and Delete…; the Edit menu in `MainMenu`. "+ Add habit" is disabled while `dataState` is `.unreadable`. |
 | Demo criterion      | UI: `addingAHabitShowsItWithItsScheduleLabel`, `editingAHabitRenamesItAndChangesItsDays`, `deletingAHabitAsksFirstThenRemovesIt`, `escapeInFormReturnsToList`, `escapeInNotesReturnsToList`, `typingInTheNameFieldKeepsFocus`. Manual: ⌘C/⌘V in the form. |
 | Dependencies        | Slice 1's `Habits` operations, `persist()`, and rows. |
@@ -82,6 +82,12 @@ Slice 1 → Slice 2 → Slice 3
 - Commit: the "T-003 slice 1" commit.
 - Affected remaining slices reviewed: 2 (it uses `Habits.add/update/delete`, `persist()`, and `HabitRow`; all are in place) and 3 (unchanged).
 - Changed: the test data seam is a folder name inside the container (`-HabitCalDataDir`) plus `-HabitCalSeedData`, because the sandboxed app can't reach the test runner's folders. The strip's focus test proves focus by behavior (Tab then ← moves the day), because SwiftUI doesn't expose `hasKeyboardFocus` on the strip. UI tests now share `HabitCalUITestCase`. A popover screenshot (dark mode) matches the prototype. Manual VoiceOver strip check is pending the customer (docs/manual-tests/habits.md, written in Slice 3).
+
+### After Slice 2
+
+- Commit: the "T-003 slice 2" commit.
+- Affected remaining slices reviewed: 3 (it labels the form's controls and checks every habit control; the controls exist).
+- Changed: the name field takes focus one run-loop turn after the form appears, because setting `@FocusState` synchronously in `onAppear` is lost in the popover. The habit's name and schedule label sit inside the "Edit <name>" button, whose accessibility value is the schedule label, so tests find rows by that button. `.keyboardShortcut(.cancelAction)` on the header Cancel catches Esc from both the name field and the notes editor (design finding 3 holds). Added `testAddIsDisabledWithoutADay`, `testReturnInTheNameFieldAddsTheHabit`, and `testCancellingTheDeleteConfirmationKeepsTheHabit`. Screenshot of the edit form matches the prototype.
 
 ## 6. Design Drift
 
