@@ -12,7 +12,9 @@ let fireSVG = """
 
 /// Draws the app icon at `px` pixels: a macOS-style rounded square holding a tear-off calendar page
 /// with a colored header and a glyph.
-func icon(_ px: Int, header: NSColor, ringShadow: NSColor, glyph: Glyph, glyphColor: NSColor) -> NSBitmapImageRep {
+func icon(
+    _ px: Int, header: NSColor, ringShadow: NSColor, glyph: Glyph, glyphColor: NSColor, outline: Bool = false
+) -> NSBitmapImageRep {
     let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: px, pixelsHigh: px, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
@@ -34,12 +36,23 @@ func icon(_ px: Int, header: NSColor, ringShadow: NSColor, glyph: Glyph, glyphCo
     ctx.setFillColor(header.cgColor)
     ctx.fill(CGRect(x: 100, y: 924 - 250, width: 824, height: 250))
     ctx.restoreGState()
+    if outline {
+        // A border in the header's color all the way round, like the menu bar icon's page (D-008):
+        // stroke weight is about 7% of the tile, as in the 21 pt menu bar design (1.5 pt).
+        let width: CGFloat = 52
+        let inset = tile.insetBy(dx: width / 2, dy: width / 2)
+        ctx.addPath(CGPath(roundedRect: inset, cornerWidth: 185 - width / 2, cornerHeight: 185 - width / 2, transform: nil))
+        ctx.setStrokeColor(header.cgColor)
+        ctx.setLineWidth(width)
+        ctx.strokePath()
+    }
     // Binder rings.
+    let ringY: CGFloat = outline ? 924 - 110 : 924 - 70
     for x in [330.0, 694.0] {
         ctx.setFillColor(NSColor(white: 0.95, alpha: 1).cgColor)
-        ctx.fillEllipse(in: CGRect(x: x - 34, y: 924 - 70 - 34, width: 68, height: 68))
+        ctx.fillEllipse(in: CGRect(x: x - 34, y: ringY - 34, width: 68, height: 68))
         ctx.setFillColor(ringShadow.cgColor)
-        ctx.fillEllipse(in: CGRect(x: x - 18, y: 924 - 70 - 18, width: 36, height: 36))
+        ctx.fillEllipse(in: CGRect(x: x - 18, y: ringY - 18, width: 36, height: 36))
     }
     switch glyph {
     case .check:
@@ -76,10 +89,12 @@ let variants: [(String, NSColor, NSColor, Glyph, NSColor)] = [
     ("fire-green", leaf, darkLeaf, .fire, flame),
     ("fire-orange", flame, darkFlame, .fire, flame),
     ("fire-black", NSColor(white: 0.11, alpha: 1), NSColor(white: 0.30, alpha: 1), .fire, flame),
+    ("fire-black-outline", NSColor(white: 0.11, alpha: 1), NSColor(white: 0.30, alpha: 1), .fire, flame),
 ]
 for (name, header, ring, glyph, color) in variants {
     for px in [32, 128, 512, 1024] {
-        let rep = icon(px, header: header, ringShadow: ring, glyph: glyph, glyphColor: color)
+        let rep = icon(
+            px, header: header, ringShadow: ring, glyph: glyph, glyphColor: color, outline: name.hasSuffix("-outline"))
         try! rep.representation(using: .png, properties: [:])!.write(
             to: URL(fileURLWithPath: "\(out)/app-icon-\(name)-\(px).png"))
     }
