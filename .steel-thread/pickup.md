@@ -16,7 +16,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-T-002 Slice 4 (Settings), then validation against the spec, an st-crit diff review, and the close. Slices 1–3 are done.
+T-002: all 4 slices done. Next: validate against the spec, run an st-crit diff review (base 899eed8), then close with st-close. The manual tests in docs/manual-tests/menu-bar.md are waiting for the customer.
 
 ## Suggested Start
 

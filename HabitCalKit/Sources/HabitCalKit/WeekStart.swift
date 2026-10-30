@@ -18,4 +18,14 @@ public enum WeekStart: String, Sendable, CaseIterable {
     public static func resolve(override: WeekStart?, mac: WeekStart) -> WeekStart {
         override ?? mac
     }
+
+    /// The override after the user picks `picked` in Settings (T-002 B.13). Picking the Mac's own day
+    /// while following the Mac isn't an override, so a later change on the Mac still takes effect.
+    /// Once overridden, every explicit pick sticks; only "Use Mac setting" removes it.
+    public static func overrideAfterPicking(_ picked: WeekStart, current: WeekStart?, mac: WeekStart) -> WeekStart? {
+        if current == nil && picked == mac {
+            return nil
+        }
+        return picked
+    }
 }

@@ -64,7 +64,7 @@ Layer-first: all of HabitCalKit (Day, Month, MonthGrid, WeekStart, LaunchAtLogin
 
 | Field               | Value |
 | ------------------- | ----- |
-| Status              | Pending |
+| Status              | Done |
 | Scope               | `SettingsView` with About, the link, Week starts on (override rules, "Use Mac setting"), and Launch at login (`LoginItem`, `LaunchAtLoginPolicy`, state mapping with the policy first, the approval caption, the disabled-outside-/Applications caption). Launch policy at startup (B.17). `MainMenu` with ⌘Q and the Quit button. Single-instance check (E.2). `Screen.settings` with Back, and Esc from Settings. |
 | Demo criterion      | Unit: `pickingMacDayWithoutOverrideKeepsFollowingMac`, `pickingWhileOverriddenKeepsOverride`, `pickingOtherDayOverrides`, `launchAtLoginRegistersOnlyFirstLaunchFromApplications`, `onlyTheApplicationsFolderCountsAsInstalled`. UI: `escapeLeavesSettingsThenClosesPopover`, `settingsBackKeepsDisplayedMonth`, `overridingWeekStartReordersCalendarAndPersists`, `macWeekStartIsUsedUntilOverridden`, `quitButtonAndCommandQQuit`, `controlsHaveSpokenLabels`. Manual: Launch at login checks (B.16, B.17, E.3–E.5, E.9, E.10); second copy exits (E.2); the link opens the browser (B.18); VoiceOver and Tab with Keyboard navigation on (E.6). Then the whole `menu-bar.md` and the full test suite run once, including Slice 2's `menuBarIconShowsTodaysDate` as a regression. |
 | Dependencies        | Slice 3's `Screen`, `escape()`, calendar, and gear. |
@@ -110,6 +110,12 @@ Slice 1 → Slice 2 → Slice 3 → Slice 4
 - Commit: the "T-002 slice 3" commit.
 - Affected remaining slices reviewed: 4 extends `Screen`, `escape()`, `WeekStart.resolve` (the override is still nil), and the gear's empty action. All are in place.
 - Changed: the Phosphor icons are bundled as template SVGs in `Assets.xcassets`, with an MIT notice in `THIRD-PARTY-NOTICES.md` (D-008). Two extra pieces landed early: `CalendarView` split into `HabitListScreen`, and a UI test `testCalendarColumnsFollowTheMacsWeekStart` that covers the Mac half of B.12. Slice 4's `macWeekStartIsUsedUntilOverridden` still covers the override half. On macOS, a static text's string is in its accessibility value, not its label, so tests read `.value`. `escapeFromListClosesPopover` passed, so the `cancelOperation` path works with nothing focused (design finding 11), and Slice 4 is unblocked.
+
+### After Slice 4
+
+- Commit: the "T-002 slice 4" commit.
+- Affected remaining slices reviewed: none remain.
+- Changed: `quitButtonAndCommandQQuit` became two tests (`testQuitButtonQuits`, `testCommandQQuitsWhilePopoverIsOpen`), and `testLaunchAtLoginIsDisabledOutsideApplications` was added for E.10. Link-style buttons are links to accessibility, so tests find them by label. A SwiftUI Picker or Toggle already uses its title as its spoken label; adding `.accessibilityLabel` doubled it ("Week starts on, Week starts on"), which `testControlsHaveSpokenLabels` caught. `AppModel` owns the first-launch login-item default (`applyFirstLaunchLoginItemDefault`) rather than `AppDelegate`, so the policy and its UserDefaults key live in one place.
 
 ## 6. Design Drift
 

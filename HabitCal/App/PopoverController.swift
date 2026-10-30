@@ -21,6 +21,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         popover.contentViewController = hostingController
         popover.delegate = self
         hostingController.close = { [weak self] in self?.close() }
+        model.closePopover = { [weak self] in self?.close() }
     }
 
     func toggle(relativeTo button: NSView) {

@@ -2,6 +2,8 @@ import SwiftUI
 
 /// The calendar, the habits under it, and the footer.
 struct HabitListScreen: View {
+    @Environment(AppModel.self) private var model
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             CalendarView()
@@ -15,7 +17,7 @@ struct HabitListScreen: View {
             HStack {
                 Spacer()
                 Button {
-                    // Settings arrive with T-002 slice 4.
+                    model.openSettings()
                 } label: {
                     PhosphorIcon("gear-six", size: 16)
                 }

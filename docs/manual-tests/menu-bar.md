@@ -54,3 +54,71 @@
 3. Set it back to Sunday, and open the popover again.
 
 **Expect:** the calendar's columns start on Monday, then on Sunday, without relaunching.
+
+## HabitCal has no Dock icon or app-switcher entry
+
+**Setup:** HabitCal running.
+
+1. Look at the Dock, and press ⌘Tab.
+
+**Expect:** no HabitCal icon in either.
+
+## Launch at login turns on once, on the first launch from Applications
+
+**Setup:** a build of HabitCal copied to /Applications that has never run there. Log out and in afterward.
+
+1. Open it from /Applications, then open Settings.
+2. Log out and back in.
+
+**Expect:** Launch at login is on, and HabitCal is in the menu bar after logging in. (Repeat on T-005's signed build; ad hoc signing can behave differently.)
+
+## Turning Launch at login off sticks
+
+**Setup:** HabitCal in /Applications, Launch at login on.
+
+1. Turn the switch off, quit, reopen HabitCal, and open Settings.
+2. Log out and back in.
+
+**Expect:** the switch is still off, and HabitCal doesn't start at login.
+
+## Launch at login follows System Settings
+
+**Setup:** HabitCal in /Applications, Launch at login on.
+
+1. In System Settings › General › Login Items, turn HabitCal off.
+2. Open HabitCal's Settings.
+
+**Expect:** the switch shows off, with the caption "Needs approval in System Settings › General › Login Items". Clicking the caption opens that pane. Opening Settings never turns it back on.
+
+## A copy outside Applications never launches at login
+
+**Setup:** a fresh copy of HabitCal in Downloads.
+
+1. Open it from Downloads, then open Settings.
+
+**Expect:** the switch is off and disabled, captioned "Move HabitCal to Applications to launch at login", and System Settings › Login Items doesn't list HabitCal.
+
+## A second copy exits
+
+**Setup:** HabitCal running.
+
+1. Open a second copy (the same build, or one from another folder).
+
+**Expect:** still exactly one HabitCal icon in the menu bar.
+
+## The website link opens the browser
+
+**Setup:** HabitCal running.
+
+1. Open Settings and click www.muchfiner.com.
+
+**Expect:** https://www.muchfiner.com opens in the default browser, and the popover closes.
+
+## Keyboard and VoiceOver reach every control
+
+**Setup:** System Settings › Keyboard › Keyboard navigation on; VoiceOver on (⌘F5).
+
+1. Open the popover and press Tab repeatedly, on the list and in Settings.
+2. Move VoiceOver over the icon, the calendar days, and each control.
+
+**Expect:** Tab reaches every button, the switch, the Sunday/Monday control, and the link. VoiceOver reads the icon as "HabitCal, Thursday, October 29", each day as its full date ("…, today" on today), and each control by name.
