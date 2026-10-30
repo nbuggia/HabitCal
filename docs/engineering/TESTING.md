@@ -16,10 +16,14 @@ UI tests launch the app with Debug-only launch arguments, so they never depend o
 - `-HabitCalToday YYYY-MM-DD`: a fixed today. Always passed.
 - `-HabitCalDefaultsSuite name`: a fresh UserDefaults suite. Always passed (a new UUID per launch; reuse one to test persistence across a relaunch). Leftover suites in the Debug container are accepted.
 - `-HabitCalMacFirstWeekday N`: pretend the Mac's first weekday is N (1 = Sunday).
+- `-HabitCalDataDir name`: keep habits.json in Application Support/HabitCal-tests/<name> inside the app's container. Always passed (a new name per launch; reuse one to test persistence). It's a folder name, not a path: the sandboxed app can't reach the test runner's folders, and the runner can't read the app's.
+- `-HabitCalSeedData base64`: the exact bytes to write to habits.json before loading, to start from known habits or an unreadable file.
+
+`HabitCalUITestCase` passes all of these and holds the shared lookups (`element`, `text`, `openPopover`).
 
 The UI-test app runs from DerivedData, never /Applications, so it never registers a login item.
 
-XCUITest on macOS: a SwiftUI `Text`'s string is its accessibility **value**, not its label; link-style buttons are links, not buttons, so find them by label. Mark test classes `@MainActor` with async `setUp`/`tearDown` under Swift 6. A test that reopens the popover right after closing it waits 0.5 s first (the reopen guard).
+XCUITest on macOS: a SwiftUI `Text`'s string is its accessibility **value**, not its label; link-style buttons are links, not buttons, so find them by label; text inside a button merges into the button's label (find habit rows by "Edit <name>", whose value is the schedule label); keyboard focus isn't exposed for SwiftUI focusable views, so prove focus by behavior (Tab, then a key that changes something). To look at a screen, attach `popover.screenshot()` as an `XCTAttachment` (keepAlways), run with `-resultBundlePath`, and `xcrun xcresulttool export attachments`. Mark test classes `@MainActor` with async `setUp`/`tearDown` under Swift 6. A test that reopens the popover right after closing it waits 0.5 s first (the reopen guard).
 
 ## Commands
 
@@ -49,10 +53,11 @@ A test's name states the behavior it proves, in users' terms: `streakSkipsDaysTh
 
 ## What automation can't reach
 
-These live in `docs/manual-tests/<area>.md` (`menu-bar.md` so far):
+These live in `docs/manual-tests/<area>.md` (`menu-bar.md`, `habits.md`):
 
 - **Menu bar icon:** how it looks at actual size in light, dark, and tinted menu bars, and with Increase Contrast.
 - **Day rollover:** across real midnight, sleep through midnight, and manual clock and time zone changes.
 - **Launch at login:** a real logout and login, approval in System Settings › Login Items, and running from Downloads versus /Applications.
-- **VoiceOver:** spoken labels and the order things are read in.
+- **VoiceOver:** spoken labels, the order things are read in, and adjusting the strip.
+- **Habits:** colors in every appearance, scrolling with many habits, a failed save (read-only folder), copy and paste.
 - **Distribution:** a notarized build opening cleanly from a GitHub download.

@@ -239,3 +239,29 @@ Frequency:
 Last Seen:
 
 - 
+
+## FM-010: A clamped or programmatic value doesn't reach a SwiftUI text field
+
+Symptoms:
+
+- A field shows more than its limit, or the text the user typed, while the model holds something else; Save then drops part of it.
+
+Detection:
+
+- A `TextField` bound through a custom `Binding` whose setter changes the value; a UI test that types past the limit and reads the field back.
+
+Recommendation:
+
+- Give the field its own `@State` text and enforce the limit in `.onChange`, then copy into the model.
+
+Examples:
+
+- T-003: the name field kept 45 characters while the draft held 40. `testNameStopsAtFortyCharacters` caught it; fixed in 6dd42c5.
+
+Frequency:
+
+- Medium
+
+Last Seen:
+
+- 2026-10-29

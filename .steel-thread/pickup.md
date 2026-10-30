@@ -9,6 +9,7 @@ Session: S-002 · 2026-10-29
 - Ran st-dev-setup: wrote `docs/engineering/` (ARCHITECTURE, CONVENTIONS, TESTING, COMMON-FAILURE-MODES FM-001–009) and adapted st-design, st-crit, st-slice, and development.md to Swift/SwiftUI (logged in customizations.md).
 - T-001 closed (D-008). Added T-005 (release). T-002 design approved after two review passes (15 findings, all accepted); spec E.10 added and E.9 narrowed to /Applications. REVIEW-PATTERNS.md created.
 - T-002 built (4 slices), reviewed (6 findings fixed), and closed. 17 unit and 15 UI tests pass.
+- T-003 (3 slices) and T-004 built, reviewed, and closed. 55 unit and 31 UI tests pass. habits.json v1 is in CONTRACTS.md.
 - Customer ruled: the prototype is the source of truth over the PRD. So the calendar grid has no completion marks (the strips carry history), and Notes stay.
 
 ## In Flight
@@ -17,13 +18,16 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-T-003 Slice 3 (E.5 message, E.6 banner, spoken labels, docs/manual-tests/habits.md). Slices 1–2 are done; 44 unit and 29 UI tests pass. Then the diff review and close, then T-004 and T-005.
+T-005 (release): app icon proposed (needs the customer's OK), README, a release script; signing and notarization need the customer's Apple Developer account. The customer's last message, "Add this to the list of feature changes:", arrived cut off; ask what to add.
 
 ## Suggested Start
 
 Get the customer's sign-off on `docs/PRD.md` (my calls: yes/no habits only, no calendar events, SwiftUI macOS 15+, notarized GitHub download), then capture context (vocabulary: habit, schedule, due day, streak).
 
 ## Proposed Updates
+
+- BACKLOG.md, from T-003's Deferred (Later, Source T-003): drag to reorder habits; show notes outside the form (e.g. a row tooltip); undo for delete.
+- Spec clarification made during T-003 review (E.8): Tab reaches buttons with the Mac's Keyboard navigation on; the strip is always a Tab stop. Tell the customer.
 
 - BACKLOG.md, from T-002's Deferred (Later, Source T-002): ←/→ keyboard shortcuts to page months and jump to today; a global hotkey to open the popover; localizing beyond English; week numbers in the grid.
 

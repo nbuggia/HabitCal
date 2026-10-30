@@ -25,7 +25,10 @@ The rules every change follows.
 ## Popover
 
 - Handle Esc in `AppModel.escape()`, one level per press. Never use `.onKeyPress` or `.onExitCommand` for it in an unfocused screen: they need focus, and Esc reaches `cancelOperation` without it (FM-006).
-- A new screen is a case in `Screen` and a branch in `PopoverRoot` and `escape()`.
+- A new screen is a case in `Screen` and a branch in `PopoverRoot` and `escape()`. Keep a screen's editable state in its own `AppModel` property, never in the `Screen` case (focus resets when `screen` changes).
+- A form's Cancel button carries `.keyboardShortcut(.cancelAction)`: it catches Esc even from a focused text field, whose field editor otherwise swallows `cancelOperation`. Give it to one button per screen.
+- Give a text field its own `@State` text and enforce limits there, in `.onChange`; a clamped value pushed back through a model binding doesn't reach a field while it's being typed in.
+- Set `@FocusState` one run-loop turn after a screen appears (`DispatchQueue.main.async`); set synchronously in `onAppear`, it's lost in the popover.
 - Don't add `.accessibilityLabel` to a `Picker` or `Toggle` that has a title: SwiftUI already speaks the title, and a second label doubles it.
 
 ## Naming
@@ -41,7 +44,7 @@ The rules every change follows.
 ## State
 
 - UI state lives in the `@MainActor @Observable` `AppModel`. Views receive it from the environment and change it only through its methods.
-- Every change to habits goes through one `AppModel` method that updates the store and saves, so nothing is changed in memory without being saved (T-003 B.18).
+- Every change to habits goes through one `AppModel` method that applies a `Habits` operation and then calls `persist()`, so nothing is changed in memory without being saved (T-003 B.18).
 
 ## Comments
 

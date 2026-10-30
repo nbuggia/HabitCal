@@ -1,6 +1,6 @@
 # Architecture
 
-Describes what is built. T-002 built the shell (menu bar, popover, calendar, Settings). Habits (T-003) and streaks (T-004) are described where they're planned, and their closes update this.
+Describes what is built: the menu bar shell (T-002), habits (T-003), and streaks (T-004).
 
 ## Stack
 
@@ -29,7 +29,7 @@ HabitCal/                app target (LSUIElement: no Dock icon)
   main.swift             starts NSApplication with AppDelegate
   App/
     AppDelegate          single-instance check (later launch exits), MainMenu, wiring, first-launch login default
-    MainMenu             hidden main menu: ⌘Q (T-003 adds the Edit menu)
+    MainMenu             hidden main menu: ⌘Q, and an Edit menu (Undo, Cut, Copy, Paste, Select All) for the form's fields
     LaunchOptions        Debug-only test seams (see TESTING.md)
     StatusItemController the menu bar item: icon, spoken label, click
     PopoverController    NSPopover (.transient), open/close, 0.3 s reopen guard, first responder
@@ -37,10 +37,12 @@ HabitCal/                app target (LSUIElement: no Dock icon)
     DayWatcher           only writer of today and macWeekStart: 4 notifications + 60 s timer + locale change
     LoginItem            SMAppService wrapper; /Applications policy wins over its status
   MenuBar/MenuBarIcon    tear-off calendar page as a template NSImage (D-008)
-  Views/                 PopoverRoot, HabitListScreen, CalendarView, SettingsScreen, PhosphorIcon
-  AppModel.swift         @MainActor @Observable: today, displayed month, Screen, week-start override, login state
+  Views/                 PopoverRoot, HabitListScreen, CalendarView, HabitRow (done button, name, streaks, context menu),
+                         StripView, HabitFormScreen, SettingsScreen, PhosphorIcon
+  AppModel.swift         @MainActor @Observable: today, displayed month, Screen and form, habits and DataState,
+                         week-start override, login state; every habit change calls persist()
   Assets.xcassets        Phosphor icons as template SVGs (THIRD-PARTY-NOTICES.md)
-HabitCalUITests/         XCUITest journeys (MenuBarUITests)
+HabitCalUITests/         XCUITest journeys: HabitCalUITestCase (shared launch helpers), MenuBarUITests, HabitsUITests, HabitFormUITests
 HabitCalKit/             local Swift package; no AppKit or SwiftUI
   Sources/HabitCalKit/
     Day                  a local calendar date, never a Date instant; weekday, adding(days:)
@@ -49,7 +51,11 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
     WeekStart            Mac mapping, resolve, override-after-picking, orderedWeekdays
     MonthNames           English names and spoken labels
     LaunchAtLoginPolicy  /Applications check; first-launch default
-    (T-003: Habit, Habits, HabitStore, ScheduleLabel; T-004: Streaks)
+    Habit, Habits        a habit, its schedule history and check-offs; due days; add/update/delete/toggle rules
+    HabitDraft           the form's draft: validity, trim, 40/280 limits
+    ScheduleLabel, HabitLabels, StripDay   labels, tooltips, spoken text, strip states
+    HabitStore           the only reader/writer of habits.json (format v1; CONTRACTS.md)
+    Streaks              current and best streak
   Tests/HabitCalKitTests/
 ```
 
@@ -66,19 +72,26 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 
 | State | Owner | Lifetime | Stored |
 | --- | --- | --- | --- |
-| Habits, schedule histories, check-offs | `HabitStore` (HabitCalKit), held by `AppModel` | Forever, until a habit is deleted | `~/Library/Containers/<bundle id>/Data/Library/Application Support/HabitCal/habits.json` |
+| Habits, schedule histories, check-offs | `AppModel.habits`, saved by `HabitStore` | Forever, until a habit is deleted | `~/Library/Containers/<bundle id>/Data/Library/Application Support/HabitCal/habits.json` |
+| Habit form | `AppModel.form` (with `Screen.form`) | Until saved, cancelled, or the popover closes | Memory only |
+| Data state (ok / unreadable / save failed) | `AppModel.dataState` | Process | Memory only |
 | Week-start override, "launch at login initialized" flag | `AppModel` | Forever | `UserDefaults` keys `weekStartOverride` ("sunday"/"monday", absent = follow the Mac) and `launchAtLoginInitialized` (set once a first-launch registration succeeds, or when the user touches the switch) |
 | Launch at login | macOS (`SMAppService`) | Forever | Read from macOS each time Settings opens; never cached |
 | Displayed month, current screen, open form | `AppModel` | Until the popover closes | Memory only |
 
-- `habits.json` carries `formatVersion`. HabitCalKit decodes every earlier version and migrates in memory; it writes only the current version. A file it can't decode, or one with a newer `formatVersion`, puts the store in a read-only "unreadable" state, and nothing is written (D-004).
+- `habits.json` carries `formatVersion` (1 today). HabitCalKit will decode every earlier version and migrate in memory, and writes only the current one. A file it can't decode, with fields or values version 1 never writes, or with a newer `formatVersion`, puts the store in a read-only state: nothing is written (D-004). Saving is allowed only after a load returned loaded or empty.
+- The JSON shape lives in `HabitStore`'s private types, not on the model, so renaming a Swift property can't silently change the format. Codable directly on the model was rejected for that reason.
+- Schedules: a change applies from today. Entries starting today or later are replaced (so the last change of a day wins); `addedOn` governs the first due day. Today's check-off is removed if today is no longer due.
+- Streaks are computed from the habit and today on every render; nothing about them is stored.
 - Dates in the file are local calendar days (`"2026-10-29"`), not timestamps, so a check-off never moves when the time zone changes.
-- Saves are synchronous and atomic (write to a temporary file, then replace), on the main actor, after every change. The file is small: years of daily check-offs for a dozen habits stay well under 1 MB.
+- Saves are synchronous and atomic (write to a temporary file, then replace), on the main actor, after every change. The file is small: years of daily check-offs for a dozen habits stay well under 1 MB. Debounced or background saving was rejected as unneeded; move saving off the main actor only if a save ever exceeds ~10 ms.
 
 ## The Popover
 
 - `AppModel.screen` (`Screen`) picks the screen; `PopoverRoot` switches on it. Every open calls `resetForOpen()`: back to the list and the current month.
 - Esc: `AppModel.escape()` backs out one level and returns `.closePopover` from the list. It's reached through `PopoverHostingController.cancelOperation`, and the hosting view is made first responder after each open and screen change, so it works whether or not a control has focus.
+- The habit form's contents are in `AppModel.form`, never inside `Screen`: changing `screen` resets first responder, so a draft inside it would pull focus out of the name field on every keystroke.
+- Right-click on a habit row is a native `.contextMenu` (Edit…, Delete…), not a drawn menu.
 - The status item's click toggles the popover; `.transient` closes it on an outside click. A reopen within 0.3 s of closing is ignored, because the click that closes a transient popover would otherwise reopen it.
 
 ## External Interfaces
@@ -87,7 +100,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 | --- | --- |
 | ⌘Q quits | `MainMenu` |
 | About link URL | `SettingsScreen` |
-| Saved habit data (T-003 spec; CONTRACTS.md at T-003's close) | `HabitStore` in HabitCalKit |
+| Saved habit data (habits.json v1) | `HabitStore` in HabitCalKit |
 
 ## Open Questions
 
