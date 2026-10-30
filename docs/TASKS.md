@@ -20,7 +20,15 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-006 Calendar polish: tighter day grid · high · done 2026-10-30
       The full-date header was dropped by the customer.
 - [x] T-007 Narrow the popover so the calendar's side gutters shrink · high · done 2026-10-30
-- [ ] T-008 Custom flame for the app icon and streaks · high
-      Customer request 2026-10-30.
+- [x] T-008 Custom flame for the app icon and streaks · high · done 2026-10-30
+      Last commit 0585a91.
+- [x] T-009 Narrow the popover's side gutters further (popover 260 pt) · high · done 2026-10-30
+      Settings' week-start row stacks its label above the control to fit.
+- [x] T-010 Bolder calendar text on Liquid Glass (medium day numbers; bold, primary weekday initials) · high · done 2026-10-30
+- [x] T-011 Settings button uses the Phosphor sliders icon · high · done 2026-10-30
+- [ ] T-012 Show only habits due today; the rest collapse into a "N not due today" row · high
+- [ ] T-013 Today's calendar marker is a rounded square like the menu bar icon · high
+- [ ] T-014 Add and Settings buttons move into the Habits header row; footer removed · high
+- [ ] T-015 Prototype a leaderboard of progress across all habits · medium
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.

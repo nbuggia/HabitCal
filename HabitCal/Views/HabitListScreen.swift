@@ -45,7 +45,7 @@ struct HabitListScreen: View {
                 Button {
                     model.openSettings()
                 } label: {
-                    PhosphorIcon("gear-six", size: 16)
+                    PhosphorIcon("sliders", size: 16)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("Settings")
