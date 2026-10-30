@@ -5,8 +5,8 @@ task: T-003
 rigor: Complex
 trigger: "not revertible: creates the saved data format (habits.json) that every later version must read (D-004, D-006); also a contract"
 date: 2026-10-29
-review iteration: 0
-status: Draft
+review iteration: 2
+status: Approved
 ---
 
 # Tech Design: Habits
@@ -77,8 +77,8 @@ None.
 
 - `Weekday` uses the existing 1–7 numbering (1 = Sunday). A schedule is a `Set<Int>` of weekdays.
 - `ScheduleEntry { from: Day; days: Set<Int> }`.
-- `Habit { id: UUID; name: String; note: String; addedOn: Day; schedule: [ScheduleEntry]; checkOffs: Set<Day> }`. The schedule is sorted by `from`; the first entry's `from` is `addedOn`.
-  - `func days(on day: Day) -> Set<Int>`: the last entry with `from <= day`; empty before `addedOn` (B.1).
+- `Habit { id: UUID; name: String; note: String; addedOn: Day; schedule: [ScheduleEntry]; checkOffs: Set<Day> }`. The schedule is sorted by `from`. `addedOn` governs when the habit is first due; the schedule's first `from` normally equals it, but a mismatch (possible after the clock moves backward, E.7) is legal and never makes a file unreadable.
+  - `func days(on day: Day) -> Set<Int>`: empty before `addedOn`; otherwise the last entry with `from <= day`, or the first entry if none starts that early (B.1).
   - `func isDue(on day: Day) -> Bool` (B.1).
   - `func isDone(on day: Day) -> Bool`.
 - `HabitDraft { name; note; days }` with `isValid` (B.10) and `trimmed` (B.11). Its limits are the constants `HabitDraft.maxNameLength = 40` and `maxNoteLength = 280`.
@@ -92,12 +92,13 @@ None.
   - Today is `.done` or `.missed`.
   - A day after today is `.future` or `.futureNotScheduled`, even if it has a check-off (E.7).
 - `ScheduleLabel.text(for: Set<Int>) -> String` returns "Every day", "Weekdays" or "Weekends"; otherwise the short names in Monday-first order.
+- `HabitLabels`, next to `MonthNames`, builds the tooltips and spoken labels the views show: the strip tooltip ("Oct 5 · done"), the strip's spoken value ("October 5, done"), the done button's spoken label ("Push-ups, done today") and tooltip ("Done today — click to undo"), and "Edit Push-ups". All are unit-tested.
 - `HabitStore` takes a directory URL and owns `habits.json` in it.
   - `func load() -> LoadResult`, where `LoadResult` is one of:
     - `.loaded(Habits)`;
-    - `.empty`, when there's no file yet;
-    - `.unreadable(reason)`, when decoding fails or `formatVersion` isn't 1.
-  - `func save(_ habits: Habits) throws` encodes, then calls `Data.write(to:options: .atomic)`, which writes a temporary file and renames it. The store remembers whether its load came back `.unreadable`; if it did, `save` throws `HabitStoreError.readOnly` without touching the file (D-004, FM-003).
+    - `.empty`, when the file doesn't exist;
+    - `.unreadable(reason)`, for any other read error, a decoding failure, or a `formatVersion` other than 1.
+  - `func save(_ habits: Habits) throws` encodes, then calls `Data.write(to:options: .atomic)`, which writes a temporary file and renames it. Saving is allowed only after `load()` returned `.loaded` or `.empty`; before any load, or after `.unreadable`, `save` throws `HabitStoreError.readOnly` without touching the file (D-004, FM-003). Safety doesn't depend on the order callers use it in.
 - File format v1, documented in CONTRACTS.md at close:
 
 ```json
@@ -116,16 +117,16 @@ None.
 }
 ```
 
-  Weekdays are written as "sun" through "sat". Arrays are sorted when written, so files diff cleanly. Unknown keys are ignored when read, so a later version can add fields while keeping `formatVersion` at 1.
+  Weekdays are written as "sun" through "sat", in that week order. `checkOffs` are written oldest first, and `schedule` entries by `from`; `habits` keep their list order. **Any change to what is written bumps `formatVersion`.** An older build then sees a newer version, treats the file as unreadable (E.5), and never saves over it, so it can't drop a field it doesn't know (D-004). Unknown keys in a version-1 file are still a decoding error, so a v1 file is exactly what v1 wrote.
 
 **App:**
 
 - `LaunchOptions` gains `dataDirectory`. It's `-HabitCalDataDir path` in Debug; otherwise `Application Support/HabitCal/` in the container, created on first save.
 - `AppModel` gains:
-  - **State:** `habits: Habits` (`private(set)`) and `dataState`, which is `.ok`, `.unreadable(path)` (E.5) or `.saveFailed` (E.6, cleared by the next successful save). `Screen` gains `.form(HabitForm)`, where `HabitForm { mode: .add | .edit(UUID); draft: HabitDraft; confirmingDelete: Bool }`.
+  - **State:** `habits: Habits` (`private(set)`) and `dataState`, which is `.ok`, `.unreadable(path)` (E.5) or `.saveFailed` (E.6, cleared by the next successful save). `Screen` gains a bare `.form` case. The form's contents live in a separate `var form: HabitForm?`, where `HabitForm { mode: .add | .edit(UUID); draft: HabitDraft; confirmingDelete: Bool }`. Keeping it out of `Screen` matters: `screen`'s `didSet` resets first responder (T-002), and a draft inside `Screen` would pull focus out of the name field on every keystroke. `form` is cleared by `escape()`, `cancelForm()`, `saveForm()`, `deleteFromForm()`, and `resetForOpen()`.
   - **Methods:** `openAddForm()`, `openEditForm(_:)`, `openDeleteConfirmation(_:)`, `saveForm()`, `cancelForm()`, `deleteFromForm()`, `toggleToday(_:)`, and `toggle(_:on:)`. Each one that changes habits calls the `Habits` operation and then `persist()`. `persist()` calls `store.save` and updates `dataState`.
   - **`escape()`:** `.form` → back to the list (B.12).
-  - **`resetForOpen()`:** already resets to `.list`, so closing the popover discards an open form (E.2).
+  - **`resetForOpen()`:** sets `screen = .list` and `form = nil`, so closing the popover discards an open form (E.2).
 - **Views:**
   - `HabitListScreen`: if `dataState == .unreadable`, it shows the E.5 message. Otherwise it shows a `ScrollView` of `HabitRow`, with a maximum height of the screen's visible height minus 330 pt so the popover never runs off-screen (E.1), plus the E.6 banner, the empty state, and the footer with "+ Add habit" and the gear.
   - `HabitRow`:
@@ -133,7 +134,9 @@ None.
     - **Name and label:** with the pencil on hover.
     - **Right-hand space:** for T-004's streaks.
     - **`.contextMenu`:** Edit… and Delete….
-    - **`StripView`:** 31 squares. It's one accessibility element with adjustable actions: the arrow keys move between days, and Space (activate) toggles (E.8).
+    - **`StripView`:** 31 squares, one Tab stop (E.8). It has two separate mechanisms that share one view-local `@State var cursor: Int` (the focused day, starting at today in the current month, or the 1st):
+      - **Keyboard:** `.focusable(interactions: .edit)` (always a Tab stop, like a field, whatever the Mac's Keyboard navigation setting) with `.focusEffectDisabled()` (one ring, on the cursor square), plus `.onKeyPress` for ← / → (move the cursor) and Space (toggle the cursor's day if B.5 allows), with a visible focus ring on the cursor's square.
+      - **VoiceOver:** `.accessibilityElement()` with `.accessibilityAdjustableAction` (increment and decrement move the cursor), `.accessibilityAction` (toggle), and the cursor day's spoken label as the value.
   - `HabitFormScreen`:
     - **Header:** Cancel, the title, and Add/Save.
     - **Name field:** focused and selected on open, with `.onSubmit` for Return.
@@ -142,14 +145,15 @@ None.
     - **Delete** and its confirmation.
     - **Length limits:** enforced in the bindings (E.4).
 - **Right-click menu:** a native SwiftUI `.contextMenu` (an NSMenu) rather than the prototype's drawn menu. It opens at the pointer and closes on a choice, an outside click, or Esc (B.17), with no Esc handling of our own. It also gives VoiceOver the standard "Show menu" action.
-- **Esc in text fields:** the field editor handles `cancelOperation` itself (T-002 design finding 12). `HabitFormScreen` adds `.onExitCommand { model.escape() }` on the form, which fires from a focused text field. `PopoverHostingController.cancelOperation` still covers the unfocused case. The UI test `escapeInFormReturnsToList` types Esc with the name field focused.
+- **Esc in the form:** the field editor handles `cancelOperation` itself (T-002 design finding 12), so it can't be relied on from a focused field. The form's Cancel button gets `.keyboardShortcut(.cancelAction)`: the window handles key equivalents before the field editor sees Esc, which covers both focused and unfocused cases. Only the header Cancel carries it; the delete confirmation's Cancel doesn't, so the shortcuts don't conflict. `PopoverHostingController.cancelOperation` stays as the fallback. The UI tests `escapeInFormReturnsToList` and `escapeInNotesReturnsToList` type Esc with each field focused.
 - `MainMenu` gains an Edit menu: Undo, Redo, Cut, Copy, Paste, and Select All, with standard selectors.
 
 | New state | Owner | Lifetime | Persist? | Why |
 | --------- | ----- | -------- | -------- | --- |
 | `habits` | AppModel (value), saved via HabitStore | Forever | `habits.json` | B.18 |
 | `dataState` | AppModel | Process | No | E.5, E.6 |
-| `HabitForm` inside `Screen.form` | AppModel | Until saved, cancelled, or the popover closes | No | E.2 |
+| `form: HabitForm?` (with `Screen.form`) | AppModel | Until saved, cancelled, or the popover closes | No | E.2 |
+| Strip cursor | `StripView` `@State` | While the strip is on screen | No | E.8 |
 
 | Operation | Triggers | Caller | Boundary | Handler/event | Registration | Consumer/state | Restore/cleanup | Test | Evidence |
 | --------- | -------- | ------ | -------- | ------------- | ------------ | -------------- | --------------- | ---- | -------- |
@@ -198,7 +202,7 @@ All HabitCalKit types are `Sendable` values; `HabitStore` is a final class confi
 ## 8. Data Model & Persistence
 
 - **File:** `habits.json` in the container's `Application Support/HabitCal/`. It's created on the first save; a missing file loads as `.empty`.
-- **Format:** version 1, as in §6. A field added later is optional when read. A change that old versions would misread raises `formatVersion`, and old versions then show E.5 instead of overwriting.
+- **Format:** version 1, as in §6. Any change to what is written raises `formatVersion`; old versions then show E.5 instead of overwriting.
 - **Older builds:** there are none before v1. A build one version older than a future v2 file reads `formatVersion: 2` as unreadable, shows E.5, and doesn't write. That's the downgrade guarantee.
 - **Fixture test:** a hand-written v1 file in the test bundle must decode to known habits. It pins the contract.
 - **Retention:** habits stay until deleted. Deleting removes them from the file on the next save.
@@ -230,7 +234,7 @@ No new entitlements: the container's Application Support is writable in the sand
 
 ## 12. Implementation Slicing Strategy
 
-1. **Model and store:** HabitCalKit `Habit`, `Habits`, `HabitDraft`, `ScheduleLabel`, `StripDay`, and `HabitStore` with fixtures, all unit- and integration-tested. App: load at launch, `-HabitCalDataDir`, and the rows (name, label, done button, strip) for existing data. Demo: a UI test seeded with a v1 file shows its habits, and checking off today persists across a relaunch.
+1. **Model and store:** HabitCalKit `Habit`, `Habits`, `HabitDraft`, `ScheduleLabel`, `StripDay`, `HabitLabels`, and `HabitStore` with fixtures, all unit- and integration-tested. App: load at launch, `-HabitCalDataDir`, and the rows (name, label, done button, and the strip in its final shape, with the keyboard cursor and VoiceOver actions) for existing data. Demo: a UI test seeded with a v1 file shows its habits, and checking off today persists across a relaunch.
 2. **Form:** add, edit, and delete; the context menu; the Edit menu; Esc in the form; and the hints. Demo: add/edit/delete UI tests.
 3. **Errors and edges:** the E.5 unreadable state, the E.6 banner, scrolling, and accessibility labels. Demo: UI tests with an unreadable and a newer-format file; manual checks.
 
@@ -257,7 +261,11 @@ No new entitlements: the container's Application Support is writable in the sand
 | `editingAHabitRenamesItAndChangesItsDays` | UI | UC-4, B.9, B.2 hint | — |
 | `deletingAHabitAsksFirstThenRemovesIt` | UI | UC-5, B.15–B.17 | — |
 | `habitsSurviveRelaunch` | UI | UC-6, B.18 | — |
-| `escapeInFormReturnsToList` (name field focused) | UI | B.12 | Esc swallowed by the field editor |
+| `escapeInFormReturnsToList` (name field focused) / `escapeInNotesReturnsToList` | UI | B.12 | Esc swallowed by the field editor |
+| `labelsDescribeEachDayAndButton` | unit | §5 tooltips, E.8 | Labels computed in views |
+| `saveBeforeLoadIsRefused` | integration | D-004 | FM-003 |
+| `typingInTheNameFieldKeepsFocus` | UI | B.8, FM-006 | Focus reset per keystroke |
+| `stripIsOneTabStopThatArrowsAndSpaceDrive` | UI | E.8 | — |
 | `unreadableDataShowsMessageAndDisablesAdd` | UI | E.5 | FM-003 |
 | `emptyListShowsPrompt` | UI | §5 empty state | — |
 | `habitControlsHaveSpokenLabels` | UI | E.8 | — |
@@ -273,15 +281,30 @@ Direct ship. The first release writes format version 1.
 
 | \#  | Finding | Severity | Cost to accept | Decision | Rationale | Next step | Arch? | Source |
 | --- | ------- | -------- | -------------- | -------- | --------- | --------- | ----- | ------ |
+| 1 | Form draft inside `Screen` resets focus every keystroke | BLOCKER | Small | ACCEPT | Breaks typing | Bare `Screen.form` + separate `form` property | Yes | Pass 1 |
+| 2 | "Unknown keys ignored; add fields at v1" lets a downgrade drop data | MAJOR | One rule | ACCEPT | D-004 | Any written change bumps `formatVersion`; unknown keys fail v1 | Yes (contract) | Pass 1 |
+| 3 | `.onExitCommand` from a focused field is unproven | MAJOR | Small | ACCEPT | Esc may fail in the form | Cancel `.keyboardShortcut(.cancelAction)`; tests for both fields | Yes (convention) | Pass 1 |
+| 4 | Strip keyboard vs. VoiceOver adjustable conflated | MAJOR | Small | ACCEPT | E.8 | Two named mechanisms + cursor, built in slice 1 | No | Pass 1 |
+| 5 | Read-only guard inverted: save before load is allowed | MINOR | Small | ACCEPT | FM-003 | Save only after `.loaded`/`.empty` | No | Pass 1 |
+| 6 | `addedOn` vs. `schedule[0].from` precedence | MINOR | One line | ACCEPT | E.7 mismatch | `addedOn` governs; mismatch legal | No | Pass 1 |
+| 7 | "Arrays are sorted" would reorder habits | MINOR | One line | ACCEPT | List order | Sort only checkOffs and schedule; days in week order | Yes (contract) | Pass 1 |
+| 8 | Tooltip and spoken labels have no HabitCalKit home | MINOR | Small | ACCEPT | Conventions | `HabitLabels` + unit test | No | Pass 1 |
+| 10 | `deleteFromForm()` missing from what clears `form` | MINOR | One line | ACCEPT | Consistency | Added | No | Pass 2 |
+| 11 | Strip Tab stop depends on Keyboard navigation; double focus ring | MINOR | One line | ACCEPT | E.8 | `.focusable(interactions: .edit)` + `.focusEffectDisabled()` | No | Pass 2 |
+| 12 | `resetForOpen` wording; `HabitLabels` missing from §16; only header Cancel takes `.cancelAction` | MINOR | Wording | ACCEPT | Consistency | Applied | No | Pass 2 |
+| 9 | Lasting Changes incomplete | MINOR | Rows | ACCEPT | Later changes need them | Rows added | Yes | Pass 1 |
 
 ## 16. Lasting Changes
 
 | Change | Goes to |
 | ------ | ------- |
-| `habits.json` format v1, its versioning rules, and the fixture test | CONTRACTS.md (created at close) |
-| HabitCalKit types (Habit, Habits, HabitDraft, ScheduleLabel, StripDay, HabitStore) and the data directory | ARCHITECTURE.md |
+| `habits.json` format v1, its versioning rule ("any change to what is written bumps `formatVersion`"), and the fixture test | CONTRACTS.md (exists since T-002) |
+| Schedule cut-over: entries with `from >= today` are replaced; `addedOn` governs first due day | ARCHITECTURE.md, State and Persistence |
+| Rejected: Codable on model types (format would follow Swift renames); debounced/background saving (ceiling: move off-main if saves exceed ~10 ms) | ARCHITECTURE.md notes |
+| MainMenu has an Edit menu | ARCHITECTURE.md component list |
+| HabitCalKit types (Habit, Habits, HabitDraft, ScheduleLabel, StripDay, HabitLabels, HabitStore) and the data directory | ARCHITECTURE.md |
 | "Every habit change goes through an AppModel method that calls `persist()`" (already a rule) and "the JSON shape lives in HabitStore's private DTOs" | CONVENTIONS.md |
-| Esc in text fields uses `.onExitCommand`; unfocused Esc uses `cancelOperation` | CONVENTIONS.md, Boundaries |
+| A form's Cancel button carries `.keyboardShortcut(.cancelAction)` for Esc from text fields; unfocused Esc uses `cancelOperation`. Form state never lives inside `Screen` | CONVENTIONS.md, Popover |
 | Native `.contextMenu` over a drawn menu | ARCHITECTURE.md note |
 | `-HabitCalDataDir` launch option | TESTING.md |
 | Manual tests for habits | docs/manual-tests/habits.md |
