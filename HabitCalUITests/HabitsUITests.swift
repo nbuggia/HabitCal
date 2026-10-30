@@ -132,4 +132,18 @@ final class HabitsUITests: HabitCalUITestCase {
         }
         XCTAssertTrue(popover.buttons["Monday"].isSelected, "selected days should say so")
     }
+
+    func testCheckingOffUpdatesTheStreakImmediately() {
+        // Push-ups: done on the 27th, missed the 28th, today (29th) not done yet.
+        launch(seed: Self.seed)
+        openPopover()
+        let streaks = popover.descendants(matching: .any)["streaks-Push-ups"]
+        XCTAssertEqual(streaks.label, "Current streak 0 days, best streak 1 day")
+        element("Push-ups, not done today").click()
+        XCTAssertEqual(streaks.label, "Current streak 1 day, best streak 1 day")
+        clickStripDay("Push-ups", day: 28)
+        XCTAssertEqual(streaks.label, "Current streak 3 days, best streak 3 days")
+        XCTAssertEqual(
+            popover.descendants(matching: .any)["streaks-Run"].label, "Current streak 0 days, best streak 0 days")
+    }
 }

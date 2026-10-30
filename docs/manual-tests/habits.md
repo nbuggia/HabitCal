@@ -44,3 +44,11 @@
 1. Edit it, select the note, ⌘C; select the name, ⌘V; ⌘Z.
 
 **Expect:** copy, paste, and undo all work in both fields.
+
+## Streaks show at the right of each row
+
+**Setup:** a habit with a current streak of 2, another of 3 or more, and one long streak (seed or check off by hand).
+
+1. Open the popover; hover each number.
+
+**Expect:** each row shows a fire with the current streak and a trophy with the best. At 3 or more the fire and its number turn orange and bold; below 3 they're grey. Tooltips read "Current streak" and "Best streak". Large numbers show in full (e.g. 1095), never abbreviated.

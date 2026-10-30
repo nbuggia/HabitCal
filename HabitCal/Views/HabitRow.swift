@@ -33,6 +33,7 @@ struct HabitRow: View {
                 .accessibilityLabel(HabitLabels.editSpoken(name: habit.name))
                 .accessibilityValue(ScheduleLabel.text(for: habit.days(today: model.today)))
                 Spacer(minLength: 0)
+                StreakStats(habit: habit)
             }
             StripView(habit: habit)
                 .padding(.leading, 32)
@@ -81,5 +82,35 @@ private struct DoneButton: View {
                 .accessibilityElement()
                 .accessibilityLabel(spoken)
         }
+    }
+}
+
+/// The current streak (fire) and best streak (trophy) at the right of a row (T-004 §5).
+private struct StreakStats: View {
+    @Environment(AppModel.self) private var model
+    let habit: Habit
+
+    var body: some View {
+        let current = Streaks.current(habit, today: model.today)
+        let best = Streaks.best(habit, today: model.today)
+        let hot = current >= Streaks.hotThreshold
+        HStack(spacing: 10) {
+            HStack(spacing: 3) {
+                PhosphorIcon("fire", size: 13)
+                Text("\(current)").fontWeight(hot ? .semibold : .regular)
+            }
+            .foregroundStyle(hot ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
+            .help("Current streak")
+            HStack(spacing: 3) {
+                PhosphorIcon("trophy", size: 13)
+                Text("\(best)")
+            }
+            .foregroundStyle(.secondary)
+            .help("Best streak")
+        }
+        .font(.callout.monospacedDigit())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Streaks.spoken(current: current, best: best))
+        .accessibilityIdentifier("streaks-\(habit.name)")
     }
 }
