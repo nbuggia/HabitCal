@@ -67,7 +67,8 @@ private struct DayCell: View {
             .frame(width: 20, height: 20)
             .background {
                 if isToday {
-                    Circle().fill(Color.accentColor)
+                    // A rounded square in the menu bar icon's proportions (4.95 pt corners on 21 pt) (T-013).
+                    RoundedRectangle(cornerRadius: 4.7).fill(Color.accentColor)
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 24)
