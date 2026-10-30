@@ -1,6 +1,6 @@
 # Testing
 
-No project exists yet, so the commands below are unconfirmed. T-002 creates the project and confirms them; update this file then.
+Commands confirmed with Xcode 27.1 on 2026-10-29.
 
 ## Kinds of test
 
@@ -11,7 +11,15 @@ No project exists yet, so the commands below are unconfirmed. T-002 creates the 
 | UI | XCTest UI testing (`XCUIApplication`) | `HabitCalUITests/` | Each spec's use cases through the running app: popover, calendar paging, form, check-offs, Settings |
 | Manual | `docs/manual-tests/<area>.md` | | What automation can't reach (below) |
 
-UI tests launch the app with launch arguments that set a fixed "today" and a temporary data directory, so they never depend on the real date or touch real data (FM-007).
+UI tests launch the app with Debug-only launch arguments, so they never depend on the real date or touch real settings (FM-007):
+
+- `-HabitCalToday YYYY-MM-DD`: a fixed today. Always passed.
+- `-HabitCalDefaultsSuite name`: a fresh UserDefaults suite. Always passed (a new UUID per launch; reuse one to test persistence across a relaunch). Leftover suites in the Debug container are accepted.
+- `-HabitCalMacFirstWeekday N`: pretend the Mac's first weekday is N (1 = Sunday).
+
+The UI-test app runs from DerivedData, never /Applications, so it never registers a login item.
+
+XCUITest on macOS: a SwiftUI `Text`'s string is its accessibility **value**, not its label; link-style buttons are links, not buttons, so find them by label. Mark test classes `@MainActor` with async `setUp`/`tearDown` under Swift 6. A test that reopens the popover right after closing it waits 0.5 s first (the reopen guard).
 
 ## Commands
 
@@ -19,11 +27,13 @@ UI tests launch the app with launch arguments that set a fixed "today" and a tem
 # Unit and integration tests (fast; run on every change to HabitCalKit)
 swift test --package-path HabitCalKit
 
-# Build the app and run the UI tests
-xcodebuild test -project HabitCal.xcodeproj -scheme HabitCal -destination 'platform=macOS'
+# Build the app and run the UI tests (~3–4 minutes; they drive the real screen)
+xcodebuild test -project HabitCal.xcodeproj -scheme HabitCal -destination 'platform=macOS' -derivedDataPath build/dd
 
 # Format check (swift-format ships with the toolchain)
-swift format lint --recursive --strict HabitCal HabitCalKit HabitCalUITests
+swift format lint --recursive --strict HabitCal HabitCalKit HabitCalUITests   # config: .swift-format
+# Fix formatting in place
+swift format --in-place --recursive HabitCal HabitCalKit HabitCalUITests
 ```
 
 ## Validation order
@@ -39,7 +49,7 @@ A test's name states the behavior it proves, in users' terms: `streakSkipsDaysTh
 
 ## What automation can't reach
 
-These live in `docs/manual-tests/<area>.md`, created when the first check is needed:
+These live in `docs/manual-tests/<area>.md` (`menu-bar.md` so far):
 
 - **Menu bar icon:** how it looks at actual size in light, dark, and tinted menu bars, and with Increase Contrast.
 - **Day rollover:** across real midnight, sleep through midnight, and manual clock and time zone changes.

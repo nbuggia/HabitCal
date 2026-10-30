@@ -148,10 +148,11 @@ Detection:
 Recommendation:
 
 - Activate the app when showing the popover, use the `.transient` behavior, and test keyboard entry in a UI test.
+- Route Esc through `cancelOperation` on the hosting controller, and make the hosting view first responder after each open and screen change.
 
 Examples:
 
-- 
+- T-002 design review: `.onKeyPress(.escape)` would have missed Esc in Settings with nothing focused, and NSPopover would have closed itself. Caught in review; `testEscapeLeavesSettingsThenClosesPopover` holds it.
 
 Frequency:
 
@@ -203,7 +204,7 @@ Recommendation:
 
 Examples:
 
-- 
+- Not seen: on 2026-10-29 (Xcode 27.1, macOS 27), `app.statusItems["HabitCalStatusItem"].click()` works reliably.
 
 Frequency:
 

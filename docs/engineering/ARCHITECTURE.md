@@ -1,6 +1,6 @@
 # Architecture
 
-No code exists yet. This describes the shape v1 is built to, starting with T-002, which creates the project. Each task's close updates this file to describe what was actually built.
+Describes what is built. T-002 built the shell (menu bar, popover, calendar, Settings). Habits (T-003) and streaks (T-004) are described where they're planned, and their closes update this.
 
 ## Stack
 
@@ -9,6 +9,8 @@ No code exists yet. This describes the shape v1 is built to, starting with T-002
 - macOS 15 (Sequoia) or later, universal binary (Apple silicon and Intel).
 - No third-party dependencies (PRD Constraints).
 - Distribution: Developer ID–signed, notarized, hardened runtime, App Sandbox, downloaded from GitHub (PRD Constraints, D-007).
+- Bundle IDs: `com.muchfiner.HabitCal` (Release) and `com.muchfiner.HabitCal.debug` (Debug), so dev and test runs never share the installed copy's container, UserDefaults, or single-instance check.
+- The project file is hand-written (`objectVersion 77`) with folder-synced groups: every file in `HabitCal/` and `HabitCalUITests/` is in its target automatically. XcodeGen and Tuist were considered and not needed.
 
 | Dependency | What it does for us | Why this one |
 | --- | --- | --- |
@@ -22,22 +24,32 @@ No code exists yet. This describes the shape v1 is built to, starting with T-002
 ## Components
 
 ```
-HabitCal.xcodeproj
-  HabitCal/            app target (LSUIElement: no Dock icon)
-    App/               AppDelegate: status item, popover, single-instance check, day-change observers
-    MenuBar/           icon rendering (tear-off calendar page as a template NSImage)
-    Views/             SwiftUI screens: HabitList, CalendarGrid, HabitRow, HabitForm, Settings
-    AppModel.swift     @MainActor @Observable: owns the displayed month, current screen, HabitStore, settings
-  HabitCalUITests/     XCUITest journeys, one file per product area
-HabitCalKit/           local Swift package, imported by the app; no AppKit or SwiftUI
+HabitCal.xcodeproj       hand-written; shared scheme "HabitCal"
+HabitCal/                app target (LSUIElement: no Dock icon)
+  main.swift             starts NSApplication with AppDelegate
+  App/
+    AppDelegate          single-instance check (later launch exits), MainMenu, wiring, first-launch login default
+    MainMenu             hidden main menu: ⌘Q (T-003 adds the Edit menu)
+    LaunchOptions        Debug-only test seams (see TESTING.md)
+    StatusItemController the menu bar item: icon, spoken label, click
+    PopoverController    NSPopover (.transient), open/close, 0.3 s reopen guard, first responder
+    PopoverHostingController  hosts PopoverRoot; Esc arrives as cancelOperation → AppModel.escape()
+    DayWatcher           only writer of today and macWeekStart: 4 notifications + 60 s timer + locale change
+    LoginItem            SMAppService wrapper; /Applications policy wins over its status
+  MenuBar/MenuBarIcon    tear-off calendar page as a template NSImage (D-008)
+  Views/                 PopoverRoot, HabitListScreen, CalendarView, SettingsScreen, PhosphorIcon
+  AppModel.swift         @MainActor @Observable: today, displayed month, Screen, week-start override, login state
+  Assets.xcassets        Phosphor icons as template SVGs (THIRD-PARTY-NOTICES.md)
+HabitCalUITests/         XCUITest journeys (MenuBarUITests)
+HabitCalKit/             local Swift package; no AppKit or SwiftUI
   Sources/HabitCalKit/
-    Day.swift          a local calendar date (year, month, day), never a Date instant
-    Clock.swift        source of "today"; injectable for tests
-    Habit.swift        habit, schedule history, check-offs; due-day rules
-    Streaks.swift      current and best streak
-    ScheduleLabel.swift
-    WeekStart.swift    Mac setting → Sunday/Monday mapping, override
-    HabitStore.swift   load/save of the data file, versioning, unreadable-data guard
+    Day                  a local calendar date, never a Date instant; weekday, adding(days:)
+    TodaySource          the only source of "today" (System / Fixed)
+    Month, MonthGrid     displayed month; always 42 grid days
+    WeekStart            Mac mapping, resolve, override-after-picking, orderedWeekdays
+    MonthNames           English names and spoken labels
+    LaunchAtLoginPolicy  /Applications check; first-launch default
+    (T-003: Habit, Habits, HabitStore, ScheduleLabel; T-004: Streaks)
   Tests/HabitCalKitTests/
 ```
 
@@ -55,7 +67,7 @@ HabitCalKit/           local Swift package, imported by the app; no AppKit or Sw
 | State | Owner | Lifetime | Stored |
 | --- | --- | --- | --- |
 | Habits, schedule histories, check-offs | `HabitStore` (HabitCalKit), held by `AppModel` | Forever, until a habit is deleted | `~/Library/Containers/<bundle id>/Data/Library/Application Support/HabitCal/habits.json` |
-| Week-start override, "launch at login initialized" flag | `AppModel` | Forever | `UserDefaults` |
+| Week-start override, "launch at login initialized" flag | `AppModel` | Forever | `UserDefaults` keys `weekStartOverride` ("sunday"/"monday", absent = follow the Mac) and `launchAtLoginInitialized` (set once a first-launch registration succeeds, or when the user touches the switch) |
 | Launch at login | macOS (`SMAppService`) | Forever | Read from macOS each time Settings opens; never cached |
 | Displayed month, current screen, open form | `AppModel` | Until the popover closes | Memory only |
 
@@ -63,13 +75,20 @@ HabitCalKit/           local Swift package, imported by the app; no AppKit or Sw
 - Dates in the file are local calendar days (`"2026-10-29"`), not timestamps, so a check-off never moves when the time zone changes.
 - Saves are synchronous and atomic (write to a temporary file, then replace), on the main actor, after every change. The file is small: years of daily check-offs for a dozen habits stay well under 1 MB.
 
+## The Popover
+
+- `AppModel.screen` (`Screen`) picks the screen; `PopoverRoot` switches on it. Every open calls `resetForOpen()`: back to the list and the current month.
+- Esc: `AppModel.escape()` backs out one level and returns `.closePopover` from the list. It's reached through `PopoverHostingController.cancelOperation`, and the hosting view is made first responder after each open and screen change, so it works whether or not a control has focus.
+- The status item's click toggles the popover; `.transient` closes it on an outside click. A reopen within 0.3 s of closing is ignored, because the click that closes a transient popover would otherwise reopen it.
+
 ## External Interfaces
 
 | Contract | Implemented by |
 | --- | --- |
+| ⌘Q quits | `MainMenu` |
+| About link URL | `SettingsScreen` |
 | Saved habit data (T-003 spec; CONTRACTS.md at T-003's close) | `HabitStore` in HabitCalKit |
 
 ## Open Questions
 
 - Developer ID team and notarization credentials aren't set up yet. They're needed before the first release, not before T-002.
-- Whether `XCUIApplication` can open the popover through `statusItems` on macOS 15+ reliably enough for UI tests. T-002's design should prove it before relying on it (FM-008).

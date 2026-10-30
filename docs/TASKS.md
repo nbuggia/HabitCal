@@ -11,10 +11,10 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 ## Phase 1 — v1
 - [x] T-001 Prototype menu bar design concepts · high · done 2026-10-29
       Produced D-003 and D-008; the design is specified in T-002, T-003, and T-004.
-- [ ] T-002 Menu bar date and month calendar · high
-      Slice 4 of 4 in docs/work/T-002-menubar-calendar/slices.md.
+- [x] T-002 Menu bar date and month calendar · high · done 2026-10-29
+      Last commit 549073b.
 - [ ] T-003 Habits: add, edit, check off · high
-      Spec in docs/work/T-003-habits/spec.md.
+      Design in progress: docs/work/T-003-habits/design.md.
 - [ ] T-004 Streaks · high
       Spec in docs/work/T-004-streaks/spec.md.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high

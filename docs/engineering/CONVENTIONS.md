@@ -1,25 +1,32 @@
 # Conventions
 
-No code exists yet. These are the rules v1 starts with; T-002's close replaces the planned examples with real files.
+The rules every change follows.
 
 ## Structure
 
 - Habit, schedule, streak, week-start, and saving rules go in `HabitCalKit/Sources/HabitCalKit/`, with their tests in `HabitCalKit/Tests/HabitCalKitTests/`.
 - Anything that needs AppKit, SwiftUI, or ServiceManagement goes in the `HabitCal` app target: menu bar code in `App/` and `MenuBar/`, screens in `Views/`.
-- One SwiftUI view per file, named for the screen or part it draws (`HabitRow.swift`).
+- One SwiftUI view per file, named for the screen or part it draws (`CalendarView.swift`).
+- Add a file by putting it in its folder: the project uses folder-synced groups, so there's no project-file edit.
 
 ## Boundaries
 
 - HabitCalKit never imports AppKit, SwiftUI, or ServiceManagement. If a rule needs one of them, the rule is split: the decision goes in HabitCalKit, and the call into macOS goes in the app.
-- Views never compute due days, streaks, or labels themselves; they read them from HabitCalKit through `AppModel`.
+- Views never compute due days, streaks, labels, or orderings themselves; they read them from HabitCalKit through `AppModel` (e.g. `WeekStart.orderedWeekdays`, `MonthNames.spokenCalendarDay`).
 - Only `HabitStore` touches the data file. Nothing else reads or writes it (D-004, D-006).
 - Never make a network request. The sandbox has no network entitlement, and adding one needs a decision (D-007).
 
 ## Dates
 
 - A calendar day is a `Day`, never a `Date`. Convert `Date` → `Day` once, at the app's edge, with the user's current calendar and time zone (FM-002).
-- "Today" comes only from the injected `Clock`. Never call `Date()` or `Date.now` in HabitCalKit or the views (FM-007).
+- "Today" comes only from `AppModel.today`, set by `DayWatcher` from a `TodaySource`. Never call `Date()` or `Date.now` anywhere else (FM-007).
 - Use `Calendar.autoupdatingCurrent`, never a cached `Calendar.current`, wherever the Mac's settings matter (FM-005).
+
+## Popover
+
+- Handle Esc in `AppModel.escape()`, one level per press. Never use `.onKeyPress` or `.onExitCommand` for it in an unfocused screen: they need focus, and Esc reaches `cancelOperation` without it (FM-006).
+- A new screen is a case in `Screen` and a branch in `PopoverRoot` and `escape()`.
+- Don't add `.accessibilityLabel` to a `Picker` or `Toggle` that has a title: SwiftUI already speaks the title, and a second label doubles it.
 
 ## Naming
 
