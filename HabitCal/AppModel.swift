@@ -1,11 +1,21 @@
 import Foundation
 import HabitCalKit
 import Observation
+import os
 
 /// The popover's screens. T-003 adds the habit form.
 enum Screen: Equatable {
     case list
     case settings
+}
+
+/// Whether habits can be shown and saved (T-003 E.5, E.6).
+enum DataState: Equatable {
+    case ok
+    /// The file couldn't be read; nothing is saved, and Add is disabled. Holds the file's path.
+    case unreadable(String)
+    /// The last save failed; the change is kept on screen until a later save succeeds.
+    case saveFailed
 }
 
 /// What Esc did: handled inside the popover, or nothing left to back out of, so close it.
@@ -18,6 +28,8 @@ enum EscapeResult {
 @MainActor
 @Observable
 final class AppModel {
+    private static let log = Logger(subsystem: Bundle.main.bundleIdentifier ?? "HabitCal", category: "AppModel")
+
     private enum Key {
         static let weekStartOverride = "weekStartOverride"
         static let launchAtLoginInitialized = "launchAtLoginInitialized"
@@ -34,6 +46,9 @@ final class AppModel {
     /// The user's week start, or nil while following the Mac. Persisted (T-002 B.15).
     private(set) var weekStartOverride: WeekStart?
     private(set) var loginItemState: LoginItemState
+    /// The user's habits. Changed only through the methods below, each of which saves (T-003 B.18).
+    private(set) var habits: Habits
+    private(set) var dataState: DataState
     /// Bumped on every refresh, so the switch redraws even when a failed change leaves the state
     /// equal to what it was: AppKit has already flipped the switch on the click (T-002 E.4).
     private(set) var loginItemRevision = 0
@@ -43,10 +58,23 @@ final class AppModel {
     /// Called after the screen changes. Set by `PopoverController` to keep Esc working (FM-006).
     @ObservationIgnored var screenDidChange: () -> Void = {}
 
+    @ObservationIgnored private let store: HabitStore
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let loginItem: LoginItem
 
-    init(today: Day, macWeekStart: WeekStart, defaults: UserDefaults, loginItem: LoginItem) {
+    init(store: HabitStore, today: Day, macWeekStart: WeekStart, defaults: UserDefaults, loginItem: LoginItem) {
+        self.store = store
+        switch store.load() {
+        case .loaded(let loaded):
+            habits = loaded
+            dataState = .ok
+        case .empty:
+            habits = Habits()
+            dataState = .ok
+        case .unreadable:
+            habits = Habits()
+            dataState = .unreadable(store.fileURL.path)
+        }
         self.today = today
         self.macWeekStart = macWeekStart
         self.defaults = defaults
@@ -93,6 +121,32 @@ final class AppModel {
         case .settings:
             closeSettings()
             return .handled
+        }
+    }
+
+    // MARK: Habits
+
+    /// Toggles today's check-off from the done button (T-003 B.4).
+    func toggleToday(_ id: UUID) {
+        toggle(id, on: today)
+    }
+
+    /// Toggles a strip day, if it's due and not in the future (B.5, B.6).
+    func toggle(_ id: UUID, on day: Day) {
+        guard habits.toggle(id, on: day, today: today) else { return }
+        persist()
+    }
+
+    /// Saves after every change. While the data is unreadable the store refuses, which is what
+    /// keeps the user's file intact (D-004).
+    private func persist() {
+        guard dataState != .unreadable(store.fileURL.path) else { return }
+        do {
+            try store.save(habits)
+            dataState = .ok
+        } catch {
+            Self.log.error("Saving habits failed: \(error.localizedDescription, privacy: .public)")
+            dataState = .saveFailed
         }
     }
 

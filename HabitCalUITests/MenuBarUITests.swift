@@ -1,46 +1,7 @@
 import XCTest
 
-/// Menu bar: the status item and the popover it opens.
-@MainActor
-final class MenuBarUITests: XCTestCase {
-    private var app: XCUIApplication!
-
-    override func setUp() async throws {
-        continueAfterFailure = false
-    }
-
-    override func tearDown() async throws {
-        app?.terminate()
-    }
-
-    /// Launches with a fixed today and fresh settings, so tests never depend on the real date (FM-007).
-    private func launch(
-        today: String = "2026-10-29", suite: String = "uitest-\(UUID().uuidString)", _ extra: [String] = []
-    ) {
-        app = XCUIApplication()
-        app.launchArguments = ["-HabitCalToday", today, "-HabitCalDefaultsSuite", suite] + extra
-        app.launch()
-    }
-
-    private var statusItem: XCUIElement {
-        app.statusItems["HabitCalStatusItem"]
-    }
-
-    private var popover: XCUIElement {
-        app.popovers.firstMatch
-    }
-
-    private func openPopover() {
-        XCTAssertTrue(statusItem.waitForExistence(timeout: 10), "status item not found")
-        statusItem.click()
-        XCTAssertTrue(popover.waitForExistence(timeout: 5), "popover didn't open")
-    }
-
-    private var calendarTitle: String {
-        // On macOS a static text's string is its value, not its label.
-        popover.staticTexts["calendarTitle"].value as? String ?? ""
-    }
-
+/// Menu bar: the status item, the popover, the calendar, and Settings.
+final class MenuBarUITests: HabitCalUITestCase {
     func testStatusItemOpensAndClosesPopover() {
         launch()
         XCTAssertTrue(statusItem.waitForExistence(timeout: 10), "status item not found")
@@ -111,14 +72,6 @@ final class MenuBarUITests: XCTestCase {
     }
 
     // MARK: Settings
-
-    private func element(_ label: String) -> XCUIElement {
-        popover.descendants(matching: .any).matching(NSPredicate(format: "label == %@", label)).firstMatch
-    }
-
-    private func text(_ string: String) -> XCUIElement {
-        popover.staticTexts.matching(NSPredicate(format: "value == %@", string)).firstMatch
-    }
 
     private func openSettings() {
         openPopover()

@@ -27,7 +27,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MainMenu.install()
 
         let options = LaunchOptions(arguments: ProcessInfo.processInfo.arguments)
+        let store = HabitStore(directory: options.dataDirectory)
+        if let seed = options.seedData {
+            try? FileManager.default.createDirectory(at: options.dataDirectory, withIntermediateDirectories: true)
+            try? seed.write(to: store.fileURL)
+        }
         let model = AppModel(
+            store: store,
             today: options.todaySource.today(in: .autoupdatingCurrent),
             macWeekStart: WeekStart.fromMac(firstWeekday: options.macFirstWeekday()),
             defaults: options.defaults,

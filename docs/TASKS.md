@@ -14,7 +14,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-002 Menu bar date and month calendar · high · done 2026-10-29
       Last commit 549073b.
 - [ ] T-003 Habits: add, edit, check off · high
-      Design in progress: docs/work/T-003-habits/design.md.
+      Slice 2 of 3 in docs/work/T-003-habits/slices.md.
 - [ ] T-004 Streaks · high
       Spec in docs/work/T-004-streaks/spec.md.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high

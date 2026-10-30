@@ -17,7 +17,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-The customer asked to go through all tasks without waiting. T-003 design is drafted (docs/work/T-003-habits/design.md) and needs its review passes, then slicing, building, and closing. Then T-004 (Simple), then T-005, which needs the customer's Apple Developer account.
+T-003 Slice 2 (habit form). Slice 1 is done: model, store (format v1), rows, strip; 43 unit/integration and 20 UI tests pass. Then Slice 3, review, close; then T-004 and T-005.
 
 ## Suggested Start
 

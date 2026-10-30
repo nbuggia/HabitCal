@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "habits": [
+    {
+      "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF",
+      "name": "Run",
+      "note": "5k loop around the park",
+      "addedOn": "2026-10-01",
+      "schedule": [
+        { "from": "2026-10-01", "days": ["fri", "sun"] },
+        { "from": "2026-10-20", "days": ["mon", "wed", "fri"] }
+      ],
+      "checkOffs": ["2026-10-02", "2026-10-04", "2026-10-21"]
+    },
+    {
+      "id": "0E984725-C51C-4BF4-9960-E1C80E27ABA0",
+      "name": "Push-ups",
+      "note": "",
+      "addedOn": "2026-10-15",
+      "schedule": [
+        { "from": "2026-10-15", "days": ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] }
+      ],
+      "checkOffs": []
+    }
+  ]
+}
