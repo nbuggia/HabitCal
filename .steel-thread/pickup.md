@@ -16,7 +16,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-Write T-002's slicing plan (st-slice), then build slice 1: the Xcode project (hand-written, synchronized folders; spike proved it builds), HabitCalKit with `Day`/`TodaySource`, a status item with an empty popover, and the FM-008 spike (UI test clicks the status item).
+T-002 Slice 2 (icon and rollover): `MonthNames`, `MenuBarIcon`, `-HabitCalToday`, `DayWatcher`, `AppModel.today`; UI test `menuBarIconShowsTodaysDate`; start `docs/manual-tests/menu-bar.md`. Slice 1 is done: the project builds, and the FM-008 spike passed.
 
 ## Suggested Start
 

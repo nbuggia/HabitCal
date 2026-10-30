@@ -25,7 +25,7 @@ Layer-first: all of HabitCalKit (Day, Month, MonthGrid, WeekStart, LaunchAtLogin
 
 | Field               | Value |
 | ------------------- | ----- |
-| Status              | Pending |
+| Status              | Done |
 | Scope               | `HabitCal.xcodeproj` (hand-written, synchronized folders; app and UI-test targets; Debug bundle ID `com.muchfiner.HabitCal.debug`; LSUIElement; sandbox) and a shared `HabitCal` scheme. `HabitCalKit` package with `Day` and `TodaySource`. An app that shows a status item (a plain placeholder icon) and toggles an empty `.transient` popover through `PopoverController`, `PopoverHostingController`, and the 0.3 s debounce. Debug `LaunchOptions` with `-HabitCalDefaultsSuite`. |
 | Demo criterion      | Unit: `dayFromDateUsesTheGivenCalendarsTimeZone`. UI: a spike test, `statusItemOpensAndClosesPopover`, that clicks the status item, finds the popover, and clicks again to close it; Slice 3 grows it into `popoverOpensOnCurrentMonthAndListAndClosesOnSecondClick`. Manual: no Dock icon or app-switcher entry (B.3); repeated ad-hoc rebuilds relaunch sandboxed without a container-access prompt. |
 | Dependencies        | None: starts from the current repo (docs only). |
@@ -92,6 +92,12 @@ Severities and decisions: `.steel-thread/framework/reviews.md`.
 Slice 1 → Slice 2 → Slice 3 → Slice 4
 
 ## 5. Checkpoint Log
+
+### After Slice 1
+
+- Commit: the "T-002 slice 1" commit following 899eed8.
+- Affected remaining slices reviewed: 2, 3, and 4. The FM-008 spike passed (`statusItems` can be clicked), so the `-HabitCalOpenPopover` fallback isn't needed, and `reopeningPopoverResetsToCurrentMonth` and click-to-close stay automated. The hand-written project worked with the UI-test target and the package product, so there's no drift.
+- Changed: added a `.swift-format` config (4-space indent, 120 columns), because the formatter's 2-space default fought Xcode's style. XCTest UI tests need `@MainActor` on the class and async `setUp`/`tearDown` under Swift 6. Slices 2–4 follow both.
 
 ## 6. Design Drift
 
