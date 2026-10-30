@@ -14,8 +14,9 @@ struct CalendarView: View {
             LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(model.weekStart.orderedWeekdays, id: \.self) { weekday in
                     Text(MonthNames.weekdayInitial(weekday))
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        // Bold and primary so it stays readable on the popover's Liquid Glass (T-010).
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.primary)
                         .accessibilityHidden(true)
                 }
                 ForEach(model.gridDays, id: \.self) { day in
@@ -59,7 +60,7 @@ private struct DayCell: View {
 
     var body: some View {
         Text("\(day.day)")
-            .font(.system(size: 11, weight: isToday ? .bold : .regular).monospacedDigit())
+            .font(.system(size: 11, weight: isToday ? .bold : .medium).monospacedDigit())
             .foregroundStyle(
                 isToday ? AnyShapeStyle(.white) : inMonth ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary)
             )
