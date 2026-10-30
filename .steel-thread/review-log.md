@@ -12,3 +12,5 @@
 2026-10-29 · T-003 · MINOR · v1 reader accepted duplicate ids, empty or repeated days, repeated check-offs · fixed
 2026-10-29 · T-003 · MINOR · Name selected on Edit (B.9) not proven · fixed
 2026-10-29 · T-003 · QUESTION · Tab with Keyboard navigation off · spec changed
+2026-10-30 · T-006 · MINOR · Day cell repeated the column width literal · fixed
+2026-10-30 · T-006 · MINOR · Row spacing 0 also tightens the gap under the weekday initials · accepted risk

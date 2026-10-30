@@ -69,7 +69,7 @@ private struct DayCell: View {
                     Circle().fill(Color.accentColor)
                 }
             }
-            .frame(width: 32, height: 24)
+            .frame(maxWidth: .infinity, minHeight: 24)
             .accessibilityElement()
             .accessibilityLabel(MonthNames.spokenCalendarDay(day, isToday: isToday))
     }

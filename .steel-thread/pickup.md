@@ -10,6 +10,7 @@ Session: S-002 · 2026-10-29
 - T-001 closed (D-008). Added T-005 (release). T-002 design approved after two review passes (15 findings, all accepted); spec E.10 added and E.9 narrowed to /Applications. REVIEW-PATTERNS.md created.
 - T-002 built (4 slices), reviewed (6 findings fixed), and closed. 17 unit and 15 UI tests pass.
 - T-003 (3 slices) and T-004 built, reviewed, and closed. 55 unit and 31 UI tests pass. habits.json v1 is in CONTRACTS.md.
+- T-006 (tighter calendar grid) done 2026-10-30; the customer dropped the full-date header.
 - Customer ruled: the prototype is the source of truth over the PRD. So the calendar grid has no completion marks (the strips carry history), and Notes stay.
 
 ## In Flight
@@ -18,7 +19,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-T-005 (release): app icon proposed (needs the customer's OK), README, a release script; signing and notarization need the customer's Apple Developer account. The customer's last message, "Add this to the list of feature changes:", arrived cut off; ask what to add.
+T-005 (release): app icon proposed (needs the customer's OK), README, a release script; signing and notarization need the customer's Apple Developer account.
 
 ## Suggested Start
 
