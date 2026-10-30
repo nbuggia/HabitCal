@@ -75,6 +75,7 @@ let variants: [(String, NSColor, NSColor, Glyph, NSColor)] = [
     ("check", leaf, darkLeaf, .check, leaf),
     ("fire-green", leaf, darkLeaf, .fire, flame),
     ("fire-orange", flame, darkFlame, .fire, flame),
+    ("fire-black", NSColor(white: 0.11, alpha: 1), NSColor(white: 0.30, alpha: 1), .fire, flame),
 ]
 for (name, header, ring, glyph, color) in variants {
     for px in [32, 128, 512, 1024] {
