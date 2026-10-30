@@ -133,10 +133,13 @@ struct HabitFormScreen: View {
     private func deleteSection(_ form: HabitForm) -> some View {
         if form.confirmingDelete, case .edit(let id) = form.mode, let habit = model.habits[id] {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Delete “\(habit.name)”?").fontWeight(.semibold)
+                Text("Delete “\(habit.name)”?")
+                    .fontWeight(.semibold)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("Its history and streaks are deleted too. This can't be undone.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Spacer()
                     Button("Cancel") { model.setConfirmingDelete(false) }

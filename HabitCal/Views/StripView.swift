@@ -14,7 +14,7 @@ struct StripView: View {
         let month = model.displayedMonth
         let strip = habit.strip(for: month, today: model.today)
         let cursor = cursor(in: month)
-        HStack(spacing: 2) {
+        HStack(spacing: 1.5) {
             ForEach(0..<strip.count, id: \.self) { index in
                 square(strip[index], number: index + 1, month: month, isCursor: focused && cursor.day == index + 1)
             }

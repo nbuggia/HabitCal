@@ -101,34 +101,36 @@ struct SettingsScreen: View {
         }
     }
 
+    /// The caption sits on its own line under the label and control: next to the control, the
+    /// narrow popover squeezes it (T-007).
     private var weekStartRow: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
                 Text("Week starts on")
-                if model.weekStartOverride == nil {
-                    caption("From your Mac's settings")
-                } else {
-                    HStack(spacing: 4) {
-                        caption("Your Mac uses \(MonthNames.weekdayName(model.macWeekStart.weekday))")
-                        caption("·")
-                        Button("Use Mac setting") { model.useMacWeekStart() }
-                            .buttonStyle(.link)
-                            .font(.caption)
-                    }
+                Spacer()
+                Picker(
+                    "Week starts on",
+                    selection: Binding(get: { model.weekStart }, set: { model.pickWeekStart($0) })
+                ) {
+                    Text("Sunday").tag(WeekStart.sunday)
+                    Text("Monday").tag(WeekStart.monday)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .controlSize(.small)
+                .fixedSize()
+            }
+            if model.weekStartOverride == nil {
+                caption("From your Mac's settings")
+            } else {
+                HStack(spacing: 4) {
+                    caption("Your Mac uses \(MonthNames.weekdayName(model.macWeekStart.weekday))")
+                    caption("·")
+                    Button("Use Mac setting") { model.useMacWeekStart() }
+                        .buttonStyle(.link)
+                        .font(.caption)
                 }
             }
-            Spacer()
-            Picker(
-                "Week starts on",
-                selection: Binding(get: { model.weekStart }, set: { model.pickWeekStart($0) })
-            ) {
-                Text("Sunday").tag(WeekStart.sunday)
-                Text("Monday").tag(WeekStart.monday)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .controlSize(.small)
-            .fixedSize()
         }
     }
 
