@@ -16,7 +16,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-T-002 Slice 2 (icon and rollover): `MonthNames`, `MenuBarIcon`, `-HabitCalToday`, `DayWatcher`, `AppModel.today`; UI test `menuBarIconShowsTodaysDate`; start `docs/manual-tests/menu-bar.md`. Slice 1 is done: the project builds, and the FM-008 spike passed.
+T-002 Slice 3 (calendar). Slices 1–2 are done; the manual tests in `docs/manual-tests/menu-bar.md` (icon look, rollover) are waiting for the customer to run them.
 
 ## Suggested Start
 

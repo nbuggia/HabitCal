@@ -38,7 +38,7 @@ Layer-first: all of HabitCalKit (Day, Month, MonthGrid, WeekStart, LaunchAtLogin
 
 | Field               | Value |
 | ------------------- | ----- |
-| Status              | Pending |
+| Status              | Done |
 | Scope               | `MonthNames`, `MenuBarIcon` (template image, cut-out month, transparency layer), the status item's accessibility label, `-HabitCalToday` / `FixedTodaySource`, and `DayWatcher` (four notifications + 60 s timer) writing `model.today` and calling `refresh()`. `AppModel` with `today`. |
 | Demo criterion      | UI: `menuBarIconShowsTodaysDate` with `-HabitCalToday 2026-10-29`. Manual, as the first entries in `docs/manual-tests/menu-bar.md`: icon at actual size in light, dark, tinted, and Increase Contrast (E.7); rollover across midnight, sleep through midnight, a clock change, and a time zone change (B.2). |
 | Dependencies        | Slice 1's status item, `Day`, `TodaySource`, and launch options. |
@@ -98,6 +98,12 @@ Slice 1 → Slice 2 → Slice 3 → Slice 4
 - Commit: the "T-002 slice 1" commit following 899eed8.
 - Affected remaining slices reviewed: 2, 3, and 4. The FM-008 spike passed (`statusItems` can be clicked), so the `-HabitCalOpenPopover` fallback isn't needed, and `reopeningPopoverResetsToCurrentMonth` and click-to-close stay automated. The hand-written project worked with the UI-test target and the package product, so there's no drift.
 - Changed: added a `.swift-format` config (4-space indent, 120 columns), because the formatter's 2-space default fought Xcode's style. XCTest UI tests need `@MainActor` on the class and async `setUp`/`tearDown` under Swift 6. Slices 2–4 follow both.
+
+### After Slice 2
+
+- Commit: the "T-002 slice 2" commit.
+- Affected remaining slices reviewed: 3 (it uses `AppModel`, `MonthNames`, and `DayWatcher`; all three are in place). Slice 4 is unchanged.
+- Changed: `StatusItemController.refresh()` became `show(_ day:)`, taking the day explicitly. That's the same mechanism (DayWatcher calls it directly) with clearer data flow. `Day.weekday` and `MonthNames.spokenDate` are in HabitCalKit, so the icon's spoken label is unit-tested. The `.destinationOut` cut-out renders cleanly at 18 pt (checked with an 8× render in light and dark), so the Slice 2 fallback isn't needed. The manual tests (icon look, rollover) are written and need the customer's eyes and real time.
 
 ## 6. Design Drift
 

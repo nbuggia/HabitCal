@@ -38,17 +38,31 @@ public struct Day: Hashable, Comparable, Sendable {
         String(format: "%04d-%02d-%02d", year, month, day)
     }
 
+    /// 1 = Sunday … 7 = Saturday.
+    public var weekday: Int {
+        Self.gregorian.component(.weekday, from: noonUTC)
+    }
+
     public static func < (lhs: Day, rhs: Day) -> Bool {
         (lhs.year, lhs.month, lhs.day) < (rhs.year, rhs.month, rhs.day)
     }
 
+    /// Weekday math happens in UTC on a fixed Gregorian calendar, so it never depends on the Mac's
+    /// time zone or calendar settings.
+    static let gregorian: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
+    }()
+
+    var noonUTC: Date {
+        Self.gregorian.date(from: DateComponents(year: year, month: month, day: day, hour: 12))!
+    }
+
     private var isValid: Bool {
         guard (1...12).contains(month), day >= 1 else { return false }
-        var parts = DateComponents(year: year, month: month)
-        parts.day = 1
-        let calendar = Calendar(identifier: .gregorian)
-        guard let first = calendar.date(from: parts),
-            let days = calendar.range(of: .day, in: .month, for: first)
+        guard let first = Self.gregorian.date(from: DateComponents(year: year, month: month, day: 1)),
+            let days = Self.gregorian.range(of: .day, in: .month, for: first)
         else { return false }
         return days.contains(day)
     }
