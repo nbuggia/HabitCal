@@ -20,6 +20,13 @@ struct HabitListScreen: View {
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .accessibilityIdentifier("habitsSection")
+            if model.dataState == .saveFailed {
+                // Shown until a later save succeeds, even if the list is now empty (T-003 E.6).
+                Text("Couldn't save — your last change may be lost")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
             habitList
             Divider()
             HStack {
@@ -69,12 +76,6 @@ struct HabitListScreen: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 8)
         } else {
-            if model.dataState == .saveFailed {
-                Text("Couldn't save — your last change may be lost")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(model.habits.all) { habit in

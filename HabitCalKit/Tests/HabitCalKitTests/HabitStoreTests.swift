@@ -107,14 +107,52 @@ struct HabitStoreTests {
         }
     }
 
-    @Test func invalidDatesOrWeekdaysMakeAFileUnreadable() throws {
-        try write(
-            #"{ "formatVersion": 1, "habits": [ { "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF", "name": "x", "note": "", "addedOn": "2026-02-30", "schedule": [ { "from": "2026-02-01", "days": ["funday"] } ], "checkOffs": [] } ] }"#
-        )
+    /// A one-habit v1 file with one field replaced, for the "v1 never wrote this" tests.
+    private func fileWith(addedOn: String = "2026-10-01", days: String = #"["fri", "sun"]"#, checkOffs: String = "[]")
+        -> String
+    {
+        #"{ "formatVersion": 1, "habits": [ { "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF", "name": "x", "note": "", "addedOn": ""#
+            + addedOn + #"", "schedule": [ { "from": "2026-10-01", "days": "# + days + #" } ], "checkOffs": "#
+            + checkOffs + " } ] }"
+    }
+
+    private func expectUnreadable(_ text: String, sourceLocation: SourceLocation = #_sourceLocation) throws {
+        try write(text)
         guard case .unreadable = HabitStore(directory: directory).load() else {
-            Issue.record("expected unreadable")
+            Issue.record("expected unreadable", sourceLocation: sourceLocation)
             return
         }
+    }
+
+    @Test func theFixtureHelperWritesALoadableFile() throws {
+        try write(fileWith())
+        guard case .loaded = HabitStore(directory: directory).load() else {
+            Issue.record("the helper's base file should load")
+            return
+        }
+    }
+
+    @Test func anInvalidDateMakesAFileUnreadable() throws {
+        try expectUnreadable(fileWith(addedOn: "2026-02-30"))
+    }
+
+    @Test func anUnknownWeekdayMakesAFileUnreadable() throws {
+        try expectUnreadable(fileWith(days: #"["funday"]"#))
+    }
+
+    @Test func aScheduleWithNoDaysOrRepeatedDaysMakesAFileUnreadable() throws {
+        try expectUnreadable(fileWith(days: "[]"))
+        try expectUnreadable(fileWith(days: #"["fri", "fri"]"#))
+    }
+
+    @Test func repeatedCheckOffsMakeAFileUnreadable() throws {
+        try expectUnreadable(fileWith(checkOffs: #"["2026-10-02", "2026-10-02"]"#))
+    }
+
+    @Test func duplicateHabitIdsMakeAFileUnreadable() throws {
+        let habit =
+            #"{ "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF", "name": "x", "note": "", "addedOn": "2026-10-01", "schedule": [ { "from": "2026-10-01", "days": ["fri"] } ], "checkOffs": [] }"#
+        try expectUnreadable(#"{ "formatVersion": 1, "habits": [ "# + habit + ", " + habit + " ] }")
     }
 
     @Test func saveBeforeLoadIsRefused() throws {

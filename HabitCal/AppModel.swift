@@ -87,7 +87,8 @@ final class AppModel {
         case .empty:
             habits = Habits()
             dataState = .ok
-        case .unreadable:
+        case .unreadable(let reason):
+            Self.log.error("Habits file unreadable; not saving: \(reason, privacy: .public)")
             habits = Habits()
             dataState = .unreadable(store.fileURL.path)
         }

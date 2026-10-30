@@ -177,7 +177,7 @@ E.6 WHEN a change can't be saved THE SYSTEM SHALL keep it on screen and show "Co
 
 E.7 WHEN the Mac's clock moves backward past days that have check-offs THE SYSTEM SHALL keep those check-offs, and show and count them only once those days arrive again.
 
-E.8 Keyboard and VoiceOver: every done button, name, form control, and menu item SHALL be reachable with Tab. Each strip is a single Tab stop: the arrow keys move between days, and Space toggles a day that B.5 allows. Spoken labels: "Push-ups, done today", "Push-ups, not done today", or "Push-ups, not scheduled today"; "October 5, done" (or missed, or not scheduled); and "Edit Push-ups". Space also toggles the focused done button.
+E.8 Keyboard and VoiceOver: with the Mac's Keyboard navigation setting on (the platform norm), every done button, name, form control, and menu item SHALL be reachable with Tab; the strip is a Tab stop either way. Each strip is a single Tab stop: the arrow keys move between days, and Space toggles a day that B.5 allows. Spoken labels: "Push-ups, done today", "Push-ups, not done today", or "Push-ups, not scheduled today"; "October 5, done" (or missed, or not scheduled); and "Edit Push-ups". Space also toggles the focused done button.
 Why: a Tab stop per square would mean 31 stops per habit.
 
 E.9 WHEN the week start changes (T-002 B.13) while the form is open THE SYSTEM SHALL reorder the day buttons and keep the selected days.

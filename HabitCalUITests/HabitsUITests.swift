@@ -2,7 +2,7 @@ import XCTest
 
 /// Habits: rows, check-offs, the strip, and saving. Today is Thursday, October 29, 2026.
 final class HabitsUITests: HabitCalUITestCase {
-    /// Push-ups every day; Run on Fridays and Sundays. Both added October 1.
+    /// Push-ups every day, added October 1; Run on Fridays and Sundays, added September 1.
     static let seed = """
         {
           "formatVersion": 1,
@@ -12,8 +12,8 @@ final class HabitsUITests: HabitCalUITestCase {
               "schedule": [ { "from": "2026-10-01", "days": ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] } ],
               "checkOffs": ["2026-10-27"] },
             { "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF", "name": "Run", "note": "",
-              "addedOn": "2026-10-01",
-              "schedule": [ { "from": "2026-10-01", "days": ["fri", "sun"] } ],
+              "addedOn": "2026-09-01",
+              "schedule": [ { "from": "2026-09-01", "days": ["fri", "sun"] } ],
               "checkOffs": [] }
           ]
         }
@@ -63,9 +63,10 @@ final class HabitsUITests: HabitCalUITestCase {
         clickStripDay("Run", day: 30)  // Friday, future: nothing happens
         XCTAssertEqual(stripValue("Run"), "October 30")
 
+        // Fix a day in an earlier month (UC-3).
         popover.buttons["Previous month"].click()
-        clickStripDay("Run", day: 27)  // Sunday, September 27: before Run was added
-        XCTAssertEqual(stripValue("Run"), "September 27, not scheduled")
+        clickStripDay("Run", day: 27)  // Sunday, September 27
+        XCTAssertEqual(stripValue("Run"), "September 27, done")
     }
 
     func testHabitsSurviveRelaunch() {

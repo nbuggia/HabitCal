@@ -4,3 +4,11 @@
 2026-10-29 · T-002 · MINOR · Two copies launched at once could both quit · fixed
 2026-10-29 · T-002 · QUESTION · Switch may not redraw after a failed register · fixed
 2026-10-29 · T-002 · QUESTION · Esc from Settings with Keyboard navigation on · fixed
+2026-10-29 · T-003 · MINOR · Save-failure banner hidden when the list is empty · fixed
+2026-10-29 · T-003 · MINOR · Reason for unreadable data not logged · fixed
+2026-10-29 · T-003 · MINOR · 40/280 limits not proven in the real fields (and the field didn't clamp) · fixed
+2026-10-29 · T-003 · MINOR · UC-3 earlier-month fix untested · fixed
+2026-10-29 · T-003 · MINOR · Unknown-weekday rejection untested · fixed
+2026-10-29 · T-003 · MINOR · v1 reader accepted duplicate ids, empty or repeated days, repeated check-offs · fixed
+2026-10-29 · T-003 · MINOR · Name selected on Edit (B.9) not proven · fixed
+2026-10-29 · T-003 · QUESTION · Tab with Keyboard navigation off · spec changed

@@ -5,13 +5,17 @@ import SwiftUI
 struct HabitFormScreen: View {
     @Environment(AppModel.self) private var model
     @FocusState private var nameFocused: Bool
+    /// The fields' own text. A clamped value pushed back through a model binding doesn't reach a
+    /// field while it's being typed in, so the limit is applied here, where the field sees it (E.4).
+    @State private var name = ""
+    @State private var note = ""
 
     var body: some View {
         if let form = model.form {
             VStack(alignment: .leading, spacing: 10) {
                 header(form)
                 label("Name")
-                TextField("e.g. Push-ups", text: draftBinding(\.name))
+                TextField("e.g. Push-ups", text: $name)
                     .textFieldStyle(.roundedBorder)
                     .focused($nameFocused)
                     .onSubmit { model.saveForm() }
@@ -28,7 +32,17 @@ struct HabitFormScreen: View {
                 }
             }
             .padding(12)
+            .onChange(of: name) { _, value in
+                if value.count > HabitDraft.maxNameLength { name = String(value.prefix(HabitDraft.maxNameLength)) }
+                model.updateDraft { $0.name = name }
+            }
+            .onChange(of: note) { _, value in
+                if value.count > HabitDraft.maxNoteLength { note = String(value.prefix(HabitDraft.maxNoteLength)) }
+                model.updateDraft { $0.note = note }
+            }
             .onAppear {
+                name = form.draft.name
+                note = form.draft.note
                 // Focus after the form is in the window; set synchronously, it's lost.
                 DispatchQueue.main.async { nameFocused = true }
             }
@@ -82,15 +96,14 @@ struct HabitFormScreen: View {
     }
 
     private var notes: some View {
-        let text = draftBinding(\.note)
-        return TextEditor(text: text)
+        TextEditor(text: $note)
             .font(.callout)
             .scrollContentBackground(.hidden)
             .padding(4)
             .frame(height: 54)
             .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
             .overlay(alignment: .topLeading) {
-                if text.wrappedValue.isEmpty {
+                if note.isEmpty {
                     Text("Optional details, e.g. 3 sets of 20, or the route you run")
                         .font(.callout)
                         .foregroundStyle(.tertiary)
@@ -148,11 +161,5 @@ struct HabitFormScreen: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Delete habit")
         }
-    }
-
-    private func draftBinding(_ keyPath: WritableKeyPath<HabitDraft, String>) -> Binding<String> {
-        Binding(
-            get: { model.form?.draft[keyPath: keyPath] ?? "" },
-            set: { value in model.updateDraft { $0[keyPath: keyPath] = value } })
     }
 }

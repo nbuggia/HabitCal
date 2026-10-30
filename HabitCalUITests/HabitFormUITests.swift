@@ -52,6 +52,13 @@ final class HabitFormUITests: HabitCalUITestCase {
         XCTAssertEqual(nameField.value as? String, "Push-ups")
     }
 
+    func testNameStopsAtFortyCharacters() {
+        launch()
+        openAddForm()
+        app.typeText(String(repeating: "a", count: 45))
+        XCTAssertEqual((nameField.value as? String)?.count, 40)
+    }
+
     func testReturnInTheNameFieldAddsTheHabit() {
         launch()
         openAddForm()
@@ -66,8 +73,9 @@ final class HabitFormUITests: HabitCalUITestCase {
         popover.buttons["Edit Run"].click()
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         XCTAssertEqual(nameField.value as? String, "Run")
-        app.typeKey("a", modifierFlags: .command)
+        // The name is selected when the form opens, so typing replaces it (B.9).
         app.typeText("Long run")
+        XCTAssertEqual(nameField.value as? String, "Long run")
         popover.buttons["Monday"].click()
         XCTAssertTrue(text("The new schedule starts today. Past days, and your streak, keep the old one.").exists)
         popover.buttons["Save"].click()

@@ -49,7 +49,11 @@ public final class HabitStore {
             guard file.formatVersion == Self.formatVersion else {
                 return .unreadable("format version \(file.formatVersion) is newer than this version of HabitCal")
             }
-            let habits = try Habits(file.habits.map { try $0.habit() })
+            let list = try file.habits.map { try $0.habit() }
+            guard Set(list.map(\.id)).count == list.count else {
+                throw FormatError(description: "duplicate habit ids")
+            }
+            let habits = Habits(list)
             canSave = true
             return .loaded(habits)
         } catch {
@@ -133,6 +137,9 @@ private struct HabitV1: Codable {
 
     func habit() throws -> Habit {
         guard !schedule.isEmpty else { throw FormatError(description: "habit \(id) has no schedule") }
+        guard Set(checkOffs).count == checkOffs.count else {
+            throw FormatError(description: "habit \(id) has duplicate check-offs")
+        }
         return Habit(
             id: id, name: name, note: note, addedOn: try day(addedOn), schedule: try schedule.map { try $0.entry() },
             checkOffs: Set(try checkOffs.map(day)))
@@ -151,6 +158,10 @@ private struct ScheduleEntryV1: Codable {
     }
 
     func entry() throws -> ScheduleEntry {
+        // Version 1 writes 1–7 distinct weekdays; anything else wasn't written by it.
+        guard !days.isEmpty, Set(days).count == days.count else {
+            throw FormatError(description: "invalid schedule days \(days)")
+        }
         let weekdays = try days.map { name in
             guard let index = weekdayNames.firstIndex(of: name) else {
                 throw FormatError(description: "invalid weekday \(name)")
