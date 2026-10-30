@@ -55,6 +55,14 @@
 
 **Expect:** the calendar's columns start on Monday, then on Sunday, without relaunching.
 
+## Clicking outside closes the popover
+
+**Setup:** the popover open.
+
+1. Click the desktop, another app's window, or another menu bar item.
+
+**Expect:** the popover closes. Opening it again shows the current month.
+
 ## HabitCal has no Dock icon or app-switcher entry
 
 **Setup:** HabitCal running.

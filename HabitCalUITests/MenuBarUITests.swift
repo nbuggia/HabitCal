@@ -126,6 +126,13 @@ final class MenuBarUITests: XCTestCase {
         XCTAssertTrue(popover.buttons["Back"].waitForExistence(timeout: 5), "Settings didn't open")
     }
 
+    /// October 2026 starts on a Thursday: a Monday-first grid runs Sep 28 – Nov 8, a Sunday-first
+    /// grid Sep 27 – Nov 7. Each end proves the order on its own.
+    private func assertMondayFirstGrid(_ message: String, line: UInt = #line) {
+        XCTAssertTrue(element("Sunday, November 8, 2026").exists, message, line: line)
+        XCTAssertFalse(element("Sunday, September 27, 2026").exists, message, line: line)
+    }
+
     func testEscapeLeavesSettingsThenClosesPopover() {
         launch()
         openSettings()
@@ -152,12 +159,12 @@ final class MenuBarUITests: XCTestCase {
         openSettings()
         element("Monday").click()
         popover.buttons["Back"].click()
-        XCTAssertTrue(element("Monday, September 28, 2026").exists, "calendar didn't reorder to Monday")
+        assertMondayFirstGrid("calendar didn't reorder to Monday")
 
         app.terminate()
         launch(today: "2026-10-29", suite: suite, ["-HabitCalMacFirstWeekday", "1"])
         openPopover()
-        XCTAssertTrue(element("Monday, September 28, 2026").exists, "override didn't survive a relaunch")
+        assertMondayFirstGrid("override didn't survive a relaunch")
     }
 
     func testMacWeekStartIsUsedUntilOverridden() {
@@ -170,7 +177,7 @@ final class MenuBarUITests: XCTestCase {
         element("Use Mac setting").click()
         XCTAssertTrue(text("From your Mac's settings").waitForExistence(timeout: 5))
         popover.buttons["Back"].click()
-        XCTAssertTrue(element("Monday, September 28, 2026").exists, "didn't go back to the Mac's Monday start")
+        assertMondayFirstGrid("didn't go back to the Mac's Monday start")
     }
 
     func testQuitButtonQuits() {

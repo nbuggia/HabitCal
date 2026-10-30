@@ -8,6 +8,12 @@ public enum WeekStart: String, Sendable, CaseIterable {
         self == .sunday ? 1 : 2
     }
 
+    /// The seven weekdays (1 = Sunday … 7 = Saturday) in column order: the calendar's columns and
+    /// the habit form's day buttons (T-002 B.15).
+    public var orderedWeekdays: [Int] {
+        (0..<7).map { (weekday - 1 + $0) % 7 + 1 }
+    }
+
     /// Maps the Mac's first weekday (`Calendar.firstWeekday`, 1 = Sunday) to the two choices
     /// HabitCal offers: Monday stays Monday, and every other day becomes Sunday.
     public static func fromMac(firstWeekday: Int) -> WeekStart {

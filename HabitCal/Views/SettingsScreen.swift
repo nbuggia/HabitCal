@@ -71,7 +71,10 @@ struct SettingsScreen: View {
             Toggle(
                 "Launch at login",
                 isOn: Binding(
-                    get: { model.loginItemState == .on },
+                    get: {
+                        _ = model.loginItemRevision
+                        return model.loginItemState == .on
+                    },
                     set: { model.setLaunchAtLogin($0) })
             )
             .toggleStyle(.switch)

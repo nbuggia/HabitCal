@@ -11,7 +11,7 @@ struct CalendarView: View {
         VStack(spacing: 6) {
             header
             LazyVGrid(columns: columns, spacing: 2) {
-                ForEach(weekdayOrder, id: \.self) { weekday in
+                ForEach(model.weekStart.orderedWeekdays, id: \.self) { weekday in
                     Text(MonthNames.weekdayInitial(weekday))
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
@@ -36,10 +36,6 @@ struct CalendarView: View {
                 navButton("caret-right", label: "Next month") { model.showNextMonth() }
             }
         }
-    }
-
-    private var weekdayOrder: [Int] {
-        (0..<7).map { (model.weekStart.weekday - 1 + $0) % 7 + 1 }
     }
 
     private func navButton(_ icon: String, label: String, action: @escaping () -> Void) -> some View {
@@ -73,6 +69,6 @@ private struct DayCell: View {
             }
             .frame(maxWidth: .infinity, minHeight: 24)
             .accessibilityElement()
-            .accessibilityLabel(MonthNames.spokenFullDate(day) + (isToday ? ", today" : ""))
+            .accessibilityLabel(MonthNames.spokenCalendarDay(day, isToday: isToday))
     }
 }

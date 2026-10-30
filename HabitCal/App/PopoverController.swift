@@ -22,6 +22,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         popover.delegate = self
         hostingController.close = { [weak self] in self?.close() }
         model.closePopover = { [weak self] in self?.close() }
+        model.screenDidChange = { [weak self] in self?.focusHostingView() }
     }
 
     func toggle(relativeTo button: NSView) {
@@ -35,6 +36,12 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         NSApp.activate()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         // Esc starts its trip up the responder chain here, so it reaches PopoverHostingController.
+        focusHostingView()
+    }
+
+    /// Puts the responder chain's start back on the hosting view. A focused button that a screen
+    /// change removes can leave the window as first responder, outside the chain that handles Esc.
+    func focusHostingView() {
         hostingController.view.window?.makeFirstResponder(hostingController.view)
     }
 

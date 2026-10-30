@@ -47,7 +47,15 @@ struct CalendarTests {
         }
     }
 
+    @Test func weekdaysAreOrderedFromTheWeekStart() {
+        #expect(WeekStart.sunday.orderedWeekdays == [1, 2, 3, 4, 5, 6, 7])
+        #expect(WeekStart.monday.orderedWeekdays == [2, 3, 4, 5, 6, 7, 1])
+    }
+
     @Test func spokenFullDateIncludesTheYear() {
         #expect(MonthNames.spokenFullDate(Day(year: 2026, month: 10, day: 29)) == "Thursday, October 29, 2026")
+        #expect(
+            MonthNames.spokenCalendarDay(Day(year: 2026, month: 10, day: 29), isToday: true)
+                == "Thursday, October 29, 2026, today")
     }
 }

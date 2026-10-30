@@ -28,13 +28,20 @@ final class AppModel {
     /// The Mac's first day of the week, mapped to Sunday or Monday. Only `DayWatcher` sets it.
     var macWeekStart: WeekStart
     private(set) var displayedMonth: Month
-    private(set) var screen: Screen = .list
+    private(set) var screen: Screen = .list {
+        didSet { if screen != oldValue { screenDidChange() } }
+    }
     /// The user's week start, or nil while following the Mac. Persisted (T-002 B.15).
     private(set) var weekStartOverride: WeekStart?
     private(set) var loginItemState: LoginItemState
+    /// Bumped on every refresh, so the switch redraws even when a failed change leaves the state
+    /// equal to what it was: AppKit has already flipped the switch on the click (T-002 E.4).
+    private(set) var loginItemRevision = 0
 
     /// Closes the popover. Set by `PopoverController`.
     @ObservationIgnored var closePopover: () -> Void = {}
+    /// Called after the screen changes. Set by `PopoverController` to keep Esc working (FM-006).
+    @ObservationIgnored var screenDidChange: () -> Void = {}
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let loginItem: LoginItem
@@ -112,6 +119,7 @@ final class AppModel {
     /// Re-reads launch at login from macOS. The user can change it in System Settings at any time (E.5).
     func refreshLoginItemState() {
         loginItemState = loginItem.state
+        loginItemRevision += 1
     }
 
     func setLaunchAtLogin(_ on: Bool) {
@@ -132,9 +140,12 @@ final class AppModel {
             LaunchAtLoginPolicy.shouldRegisterAtLaunch(
                 inApplications: loginItem.inApplications, initialized: initialized)
         else { return }
-        markLaunchAtLoginInitialized()
         loginItem.set(true)
         refreshLoginItemState()
+        // Settle the default only once registration took, so a failure is retried next launch.
+        if loginItemState == .on || loginItemState == .requiresApproval {
+            markLaunchAtLoginInitialized()
+        }
     }
 
     private func markLaunchAtLoginInitialized() {
