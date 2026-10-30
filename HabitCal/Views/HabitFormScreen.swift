@@ -16,6 +16,7 @@ struct HabitFormScreen: View {
                     .focused($nameFocused)
                     .onSubmit { model.saveForm() }
                     .accessibilityIdentifier("nameField")
+                    .accessibilityLabel("Name")
                 label("Repeats on")
                 dayButtons(form.draft.days)
                 label("Notes")

@@ -103,4 +103,33 @@ final class HabitsUITests: HabitCalUITestCase {
         app.typeKey(.rightArrow, modifierFlags: [])
         XCTAssertEqual(stripValue("Push-ups"), "October 29, missed")
     }
+
+    func testUnreadableDataShowsMessageAndDisablesAdd() {
+        let folder = "uitest-\(UUID().uuidString)"
+        launch(dataFolder: folder, seed: "{ not json")
+        openPopover()
+        XCTAssertTrue(text("HabitCal couldn't read your habits").exists, "no unreadable message")
+        XCTAssertFalse(popover.buttons["Add habit"].isEnabled, "Add should be disabled")
+
+        // Relaunch without a seed: the file must still be the unreadable one, not saved over.
+        app.terminate()
+        launch(dataFolder: folder)
+        openPopover()
+        XCTAssertTrue(text("HabitCal couldn't read your habits").exists, "unreadable file was overwritten")
+    }
+
+    func testHabitControlsHaveSpokenLabels() {
+        launch(seed: Self.seed)
+        openPopover()
+        for label in ["Add habit", "Edit Push-ups", "Push-ups, not done today", "Run, not scheduled today"] {
+            XCTAssertTrue(element(label).exists, "missing \(label)")
+        }
+        XCTAssertEqual(strip("Push-ups").label, "Push-ups, October 2026")
+
+        popover.buttons["Edit Push-ups"].click()
+        for label in ["Name", "Notes", "Cancel", "Save", "Delete habit"] + ["Sunday", "Monday", "Saturday"] {
+            XCTAssertTrue(element(label).waitForExistence(timeout: 5), "missing \(label)")
+        }
+        XCTAssertTrue(popover.buttons["Monday"].isSelected, "selected days should say so")
+    }
 }

@@ -49,13 +49,32 @@ struct HabitListScreen: View {
 
     @ViewBuilder
     private var habitList: some View {
-        if model.habits.all.isEmpty {
+        if case .unreadable(let path) = model.dataState {
+            // Shown in place of the list; nothing is saved until the file can be read (T-003 E.5, D-004).
+            VStack(alignment: .leading, spacing: 4) {
+                Text("HabitCal couldn't read your habits").fontWeight(.semibold)
+                Text(path)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.orange.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
+        } else if model.habits.all.isEmpty {
             Text("No habits yet. Add one to start a streak.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 8)
         } else {
+            if model.dataState == .saveFailed {
+                Text("Couldn't save — your last change may be lost")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(model.habits.all) { habit in

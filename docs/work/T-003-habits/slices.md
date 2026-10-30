@@ -51,7 +51,7 @@ Form first (add a habit, then show it). Rejected because the form would need a t
 
 | Field               | Value |
 | ------------------- | ----- |
-| Status              | Pending |
+| Status              | Done |
 | Scope               | E.5 message with the file path; E.6 banner; the form's spoken labels, plus `habitControlsHaveSpokenLabels` checking every habit control from Slices 1–2; `docs/manual-tests/habits.md`. |
 | Demo criterion      | UI: `unreadableDataShowsMessageAndDisablesAdd`, `habitControlsHaveSpokenLabels`. Manual: habits look (light/dark/Increase Contrast), many habits scroll, VoiceOver strip, save-failure banner. Then the full suite. |
 | Dependencies        | Slices 1 and 2. |
@@ -88,6 +88,12 @@ Slice 1 → Slice 2 → Slice 3
 - Commit: the "T-003 slice 2" commit.
 - Affected remaining slices reviewed: 3 (it labels the form's controls and checks every habit control; the controls exist).
 - Changed: the name field takes focus one run-loop turn after the form appears, because setting `@FocusState` synchronously in `onAppear` is lost in the popover. The habit's name and schedule label sit inside the "Edit <name>" button, whose accessibility value is the schedule label, so tests find rows by that button. `.keyboardShortcut(.cancelAction)` on the header Cancel catches Esc from both the name field and the notes editor (design finding 3 holds). Added `testAddIsDisabledWithoutADay`, `testReturnInTheNameFieldAddsTheHabit`, and `testCancellingTheDeleteConfirmationKeepsTheHabit`. Screenshot of the edit form matches the prototype.
+
+### After Slice 3
+
+- Commit: the "T-003 slice 3" commit.
+- Affected remaining slices reviewed: none remain.
+- Changed: `testUnreadableDataShowsMessageAndDisablesAdd` proves the file wasn't overwritten by relaunching on the same folder and seeing the message again, because the sandboxed test runner can't read the app's container. The manual tests are in docs/manual-tests/habits.md.
 
 ## 6. Design Drift
 
