@@ -5,8 +5,8 @@ enum Glyph { case check, fire }
 /// The app's streak color and the calendar-page green.
 let flame = NSColor(srgbRed: 1.00, green: 0.48, blue: 0.10, alpha: 1)
 let leaf = NSColor(srgbRed: 0.20, green: 0.74, blue: 0.40, alpha: 1)
-/// HabitCal's flame, the same file the app shows beside streaks (T-008). Run from the repo root.
-let flameURL = URL(fileURLWithPath: "docs/artwork/flame.svg")
+/// HabitCal's flame, the same drawing the app shows beside streaks (T-008). Found next to this script.
+let flameURL = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("flame.svg")
 
 /// Draws the app icon at `px` pixels: a macOS-style rounded square holding a tear-off calendar page
 /// with a colored header and a glyph.

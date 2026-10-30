@@ -18,3 +18,5 @@
 2026-10-30 · T-007 · MINOR · Long schedule label wraps under the name · fixed
 2026-10-30 · T-007 · MINOR · Unreadable-data heading may not fit · fixed
 2026-10-30 · T-007 · QUESTION · Strip squares 16% smaller; ring overlapped by neighbors · fixed (ring); size accepted risk
+2026-10-30 · T-008 · MINOR · README command for the icon script crashed outside the repo root · fixed
+2026-10-30 · T-008 · MINOR · Nothing in the SVG warns to regenerate the PDF · fixed
