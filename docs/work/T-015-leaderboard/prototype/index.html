@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HabitCal: leaderboard prototype (T-015)</title>
+<style>
+  :root { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+  body { margin: 0; padding: 32px; background: #d9d4cc; color: #1d1d1f; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .intro { max-width: 760px; color: #444; font-size: 14px; line-height: 1.45; margin-bottom: 28px; }
+  .option { margin-bottom: 44px; }
+  .option h2 { font-size: 16px; margin: 0 0 2px; }
+  .option p { margin: 0 0 14px; color: #555; font-size: 13px; max-width: 760px; }
+  .pair { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+  .wallpaper { padding: 22px; border-radius: 14px; }
+  .wallpaper.light { background: linear-gradient(135deg, #f3e7d3, #c9d9e8); }
+  .wallpaper.dark { background: linear-gradient(135deg, #1e2a3a, #3a2a35); }
+
+  /* The popover: 260 pt wide, Liquid Glass approximated with a translucent blurred panel. */
+  .pop { width: 260px; box-sizing: border-box; padding: 12px; border-radius: 16px; font-size: 13px;
+         backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .light .pop { background: rgba(250, 248, 244, 0.86); color: #1d1d1f; box-shadow: 0 10px 30px rgba(0,0,0,.18); --sec: #6e6e73; --ter: #b7b7bb; --track: rgba(0,0,0,.08); --card: rgba(0,0,0,.04); }
+  .dark .pop { background: rgba(40, 40, 46, 0.86); color: #f5f5f7; box-shadow: 0 10px 30px rgba(0,0,0,.5); --sec: #a1a1a6; --ter: #5a5a60; --track: rgba(255,255,255,.12); --card: rgba(255,255,255,.06); }
+  .pop { --accent: #0a84ff; --green: #34c759; --red: rgba(255, 59, 48, .32); }
+
+  .hdr { position: relative; display: flex; align-items: center; height: 22px; margin-bottom: 10px; }
+  .hdr .back { display: flex; align-items: center; gap: 2px; color: var(--accent); }
+  .hdr .title { position: absolute; left: 0; right: 0; text-align: center; font-weight: 600; font-size: 13px; pointer-events: none; }
+  .icon { width: 13px; height: 13px; display: inline-block; vertical-align: -2px; }
+  .icon path { fill: currentColor; }
+  .section { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--sec); margin: 2px 0 8px; letter-spacing: .02em; }
+  .sec { color: var(--sec); }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+  .rank { width: 16px; text-align: center; font-weight: 700; color: var(--sec); font-variant-numeric: tabular-nums; }
+  .rank.first { color: #d4a017; }
+  .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grow { flex: 1; min-width: 0; }
+  .bar { height: 6px; border-radius: 3px; background: var(--track); margin-top: 4px; position: relative; overflow: hidden; }
+  .bar > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
+  .bar > i.hot { background: linear-gradient(90deg, #ff6a1a, #ffc93d); }
+  .stat { display: flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .flame { width: 14px; height: 14px; }
+  .caption { font-size: 11px; color: var(--sec); }
+
+  /* Option 2 */
+  .seg { display: flex; background: var(--track); border-radius: 6px; padding: 2px; margin-bottom: 10px; }
+  .seg button { flex: 1; border: 0; background: transparent; color: inherit; font: inherit; font-size: 11px; padding: 3px 0; border-radius: 5px; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: white; font-weight: 600; }
+  .score { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; background: var(--card); margin-bottom: 10px; }
+  .score .big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* Option 3 */
+  .headline { padding: 10px; border-radius: 10px; background: var(--card); margin-bottom: 10px; }
+  .headline .big { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .dots { display: flex; gap: 3px; margin-top: 4px; }
+  .dots b { width: 12px; height: 12px; border-radius: 3px; display: block; box-sizing: border-box; }
+  .dots b.done { background: var(--green); }
+  .dots b.missed { background: var(--red); }
+  .dots b.off { border: 1px solid var(--track); }
+  .dots b.future { border: 1px dashed var(--ter); }
+  .dots b.today { outline: 1.5px solid var(--accent); outline-offset: 1px; }
+  .nudge { font-size: 11px; color: #e8590c; margin-top: 3px; }
+  .dark .nudge { color: #ff9a2e; }
+  .divider { height: 1px; background: var(--track); margin: 6px 0; }
+
+  /* Entry point mock */
+  .entry { display: flex; align-items: center; gap: 6px; }
+  .entry .label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--sec); }
+  .entry .btn { color: var(--sec); display: flex; }
+  .entry .btn.hi { color: var(--accent); }
+</style>
+</head>
+<body>
+<h1>HabitCal leaderboard: three options (T-015)</h1>
+<div class="intro">
+  Each option is the popover at its real 260 pt width, in light and dark mode. The <b>trophy button</b> sits in the Habits header row, next to + and Settings (T-014), and opens the leaderboard as its own screen with Back, like Settings.
+  Sample data: today is Thursday, October 29, 2026, with five habits. Pick one, or mix parts of them, and it gets written into the README's Answer and then a spec.
+</div>
+
+<div class="option">
+  <h2>Entry point: the Habits header row</h2>
+  <p>The trophy goes between + and Settings. Highlighted here in blue.</p>
+  <div class="pair">
+    <div class="wallpaper light"><div class="pop"><div class="entry"><span class="label">Habits</span><span class="btn" data-icon="plus"></span><span class="grow"></span><span class="btn hi" data-icon="trophy"></span><span class="btn" data-icon="sliders"></span></div></div></div>
+    <div class="wallpaper dark"><div class="pop"><div class="entry"><span class="label">Habits</span><span class="btn" data-icon="plus"></span><span class="grow"></span><span class="btn hi" data-icon="trophy"></span><span class="btn" data-icon="sliders"></span></div></div></div>
+  </div>
+</div>
+
+<div class="option">
+  <h2>1 · Streak Board</h2>
+  <p>Ranked by current streak. The bar is the current streak as a share of that habit's best, and it turns to flame colors when the current streak <i>is</i> the best. Simple, and it uses numbers the habit rows already show.</p>
+  <div class="pair" data-render="streak"></div>
+</div>
+
+<div class="option">
+  <h2>2 · Consistency</h2>
+  <p>Ranked by the share of due days done in the chosen range, so a habit due twice a week competes fairly with a daily one. The overall score at the top covers every habit. Click the range buttons.</p>
+  <div class="pair" data-render="consistency"></div>
+</div>
+
+<div class="option">
+  <h2>3 · This Week</h2>
+  <p>A weekly scorecard: one headline number, then each habit's seven days (done, missed, not due, or still to come), ranked by how many it has done. A nudge appears when a habit is within two days of its best streak.</p>
+  <div class="pair" data-render="week"></div>
+</div>
+
+<script>
+const ICONS = {
+  "caret-left": "M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z",
+  "plus": "M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z",
+  "trophy": "M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.080-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.640-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.810,81.810,0,0,0,.5-8.9V80h24Z",
+  "sliders": "M64,105V40a8,8,0,0,0-16,0v65a32,32,0,0,0,0,62v49a8,8,0,0,0,16,0V167a32,32,0,0,0,0-62Zm-8,47a16,16,0,1,1,16-16A16,16,0,0,1,56,152Zm80-95V40a8,8,0,0,0-16,0V57a32,32,0,0,0,0,62v97a8,8,0,0,0,16,0V119a32,32,0,0,0,0-62Zm-8,47a16,16,0,1,1,16-16A16,16,0,0,1,128,104Zm104,64a32.060,32.060,0,0,0-24-31V40a8,8,0,0,0-16,0v97a32,32,0,0,0,0,62v17a8,8,0,0,0,16,0V199A32.060,32.060,0,0,0,232,168Zm-32,16a16,16,0,1,1,16-16A16,16,0,0,1,200,184Z",
+};
+const icon = (n, s = 13) => `<svg class="icon" style="width:${s}px;height:${s}px" viewBox="0 0 256 256"><path d="${ICONS[n]}"/></svg>`;
+// HabitCal's own flame (docs/artwork/flame.svg), simplified to its outer and inner shapes.
+const flame = `<svg class="flame" viewBox="0 0 256 256"><path fill="#FF6A1A" d="M128 246 C76 246 40 210 40 162 C40 122 62 96 82 70 C86 92 95 106 108 112 C102 76 116 38 150 8 C151 42 166 62 186 86 C190 72 190 60 186 46 C210 72 220 112 216 162 C216 210 180 246 128 246 Z"/><path fill="#FFC93D" d="M128 238 C96 238 74 216 74 186 C74 160 90 142 106 122 C108 140 117 150 128 154 C125 130 136 110 154 92 C156 118 166 134 174 150 C182 164 182 176 182 186 C182 216 160 238 128 238 Z"/></svg>`;
+
+document.querySelectorAll("[data-icon]").forEach(el => el.innerHTML = icon(el.dataset.icon, 15));
+
+// Sample data. week: Sun..Sat of Oct 25–31; today is Thursday (index 4).
+// d = done, m = missed, o = not due, f = due later this week.
+const HABITS = [
+  { name: "Read 20 pages", sched: "Every day", cur: 18, best: 18, week: "ddddd" + "ff", rate: { week: 1.00, month: 0.93, all: 0.88 } },
+  { name: "Push-ups", sched: "Every day", cur: 6, best: 21, week: "dmddd" + "ff", rate: { week: 0.80, month: 0.84, all: 0.79 } },
+  { name: "Run", sched: "Tue, Thu, Sat", cur: 4, best: 5, week: "oodod" + "of", rate: { week: 1.00, month: 0.92, all: 0.71 } },
+  { name: "Meditate", sched: "Weekdays", cur: 2, best: 12, week: "odmdd" + "fo", rate: { week: 0.75, month: 0.62, all: 0.74 } },
+  { name: "Call a friend", sched: "Sun", cur: 0, best: 3, week: "m" + "oooooo", rate: { week: 0.00, month: 0.40, all: 0.55 } },
+];
+
+function header(title) {
+  return `<div class="hdr"><span class="back">${icon("caret-left")}Back</span><span class="title">${title}</span></div>`;
+}
+function rankCell(i) { return `<span class="rank ${i === 0 ? "first" : ""}">${i === 0 ? icon("trophy", 14) : i + 1}</span>`; }
+
+function streakBoard() {
+  const sorted = [...HABITS].sort((a, b) => b.cur - a.cur || b.best - a.best);
+  return header("Leaderboard") + `<div class="section">Current streaks</div>` + sorted.map((h, i) => `
+    <div class="row">${rankCell(i)}
+      <div class="grow"><div class="name">${h.name}</div>
+        <div class="bar"><i class="${h.cur === h.best && h.cur > 0 ? "hot" : ""}" style="width:${h.best ? (h.cur / h.best) * 100 : 0}%"></i></div>
+        <div class="caption">${h.cur === h.best && h.cur > 0 ? "Your best yet" : `Best ${h.best}`}</div></div>
+      <span class="stat">${flame}${h.cur}</span></div>`).join("");
+}
+
+function consistency(range) {
+  const labels = { week: "This week", month: "This month", all: "All time" };
+  const sorted = [...HABITS].sort((a, b) => b.rate[range] - a.rate[range]);
+  const overall = Math.round(HABITS.reduce((s, h) => s + h.rate[range], 0) / HABITS.length * 100);
+  const pct = r => Math.round(r * 100) + "%";
+  return header("Leaderboard") +
+    `<div class="seg">${Object.keys(labels).map(k => `<button class="${k === range ? "on" : ""}" data-range="${k}">${labels[k]}</button>`).join("")}</div>` +
+    `<div class="score"><div class="big">${overall}%</div><div class="caption">of due days done<br>across all habits, ${labels[range].toLowerCase()}</div></div>` +
+    sorted.map((h, i) => `
+    <div class="row">${rankCell(i)}
+      <div class="grow"><div class="name">${h.name}</div>
+        <div class="bar"><i style="width:${h.rate[range] * 100}%"></i></div></div>
+      <span class="stat num">${pct(h.rate[range])}</span></div>`).join("");
+}
+
+function thisWeek() {
+  const due = HABITS.reduce((s, h) => s + [...h.week].filter(c => c !== "o").length, 0);
+  const sofar = HABITS.reduce((s, h) => s + [...h.week].filter(c => c === "d" || c === "m").length, 0);
+  const done = HABITS.reduce((s, h) => s + [...h.week].filter(c => c === "d").length, 0);
+  const sorted = [...HABITS].sort((a, b) => [...b.week].filter(c => c === "d").length - [...a.week].filter(c => c === "d").length);
+  const cls = { d: "done", m: "missed", o: "off", f: "future" };
+  return header("This week") +
+    `<div class="headline"><div class="big">${done} <span class="sec" style="font-size:14px;font-weight:600">of ${due} done</span></div>
+       <div class="caption">${sofar - done} missed · ${due - sofar} to come · Oct 25–31</div></div>` +
+    sorted.map((h, i) => {
+      const gap = h.best - h.cur;
+      const nudge = h.cur > 0 && gap > 0 && gap <= 2 ? `<div class="nudge">${gap} more to beat your best (${h.best})</div>` : "";
+      return `<div class="row" style="align-items:flex-start">${rankCell(i)}
+        <div class="grow"><div class="name">${h.name}</div>
+          <div class="dots">${[...h.week].map((c, j) => `<b class="${cls[c]} ${j === 4 ? "today" : ""}" title="${"SMTWTFS"[j]}"></b>`).join("")}</div>${nudge}</div>
+        <span class="stat num">${[...h.week].filter(c => c === "d").length}</span></div>`;
+    }).join("");
+}
+
+function render() {
+  for (const host of document.querySelectorAll("[data-render]")) {
+    const kind = host.dataset.render;
+    const range = host.dataset.range || "month";
+    const body = kind === "streak" ? streakBoard() : kind === "consistency" ? consistency(range) : thisWeek();
+    host.innerHTML = ["light", "dark"].map(m => `<div class="wallpaper ${m}"><div class="pop">${body}</div></div>`).join("");
+  }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-range]");
+  if (!b) return;
+  b.closest("[data-render]").dataset.range = b.dataset.range;
+  render();
+});
+render();
+</script>
+</body>
+</html>
