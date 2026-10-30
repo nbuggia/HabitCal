@@ -7,8 +7,9 @@
 **Setup:** a few habits, some done, some missed, one not due today.
 
 1. Look at the popover in light mode, dark mode, and with Increase Contrast on.
+2. Open the "1 not due today" row at the bottom of the list.
 
-**Expect:** done squares and the filled done button are clearly green; missed squares soft red; not-scheduled squares faint grey; future days outlined; today's square ringed in the accent color; a habit not due today has a dashed circle. Nothing is hard to tell apart.
+**Expect:** done squares and the filled done button are clearly green; missed squares soft red; not-scheduled squares faint grey; future days outlined; today's square ringed in the accent color; the habit not due today is hidden until the row opens, then has a dashed circle; the "not due today" row is readable but quieter than the rows. Nothing is hard to tell apart.
 
 ## Many habits scroll inside the popover
 
@@ -16,7 +17,7 @@
 
 1. Open the popover.
 
-**Expect:** the calendar and the footer stay in place, the habit list scrolls, and the popover never runs off the bottom of the screen.
+**Expect:** the calendar and the Habits header stay in place, the habit list scrolls, and the popover never runs off the bottom of the screen.
 
 ## VoiceOver adjusts the strip day by day
 

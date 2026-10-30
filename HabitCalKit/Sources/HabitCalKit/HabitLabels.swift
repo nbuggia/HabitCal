@@ -32,6 +32,16 @@ public enum HabitLabels {
         return doneToday ? "Done today — click to undo" : "Mark done today"
     }
 
+    /// "3 not due today": the folded row under the due habits (T-012 B.2).
+    public static func notDueRowTitle(count: Int) -> String {
+        "\(count) not due today"
+    }
+
+    /// "3 habits not due today".
+    public static func notDueRowSpoken(count: Int) -> String {
+        "\(count) \(count == 1 ? "habit" : "habits") not due today"
+    }
+
     /// "Edit Push-ups": the name button's spoken label.
     public static func editSpoken(name: String) -> String {
         "Edit \(name)"

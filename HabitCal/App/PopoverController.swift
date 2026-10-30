@@ -23,6 +23,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         hostingController.close = { [weak self] in self?.close() }
         model.closePopover = { [weak self] in self?.close() }
         model.screenDidChange = { [weak self] in self?.focusHostingView() }
+        model.listDidHideRows = { [weak self] in self?.focusHostingView() }
     }
 
     func toggle(relativeTo button: NSView) {
@@ -40,7 +41,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     }
 
     /// Puts the responder chain's start back on the hosting view. A focused button that a screen
-    /// change removes can leave the window as first responder, outside the chain that handles Esc.
+    /// change (or a folded habit row) removes can leave the window as first responder, outside the chain that handles Esc.
     func focusHostingView() {
         hostingController.view.window?.makeFirstResponder(hostingController.view)
     }

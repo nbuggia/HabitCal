@@ -37,13 +37,14 @@
 
 **Expect:** after each change, the icon shows the matching date within a minute.
 
-## Today's circle moves at midnight while the popover is open
+## Today's marker and habits move at midnight while the popover is open
 
-**Setup:** HabitCal running, the popover open, a minute before midnight.
+**Setup:** HabitCal running, the popover open, a minute before midnight. One habit due today but not tomorrow, and one due tomorrow but not today.
 
 1. Leave it open across midnight.
+2. Press Esc.
 
-**Expect:** within a minute, the filled circle moves to the new day and the popover stays open. The displayed month doesn't change, even on the 1st.
+**Expect:** within a minute, the filled square moves to the new day and the popover stays open. The displayed month doesn't change, even on the 1st. The first habit moves into the "not due today" row and the second moves up into the list (T-012 B.5). Esc then closes the popover.
 
 ## The calendar follows the Mac's first day of the week
 

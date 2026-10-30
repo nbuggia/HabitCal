@@ -174,4 +174,23 @@ struct HabitTests {
         #expect(HabitLabels.doneButtonTooltip(dueToday: false, doneToday: false) == "Not scheduled today")
         #expect(HabitLabels.editSpoken(name: "Push-ups") == "Edit Push-ups")
     }
+
+    @Test func dueAndNotDueSplitTheListInOrderAdded() {
+        var habits = Habits()
+        habits.add(HabitDraft(name: "Push-ups", note: "", days: Set(1...7)), today: oct(1))
+        habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: oct(1))
+        habits.add(HabitDraft(name: "Read", note: "", days: [5]), today: oct(1))  // Thursday
+        habits.add(HabitDraft(name: "Swim", note: "", days: [sun]), today: oct(1))
+        #expect(habits.dueOn(today).map(\.name) == ["Push-ups", "Read"])
+        #expect(habits.notDueOn(today).map(\.name) == ["Run", "Swim"])
+        #expect(habits.dueOn(oct(25)).map(\.name) == ["Push-ups", "Run", "Swim"])  // a Sunday
+        #expect(habits.notDueOn(oct(25)).map(\.name) == ["Read"])
+    }
+
+    @Test func notDueRowLabelsCountHabits() {
+        #expect(HabitLabels.notDueRowTitle(count: 1) == "1 not due today")
+        #expect(HabitLabels.notDueRowTitle(count: 3) == "3 not due today")
+        #expect(HabitLabels.notDueRowSpoken(count: 1) == "1 habit not due today")
+        #expect(HabitLabels.notDueRowSpoken(count: 3) == "3 habits not due today")
+    }
 }

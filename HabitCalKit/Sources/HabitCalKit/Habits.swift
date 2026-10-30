@@ -47,6 +47,16 @@ public struct Habits: Equatable, Sendable {
         all.first { $0.id == id }
     }
 
+    /// The habits due on a day, in the order added: the list's rows (T-012 B.1).
+    public func dueOn(_ day: Day) -> [Habit] {
+        all.filter { $0.isDue(on: day) }
+    }
+
+    /// The habits not due on a day, in the order added: the folded row's rows (T-012 B.2).
+    public func notDueOn(_ day: Day) -> [Habit] {
+        all.filter { !$0.isDue(on: day) }
+    }
+
     /// Adds a habit due from today, at the bottom of the list (B.11, B.14).
     @discardableResult
     public mutating func add(_ draft: HabitDraft, today: Day) -> UUID {

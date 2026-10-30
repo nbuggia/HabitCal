@@ -1,4 +1,5 @@
 import AppKit
+import HabitCalKit
 import SwiftUI
 
 /// The calendar, then the habits under a header row holding Add and Settings.
@@ -87,8 +88,24 @@ struct HabitListScreen: View {
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    ForEach(model.habits.all) { habit in
+                    // Today's habits; the rest fold into a row under them (T-012).
+                    let due = model.habits.dueOn(model.today)
+                    let notDue = model.habits.notDueOn(model.today)
+                    ForEach(due) { habit in
                         HabitRow(habit: habit)
+                    }
+                    if due.isEmpty {
+                        Text("Nothing due today")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    if !notDue.isEmpty {
+                        notDueRow(count: notDue.count)
+                        if model.showsNotDue {
+                            ForEach(notDue) { habit in
+                                HabitRow(habit: habit)
+                            }
+                        }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) {
@@ -100,5 +117,22 @@ struct HabitListScreen: View {
             .frame(height: min(listHeight, maxListHeight))
             .scrollBounceBehavior(.basedOnSize)
         }
+    }
+
+    private func notDueRow(count: Int) -> some View {
+        Button {
+            model.toggleNotDue()
+        } label: {
+            HStack(spacing: 4) {
+                Text(HabitLabels.notDueRowTitle(count: count))
+                PhosphorIcon(model.showsNotDue ? "caret-down" : "caret-right", size: 11)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(HabitLabels.notDueRowSpoken(count: count))
+        .accessibilityValue(model.showsNotDue ? "expanded" : "collapsed")
     }
 }

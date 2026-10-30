@@ -26,7 +26,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Settings' week-start row stacks its label above the control to fit.
 - [x] T-010 Bolder calendar text on Liquid Glass (medium day numbers; bold, primary weekday initials) · high · done 2026-10-30
 - [x] T-011 Settings button uses the Phosphor sliders icon · high · done 2026-10-30
-- [ ] T-012 Show only habits due today; the rest collapse into a "N not due today" row · high
+- [x] T-012 Show only habits due today; the rest collapse into a "N not due today" row · high · done 2026-10-30
 - [x] T-013 Today's calendar marker is a rounded square like the menu bar icon · high · done 2026-10-30
 - [x] T-014 Add and Settings buttons move into the Habits header row; footer removed · high · done 2026-10-30
 - [ ] T-015 Prototype a leaderboard of progress across all habits · medium

@@ -20,3 +20,9 @@
 2026-10-30 · T-007 · QUESTION · Strip squares 16% smaller; ring overlapped by neighbors · fixed (ring); size accepted risk
 2026-10-30 · T-008 · MINOR · README command for the icon script crashed outside the repo root · fixed
 2026-10-30 · T-008 · MINOR · Nothing in the SVG warns to regenerate the PDF · fixed
+2026-10-30 · T-012 · MAJOR · Folding away a focused strip (or a day change) could leave Esc dead · not reproduced; defensive fix and guard test
+2026-10-30 · T-012 · MAJOR · Edit half of B.4 untested; named test missing · fixed
+2026-10-30 · T-012 · MINOR · Folded row isn't a Tab stop with Keyboard navigation off · spec changed
+2026-10-30 · T-012 · MINOR · Saved habit may sit below the scroll in a long list · spec changed
+2026-10-30 · T-012 · MINOR · B.5 unproven at view level; manual tests stale · fixed (manual test)
+2026-10-30 · T-012 · MINOR · "Above" not proven in Nothing-due test · fixed

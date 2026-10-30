@@ -49,8 +49,11 @@ final class AppModel {
         static let launchAtLoginInitialized = "launchAtLoginInitialized"
     }
 
-    /// Today on the Mac's calendar. Only `DayWatcher` sets it.
-    var today: Day
+    /// Today on the Mac's calendar. Only `DayWatcher` sets it. A new day can fold away the habit
+    /// whose strip has focus, so the popover takes focus back (T-012 B.5, FM-006).
+    var today: Day {
+        didSet { if today != oldValue { listDidHideRows() } }
+    }
     /// The Mac's first day of the week, mapped to Sunday or Monday. Only `DayWatcher` sets it.
     var macWeekStart: WeekStart
     private(set) var displayedMonth: Month
@@ -63,6 +66,8 @@ final class AppModel {
     /// The user's habits. Changed only through the methods below, each of which saves (T-003 B.18).
     private(set) var habits: Habits
     private(set) var dataState: DataState
+    /// Whether the habits not due today are shown under the folded row. Closed on every open (T-012 B.2).
+    private(set) var showsNotDue = false
     /// The open form, while `screen == .form`.
     private(set) var form: HabitForm?
     /// Bumped on every refresh, so the switch redraws even when a failed change leaves the state
@@ -73,6 +78,8 @@ final class AppModel {
     @ObservationIgnored var closePopover: () -> Void = {}
     /// Called after the screen changes. Set by `PopoverController` to keep Esc working (FM-006).
     @ObservationIgnored var screenDidChange: () -> Void = {}
+    /// Called when rows leave the habit list, which can remove the focused strip.
+    @ObservationIgnored var listDidHideRows: () -> Void = {}
 
     @ObservationIgnored private let store: HabitStore
     @ObservationIgnored private let defaults: UserDefaults
@@ -115,6 +122,7 @@ final class AppModel {
     /// Every open starts from the habit list and the current month (T-002 B.4).
     func resetForOpen() {
         form = nil
+        showsNotDue = false
         screen = .list
         displayedMonth = Month(today)
     }
@@ -146,6 +154,13 @@ final class AppModel {
     }
 
     // MARK: Habits
+
+    func toggleNotDue() {
+        showsNotDue.toggle()
+        if !showsNotDue {
+            listDidHideRows()
+        }
+    }
 
     /// Toggles today's check-off from the done button (T-003 B.4).
     func toggleToday(_ id: UUID) {
@@ -216,12 +231,19 @@ final class AppModel {
         return form.draft.days != habit.days(today: today)
     }
 
-    /// Add or Save (B.11). Does nothing until the draft is valid (B.10).
+    /// Add or Save (B.11). Does nothing until the draft is valid (B.10). A habit saved that isn't due
+    /// today opens the folded row, so it doesn't vanish from the list (T-012 B.4).
     func saveForm() {
         guard let form, form.draft.isValid else { return }
+        let id: UUID
         switch form.mode {
-        case .add: habits.add(form.draft, today: today)
-        case .edit(let id): habits.update(id, with: form.draft, today: today)
+        case .add: id = habits.add(form.draft, today: today)
+        case .edit(let edited):
+            id = edited
+            habits.update(edited, with: form.draft, today: today)
+        }
+        if habits[id]?.isDue(on: today) == false {
+            showsNotDue = true
         }
         persist()
         closeForm()
