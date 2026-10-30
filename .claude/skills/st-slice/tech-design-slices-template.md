@@ -35,7 +35,7 @@ it enables.
 | Explicitly deferred | Adjacent excluded work.                                                      |
 | Invalidation risk   | Assumptions, ceilings, and falsifying evidence.                              |
 | Size justification  | Why this is one cohesive outcome.                                            |
-| Test gate           | Failing tests first at the design's test points, then implement. N/A only with the reason. |
+| Test gate           | Failing tests first at the design's test points (`swift test --package-path HabitCalKit`, then the area's XCUITests), then implement. N/A only with the reason. |
 
 ## 3. Review Findings
 

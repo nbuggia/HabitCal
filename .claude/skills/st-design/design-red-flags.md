@@ -36,6 +36,13 @@ A function that forwards the same arguments to another function with the same sh
 
 A boundary layer the architecture requires, such as a client wrapper around a remote API, is not a red flag on its own. The red flag is a layer with no policy of its own: no error mapping, no translation, no validation, no logging beyond the call it wraps. Merge it into the layer that actually does something.
 
+## HabitCal stack red flags
+
+- **Dates as instants.** A `Date` standing for a calendar day, or `Date()` outside the `Clock`. Use `Day` and the injected `Clock` (FM-002, FM-007).
+- **Rules in the app target.** Due-day, streak, label, or week-start logic in a view or `AppModel` rather than HabitCalKit, where it can't be unit-tested.
+- **A second writer.** Anything besides `HabitStore` reading or writing `habits.json`, or a load path that falls back to an empty store (FM-003, D-004).
+- **Off-main UI state.** A notification observer, timer, or `Task` that changes `AppModel` without `@MainActor` (FM-004).
+
 ## Interface depth (tie-breaker for §11 alternatives)
 
 When two real alternatives are otherwise comparable, prefer the one that hides more complexity behind a smaller, simpler public surface — not the one with the shorter call chain. One operation with a richer internal implementation beats three thin ones the caller has to orchestrate itself; that orchestration is exactly the shallow-module pattern above, spread across a call site instead of a module.

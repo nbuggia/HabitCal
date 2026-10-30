@@ -14,7 +14,7 @@ Used where `.steel-thread/framework/development.md` calls for it — a spec's re
 Read the objective, CONTEXT.md, and `docs/engineering/ARCHITECTURE.md` to understand the product, its users, and its stack. Determine who the most critical expert would be:
 
 - Spec → a product manager who has shipped this kind of feature, and asks what users actually need and what the spec leaves unsaid
-- Tech design → a principal engineer on this stack, who keeps it simple, finds the failure modes, and pushes back on scope the spec does not need
+- Tech design → a principal macOS engineer (Swift 6, SwiftUI, AppKit menu bar apps), who keeps it simple, finds the failure modes, and pushes back on scope the spec does not need
 - Bug diagnosis → a debugging expert, who asks "how do you know that's the cause?" and wants the evidence
 - Code → a senior reviewer for this stack, who reads the whole diff against its base, with its spec and design, for correctness, tests that prove behavior, and the project's conventions
 

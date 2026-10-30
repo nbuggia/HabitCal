@@ -103,9 +103,9 @@ Choose the kind of test by what it has to prove:
 
 | Test | Proves | Use for |
 | --- | --- | --- |
-| Unit | One module's behavior, with its edges faked | Logic with many cases: parsing, calculation, state transitions |
-| Integration | Real modules working together across a boundary | Persistence, IPC, APIs, file system, anything where two parts must agree |
-| Automated UI | A user journey through the running product | The task's use cases, and the regressions users would notice first |
+| Unit | One module's behavior, with its edges faked | Logic with many cases in HabitCalKit: due days, streaks, labels, week start. Swift Testing, `swift test --package-path HabitCalKit` |
+| Integration | Real modules working together across a boundary | `HabitStore` against a real temporary directory. Swift Testing, same command |
+| Automated UI | A user journey through the running product | The task's use cases, and the regressions users would notice first. XCUITest, `xcodebuild test -scheme HabitCal` |
 
 - Test what the code does from the outside, never how it does it. A test that breaks during a refactor that changes no behavior is a bad test.
 - Each use case gets at least one automated UI or integration test. Unit tests alone do not prove a use case works.

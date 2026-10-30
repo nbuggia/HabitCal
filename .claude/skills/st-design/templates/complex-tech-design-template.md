@@ -75,27 +75,27 @@ Screen the design above — and every alternative in §11 — against `../design
 
 ## 7. Interface Contract
 
-\[Every API, command, or message the change adds or changes, across any process, network, or language boundary.\]
+\[Every public HabitCalKit API the app calls, every `AppModel` method a view calls, and every macOS API or notification the change adds or relies on (status item, popover, `SMAppService`, `NSWorkspace`, day/clock/time-zone/locale notifications).\]
 
 | Interface | Inputs | Output | Errors | Async? |
 | --------- | ------ | ------ | ------ | ------ |
 
-\[For events: name, payload, emitter, listeners, ordering/delivery. State whether the types on each side of a boundary are generated or kept in sync by hand.\]
+\[For notifications: name, who posts it, the observer, and which actor it's delivered on. Mark each API as main-actor or `Sendable`.\]
 
 ## 8. Data Model & Persistence
 
-\[Mechanism, schema/version, migration, rollout ordering, retention/removal.\]
+\[`habits.json` (via `HabitStore`) or `UserDefaults` keys: the fields added or changed, whether `formatVersion` goes up, how older versions decode (D-004), what a build one version older does with the new file, and the test that loads a fixture of every earlier version.\]
 
 ## 9. Capabilities & Security
 
-\[Minimum permissions and scopes, trust boundaries, input validation, attack surface.\]
+\[App Sandbox entitlements added or relied on (v1 has none beyond the sandbox itself; no network, D-007), hardened runtime exceptions, `SMAppService` and System Settings approval, and validation of data read from disk.\]
 
-## 10. Cross-Platform
+## 10. macOS Versions and Appearance
 
-Name the baseline platform, then one row for every other platform, browser, or runtime the product supports: what's different and how it's verified. "None" is a complete answer, a missing row is not. If the product runs in one environment only, say so and skip the table.
+Baseline: macOS 15, Apple silicon, light mode. One row for each difference this change has on a later macOS, on Intel, in dark mode, with Increase Contrast, or with VoiceOver. "None" is a complete answer; a missing row is not.
 
-| Platform | Difference from baseline | Verified how |
-| -------- | ------------------------ | ------------ |
+| Variant | Difference from baseline | Verified how |
+| ------- | ------------------------ | ------------ |
 
 ## 11. Alternatives / Reuse / Proportionality
 

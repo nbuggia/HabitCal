@@ -6,6 +6,7 @@ Session: S-002 · 2026-10-29
 
 - Renamed the app CalAccrue → HabitCal (D-002 supersedes D-001) in `docs/PRD.md` and the T-001 prototype. The project folder is `~/workspace/HabitCal`.
 - Split v1 into T-002 (menu bar and calendar), T-003 (habits), and T-004 (streaks). Wrote and approved a spec for each in `docs/work/T-00N-*/spec.md`, after one st-crit pass (findings table at the end of T-002's spec).
+- Ran st-dev-setup: wrote `docs/engineering/` (ARCHITECTURE, CONVENTIONS, TESTING, COMMON-FAILURE-MODES FM-001–009) and adapted st-design, st-crit, st-slice, and development.md to Swift/SwiftUI (logged in customizations.md).
 - Customer ruled: the prototype is the source of truth over the PRD. So the calendar grid has no completion marks (the strips carry history), and Notes stay.
 
 ## In Flight
@@ -14,7 +15,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-PRD aligned with the prototype (D-003), and data rules logged (D-004). Next is the tech design. Run st-dev-setup first, because there's no `docs/engineering/ARCHITECTURE.md` yet. Then st-design for T-002. T-003 is likely Complex: it creates the persisted data format.
+D-005–D-007 and CONTEXT.md approved and written. Next: close T-001, and start st-design for T-002 (Complex: it adds the app's components). T-002's first slice should prove FM-008, that UI tests can click the status item.
 
 ## Suggested Start
 
