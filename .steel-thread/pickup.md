@@ -1,13 +1,12 @@
 # Pickup Note
 
-Session: S-001 · 2026-10-29
+Session: S-002 · 2026-10-29
 
 ## Accomplished
 
-- Installed Steel Thread (Claude Code) and ran `git init`; nothing committed yet.
-- Competitive research written to the Appendix of `docs/PRD.md`.
-- Drafted the objective and feature intent in `docs/PRD.md`, and `docs/BACKLOG.md` with deferred ideas — awaiting the customer's review.
-- Created `docs/TASKS.md` (Phase 1 — v1) with T-001, and built five menu bar concepts in `docs/work/T-001-menubar-concepts/prototype/index.html` (light/dark toggle, live shared data).
+- Renamed the app CalAccrue → HabitCal (D-002 supersedes D-001) in `docs/PRD.md` and the T-001 prototype. The project folder is `~/workspace/HabitCal`.
+- Split v1 into T-002 (menu bar and calendar), T-003 (habits), and T-004 (streaks). Wrote and approved a spec for each in `docs/work/T-00N-*/spec.md`, after one st-crit pass (findings table at the end of T-002's spec).
+- Customer ruled: the prototype is the source of truth over the PRD. So the calendar grid has no completion marks (the strips carry history), and Notes stay.
 
 ## In Flight
 
@@ -15,7 +14,7 @@ T-001: menu bar icon locked (tear-off calendar page: month cut out of a solid ba
 
 ## Up Next
 
-Customer wanted to finish the product definition and competitive analysis before anything else.
+PRD aligned with the prototype (D-003), and data rules logged (D-004). Next is the tech design. Run st-dev-setup first, because there's no `docs/engineering/ARCHITECTURE.md` yet. Then st-design for T-002. T-003 is likely Complex: it creates the persisted data format.
 
 ## Suggested Start
 
@@ -23,7 +22,7 @@ Get the customer's sign-off on `docs/PRD.md` (my calls: yes/no habits only, no c
 
 ## Proposed Updates
 
-(App renamed tcal → CalAccrue; logged as D-001. Project folder renamed to `~/workspace/CalAccrue`.)
+- T-001: close it with st-close. Its prototype is answered, and its specs are written.
 
 - DECISIONS.md: menu bar icon is the tear-off calendar page with no progress indicator (ring and progress line tried and rejected as too busy); Phosphor for UI icons.
 

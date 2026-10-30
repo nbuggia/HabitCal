@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CalAccrue — Prototype</title>
+<title>HabitCal — Prototype</title>
 <style>
   :root {
     --page: #eceef2;
@@ -258,7 +258,7 @@
 <body>
 <header class="page">
   <div>
-    <h1>CalAccrue — prototype</h1>
+    <h1>HabitCal — prototype</h1>
     <p>The menu bar icon, the popover, and its screens. Sample habits are Push-ups (every day), Run (Fri &amp; Sun), and Meditate (weekdays). The Final card is live: check off habits, change months, edit habits, and open Settings with the gear.</p>
   </div>
   <button class="mode-toggle" id="modeToggle" type="button"><span id="modeIcon">☾</span><span id="modeLabel">Dark mode</span></button>
@@ -568,7 +568,7 @@ function finalSettings(opts = {}) {
   const head = el(`<div class="set-head"><button class="link">${ph('caret-left', 13)} Back</button><span class="ttl">Settings</span><span></span></div>`);
   head.querySelector('.link').onclick = back;
   const group = el(`<div class="set-group">
-      <div class="set-row"><span>Launch at login<small>Start CalAccrue when you log in to this Mac</small></span><button class="switch ${settings.launchAtLogin ? 'on' : ''}" role="switch" aria-checked="${settings.launchAtLogin}" title="Launch at login"></button></div>
+      <div class="set-row"><span>Launch at login<small>Start HabitCal when you log in to this Mac</small></span><button class="switch ${settings.launchAtLogin ? 'on' : ''}" role="switch" aria-checked="${settings.launchAtLogin}" title="Launch at login"></button></div>
       <div class="set-row"><span>Week starts on<small>${settings.weekStartOverride === null
           ? `From your Mac's settings`
           : `Your Mac uses ${WEEKDAYS[systemWeekStart()]} · <button class="link reset">Use Mac setting</button>`}</small></span><span class="seg"><button data-d="0" class="${settings.weekStart === 0 ? 'on' : ''}">Sunday</button><button data-d="1" class="${settings.weekStart === 1 ? 'on' : ''}">Monday</button></span></div>
@@ -581,8 +581,8 @@ function finalSettings(opts = {}) {
   });
   const reset = group.querySelector('.reset');
   if (reset) reset.onclick = () => { settings.weekStartOverride = null; renderAll(); };
-  const about = el(`<div class="about"><b>CalAccrue 1.0</b><br><a href="https://www.muchfiner.com" target="_blank" rel="noopener">www.muchfiner.com</a></div>`);
-  const quit = el(`<button class="quit">${ph('power', 15)} Quit CalAccrue <kbd>⌘Q</kbd></button>`);
+  const about = el(`<div class="about"><b>HabitCal 1.0</b><br><a href="https://www.muchfiner.com" target="_blank" rel="noopener">www.muchfiner.com</a></div>`);
+  const quit = el(`<button class="quit">${ph('power', 15)} Quit HabitCal <kbd>⌘Q</kbd></button>`);
   quit.onclick = () => { quit.querySelector('kbd').textContent = '(prototype: nothing to quit)'; };
   pop.append(head, about, el('<div class="field-label">General</div>'), group, el('<div class="sep"></div>'), quit);
   return pop;

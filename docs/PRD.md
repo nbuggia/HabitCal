@@ -1,8 +1,8 @@
-# Product: CalAccrue
+# Product: HabitCal
 
 ## Outcome
 
-CalAccrue is a free macOS menu bar app for people building daily habits. The menu bar always shows today's date; one click opens a month calendar you can page through, and the same calendar shows your habits: check off today's from the popover, and see at a glance which days this month you kept up. Each habit has its own schedule (push-ups every day, a run on Fridays and Sundays), and its streak counts only the days it was due, so a day off never breaks it. It matters because today this takes two apps — a menu bar calendar and a habit tracker — and the good habit trackers are paid, capped, or want an account. CalAccrue does both jobs in one glance, privately, for free. See the Appendix.
+HabitCal is a free macOS menu bar app for people building daily habits. The menu bar always shows today's date; one click opens a month calendar you can page through, with your habits right under it: check off today's from the popover, and see at a glance, in each habit's strip for the month on show, which days you kept up. Each habit has its own schedule (push-ups every day, a run on Fridays and Sundays), and its streak counts only the days it was due, so a day off never breaks it. It matters because today this takes two apps — a menu bar calendar and a habit tracker — and the good habit trackers are paid, capped, or want an account. HabitCal does both jobs in one glance, privately, for free. See the Appendix.
 
 ## Done Means
 
@@ -10,17 +10,17 @@ CalAccrue is a free macOS menu bar app for people building daily habits. The men
 - One click opens the current month; any other month is one click per month away, and one click returns to today.
 - A new habit with a schedule (every day, or chosen weekdays) can be added in under 30 seconds.
 - Checking off today's habit is one click from the popover; its streak updates immediately and survives quitting and relaunching.
-- Each day in the month calendar shows whether that day's due habits were all done, partly done, or not done.
+- Each habit shows a strip for the month on show in the calendar, marking each day as done, missed, or not scheduled.
 - Each habit shows its current streak and its best streak, and a day the habit wasn't scheduled never breaks a streak.
 - A missed check-off can be fixed by marking a past day done.
 - The app works fully offline, needs no account, and sends no data anywhere.
 
 ## Not Doing
 
-- **Calendar events.** No Apple Calendar, Google, or iCloud events. Itsycal and Calendr do that well and for free; it would add permission prompts and pull CalAccrue toward a meeting tool.
+- **Calendar events.** No Apple Calendar, Google, or iCloud events. Itsycal and Calendr do that well and for free; it would add permission prompts and pull HabitCal toward a meeting tool.
 - **Sync, accounts, or iPhone/iPad apps.** v1 is one Mac with local data. Sync is the main source of complexity and cost in competing apps.
 - **Counted or timed goals** ("50 push-ups", "30 minutes"). A habit is done or not done for the day. Revisit after v1 (see BACKLOG.md).
-- **Reminders and notifications.** CalAccrue is glanceable, not a nag. Revisit after v1.
+- **Reminders and notifications.** HabitCal is glanceable, not a nag. Revisit after v1.
 - **Payments, ads, habit limits, or social features.** The app is free with no ceiling — the category's upsells and social feeds are what users complain about.
 
 ## Constraints
@@ -46,7 +46,7 @@ CalAccrue is a free macOS menu bar app for people building daily habits. The men
 **Why it matters:** checking off a habit has to be quicker than skipping it, or the tracking stops.
 
 ### Not Doing
-- Habit categories, notes, or journaling — keep the list short and flat.
+- Habit categories or journaling — keep the list short and flat. An optional note per habit ("3 sets of 20") is fine (D-003).
 
 ### Flows
 - Spans Month Calendar: each day in the grid shows how that day's due habits went.
@@ -67,15 +67,15 @@ The market splits cleanly in two, and nothing occupies the middle:
 - **Menu bar calendars** (Itsycal, Calendr, Menu Bar Calendar, Dato) answer "what's the date?" in one click, are mostly free, and know nothing about habits.
 - **Habit trackers** (Streaks, Habitify, Habits, Kinetik) handle schedules and streaks well, but live in a window, a widget, or a today-only menu bar list — none put habit history on a month calendar in the menu bar. The good ones are paid or freemium with subscriptions.
 
-A Mac user who wants both runs two apps today. CalAccrue's position: **one free, private menu bar icon that is both — the month calendar *is* the habit history.**
+A Mac user who wants both runs two apps today. HabitCal's position: **one free, private menu bar icon that is both — the month calendar with each habit's month of history right under it.**
 
 ### Menu bar calendars
 
-| App | Price | Strengths | Gaps vs. CalAccrue |
+| App | Price | Strengths | Gaps vs. HabitCal |
 | --- | --- | --- | --- |
 | [Itsycal](https://alternativeto.net/software/itsycal) | Free, open source | The default recommendation. Tiny month grid, date in menu bar, Calendar events | No habits |
 | [Calendr](https://github.com/pakerwreah/Calendr) | Free, open source (MIT), ~2.4k stars | Itsycal-style with more: events, reminders, multiple time zones, URL scheme to open a date | No habits; growing feature surface |
-| [Menu Bar Calendar](https://mac.softpedia.com/get/System-Utilities/Menu-Bar-Calendar.shtml) (Sindre Sorhus) | Free | Pure month overview — the closest match to CalAccrue's calendar job | No habits, deliberately minimal |
+| [Menu Bar Calendar](https://mac.softpedia.com/get/System-Utilities/Menu-Bar-Calendar.shtml) (Sindre Sorhus) | Free | Pure month overview — the closest match to HabitCal's calendar job | No habits, deliberately minimal |
 | [Dato](https://alternativeto.net/software/dato) | Paid, one-time | Highly customizable: events, world clocks, week numbers, notifications | Paid; no habits |
 | [CalendarMenu 4](https://apps.apple.com/app/id510684580) | $3.99 | Upcoming appointments, birthdays, reminders | Paid; no habits |
 | Day-O, Calendar 366, Dot Calendar, Superpowered, MeetingBar, [Daybar](https://alternativeto.net/software/daybar) | Free to paid | Event / meeting oriented; Daybar adds tasks and Pomodoro | Meeting tools, not habit tools |
@@ -83,7 +83,7 @@ A Mac user who wants both runs two apps today. CalAccrue's position: **one free,
 
 ### Habit trackers on the Mac
 
-| App | Price | Mac form | Scheduling | Streaks | Gaps vs. CalAccrue |
+| App | Price | Mac form | Scheduling | Streaks | Gaps vs. HabitCal |
 | --- | --- | --- | --- | --- | --- |
 | [Streaks](https://streaksapp.com/) | $5.99 one-time | App window (Catalyst port of the iPhone app) | Specific weekdays, N days/week, N days/month, every other day | Off days don't break the chain; the category leader | Not a menu bar app; 24-habit limit; paid |
 | [Habitify](https://feedback.habitify.me/changelog/habitify-for-macos-update-new-mini-app-and-more-updates) | Free plan; $39.99/yr or $89.99 lifetime | App + menu bar mini app (Aug 2025) showing today's list | Flexible | Yes | Account and sync; subscription upsell; menu bar shows today only, no month |
@@ -98,7 +98,7 @@ Source for the habit-tracker roundup: [Timing — Best Habit Tracker Apps for iP
 
 ### What we learn from them
 
-**Table stakes** — users of this category expect these, so CalAccrue must have them:
+**Table stakes** — users of this category expect these, so HabitCal must have them:
 
 - Today's date in the menu bar, month grid one click away, quick jump back to today (Itsycal, Menu Bar Calendar).
 - Per-habit schedules on specific weekdays, where an unscheduled day never breaks a streak (Streaks, Kinetik).
@@ -106,11 +106,11 @@ Source for the habit-tracker roundup: [Timing — Best Habit Tracker Apps for iP
 - Check off today's habit without opening a window (Habitify mini app, Habits).
 - Local, private data with no account (Kinetik, MonthBar) — a real differentiator against Habitify and Everyday.
 
-**Where CalAccrue can win:**
+**Where HabitCal can win:**
 
-1. **The month calendar is the habit history.** Nobody puts completion marks on a menu bar month grid. You see "what's the date" and "how am I doing this month" in one glance.
-2. **Free with no ceiling.** Streaks is paid; Everyday caps free at 3 habits; Habitify upsells. CalAccrue is free with no limits and no account.
-3. **Small and calm.** Category reviews repeatedly fault busy interfaces, upsells, and social features (Habitify, TickTick, Fabulous). CalAccrue does two jobs and stops.
+1. **The month calendar and the habit history in one place.** Nobody puts a month of habit history under a menu bar calendar. You see "what's the date" and "how am I doing this month" in one glance.
+2. **Free with no ceiling.** Streaks is paid; Everyday caps free at 3 habits; Habitify upsells. HabitCal is free with no limits and no account.
+3. **Small and calm.** Category reviews repeatedly fault busy interfaces, upsells, and social features (Habitify, TickTick, Fabulous). HabitCal does two jobs and stops.
 
 **Ideas worth borrowing later** (not v1): a day-rollover hour for night owls (Kinetik's 3 AM), "N times per week" schedules (Streaks, TickTick), skip/excused days that don't break a streak (Way of Life, HabitMinder), counted goals (Strides).
 

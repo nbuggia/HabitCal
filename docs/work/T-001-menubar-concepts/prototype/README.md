@@ -2,7 +2,7 @@
 
 ## Question
 
-What should CalAccrue look like in the menu bar and its popover, so that checking the date and checking off today's habits both take one glance and one click? Five options, side by side, in light and dark mode: `index.html`.
+What should HabitCal look like in the menu bar and its popover, so that checking the date and checking off today's habits both take one glance and one click? Five options, side by side, in light and dark mode: `index.html`.
 
 1. **Classic** — date as text; month with a dot per day; today's checklist below.
 2. **Progress Ring** — ring around the date fills as habits are done; per-day rings in the month.
@@ -20,7 +20,7 @@ What should CalAccrue look like in the menu bar and its popover, so that checkin
 
 **Popover screens so far:** the habit list (done button leading each row, streaks on the right, monthly strip); the habit form for Add and Edit (name, repeats-on day buttons, optional notes, delete with confirmation; a schedule change applies from today); and Settings (Launch at login, Week starts on Sunday/Monday, About line, Quit).
 
-**Settings, revised (2026-10-29):** the app name ("CalAccrue 1.0") and website (www.muchfiner.com) sit at the top of Settings; Quit stays at the bottom.
+**Settings, revised (2026-10-29):** the app name ("HabitCal 1.0") and website (www.muchfiner.com) sit at the top of Settings; Quit stays at the bottom.
 
 ## Requirements to carry into the v1 spec
 
@@ -32,4 +32,4 @@ Rules the customer set while prototyping. They belong in the spec's Behavior sec
   - The user SHALL be able to override it with Sunday or Monday in Settings. The override applies to the month calendar and the order of the habit form's day buttons, and persists across relaunches.
   - Settings SHALL show which day the Mac uses while an override is on, and offer "Use Mac setting" to go back to following it.
 
-**Renamed (2026-10-29):** the app is now **CalAccrue** (calendar + accrue: small daily habits add up). The project folder was renamed to `CalAccrue` too. See D-001.
+**Renamed (2026-10-29):** the app is now **HabitCal**, which names both jobs plainly. It was briefly CalAccrue (D-001). The project folder is `HabitCal`. See D-002.

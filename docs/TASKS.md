@@ -11,3 +11,9 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 ## Phase 1 — v1
 - [ ] T-001 Prototype menu bar design concepts · high
       Five concepts on one page in docs/work/T-001-menubar-concepts/prototype/; awaiting the customer's pick.
+- [ ] T-002 Menu bar date and month calendar · high
+      Spec in docs/work/T-002-menubar-calendar/spec.md.
+- [ ] T-003 Habits: add, edit, check off · high
+      Spec in docs/work/T-003-habits/spec.md.
+- [ ] T-004 Streaks · high
+      Spec in docs/work/T-004-streaks/spec.md.
