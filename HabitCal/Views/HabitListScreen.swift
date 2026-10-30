@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// The calendar, the habits under it, and the footer.
+/// The calendar, then the habits under a header row holding Add and Settings.
 struct HabitListScreen: View {
     @Environment(AppModel.self) private var model
     @State private var listHeight: CGFloat = 0
@@ -15,11 +15,7 @@ struct HabitListScreen: View {
         VStack(alignment: .leading, spacing: 10) {
             CalendarView()
             Divider()
-            Text("Habits")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .accessibilityIdentifier("habitsSection")
+            header
             if model.dataState == .saveFailed {
                 // Shown until a later save succeeds, even if the list is now empty (T-003 E.6).
                 Text("Couldn't save — your last change may be lost")
@@ -28,30 +24,41 @@ struct HabitListScreen: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             habitList
-            Divider()
-            HStack {
-                Button {
-                    model.openAddForm()
-                } label: {
-                    HStack(spacing: 4) {
-                        PhosphorIcon("plus", size: 13)
-                        Text("Add habit")
-                    }
-                }
-                .buttonStyle(.borderless)
-                .disabled(!model.canAddHabits)
-                .accessibilityLabel("Add habit")
-                Spacer()
-                Button {
-                    model.openSettings()
-                } label: {
-                    PhosphorIcon("sliders", size: 16)
-                }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Settings")
-            }
         }
         .padding(12)
+    }
+
+    /// The section label with Add beside it and Settings at the far end; there is no footer (T-014).
+    private var header: some View {
+        HStack(spacing: 6) {
+            Text("Habits")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .accessibilityIdentifier("habitsSection")
+            Button {
+                model.openAddForm()
+            } label: {
+                PhosphorIcon("plus", size: 14)
+                    .frame(width: 22, height: 22)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .disabled(!model.canAddHabits)
+            .accessibilityLabel("Add habit")
+            .help("Add habit")
+            Spacer()
+            Button {
+                model.openSettings()
+            } label: {
+                PhosphorIcon("sliders", size: 16)
+                    .frame(width: 22, height: 22)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Settings")
+            .help("Settings")
+        }
     }
 
     @ViewBuilder
