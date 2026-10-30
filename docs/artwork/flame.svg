@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="outer" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#D9301A"/>
+      <stop offset="0.55" stop-color="#FF6A1A"/>
+      <stop offset="1" stop-color="#FF9A2E"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#FF8A1C"/>
+      <stop offset="1" stop-color="#FFC93D"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#FFE27A"/>
+      <stop offset="1" stop-color="#FFF7D6"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#outer)" d="M128 246 C76 246 40 210 40 162 C40 122 62 96 82 70 C86 92 95 106 108 112 C102 76 116 38 150 8 C151 42 166 62 186 86 C190 72 190 60 186 46 C210 72 220 112 216 162 C216 210 180 246 128 246 Z"/>
+  <path fill="url(#inner)" d="M128 238 C96 238 74 216 74 186 C74 160 90 142 106 122 C108 140 117 150 128 154 C125 130 136 110 154 92 C156 118 166 134 174 150 C182 164 182 176 182 186 C182 216 160 238 128 238 Z"/>
+  <path fill="url(#core)" d="M128 234 C110 234 98 221 98 204 C98 188 110 175 128 160 C146 175 158 188 158 204 C158 221 146 234 128 234 Z"/>
+</svg>

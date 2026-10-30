@@ -97,10 +97,17 @@ private struct StreakStats: View {
         let hot = current >= Streaks.hotThreshold
         HStack(spacing: 10) {
             HStack(spacing: 3) {
-                PhosphorIcon("fire", size: 13)
-                Text("\(current)").fontWeight(hot ? .semibold : .regular)
+                // HabitCal's own flame (T-008), in full color once the streak is hot, grey below that.
+                Image("flame")
+                    .resizable()
+                    .frame(width: 14, height: 14)
+                    .saturation(hot ? 1 : 0)
+                    .opacity(hot ? 1 : 0.55)
+                    .accessibilityHidden(true)
+                Text("\(current)")
+                    .fontWeight(hot ? .semibold : .regular)
+                    .foregroundStyle(hot ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
             }
-            .foregroundStyle(hot ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
             .help("Current streak")
             HStack(spacing: 3) {
                 PhosphorIcon("trophy", size: 13)

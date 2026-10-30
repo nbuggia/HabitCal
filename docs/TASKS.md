@@ -20,5 +20,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-006 Calendar polish: tighter day grid · high · done 2026-10-30
       The full-date header was dropped by the customer.
 - [x] T-007 Narrow the popover so the calendar's side gutters shrink · high · done 2026-10-30
+- [ ] T-008 Custom flame for the app icon and streaks · high
+      Customer request 2026-10-30.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.

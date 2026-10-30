@@ -5,10 +5,8 @@ enum Glyph { case check, fire }
 /// The app's streak color and the calendar-page green.
 let flame = NSColor(srgbRed: 1.00, green: 0.48, blue: 0.10, alpha: 1)
 let leaf = NSColor(srgbRed: 0.20, green: 0.74, blue: 0.40, alpha: 1)
-/// The Phosphor "fire" icon (regular weight, MIT), the same one the app shows beside streaks.
-let fireSVG = """
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path fill="#000000" d="M143.38,17.85a8,8,0,0,0-12.63,3.41l-22,60.41L84.59,58.26a8,8,0,0,0-11.93.89C51,87.53,40,116.08,40,144a88,88,0,0,0,176,0C216,84.55,165.21,36,143.38,17.85Zm40.51,135.49a57.6,57.6,0,0,1-46.56,46.55A7.65,7.65,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"/></svg>
-"""
+/// HabitCal's flame, the same file the app shows beside streaks (T-008). Run from the repo root.
+let flameURL = URL(fileURLWithPath: "docs/artwork/flame.svg")
 
 /// Draws the app icon at `px` pixels: a macOS-style rounded square holding a tear-off calendar page
 /// with a colored header and a glyph.
@@ -65,17 +63,10 @@ func icon(
         ctx.setLineWidth(86); ctx.setLineCap(.round); ctx.setLineJoin(.round)
         ctx.strokePath()
     case .fire:
-        // Tint the SVG: draw it, then fill over it with source-atop.
-        let svg = NSImage(data: Data(fireSVG.utf8))!
-        let size: CGFloat = 470
-        let rect = NSRect(x: 512 - size / 2, y: 140, width: size, height: size)
-        let tinted = NSImage(size: rect.size, flipped: false) { r in
-            svg.draw(in: r)
-            glyphColor.set()
-            r.fill(using: .sourceAtop)
-            return true
-        }
-        tinted.draw(in: rect)
+        let flameImage = NSImage(contentsOf: flameURL)!
+        // Centred in the white page below the header.
+        let size: CGFloat = 440
+        flameImage.draw(in: NSRect(x: 512 - size / 2, y: 190, width: size, height: size))
     }
     NSGraphicsContext.restoreGraphicsState()
     return rep

@@ -265,3 +265,29 @@ Frequency:
 Last Seen:
 
 - 2026-10-29
+
+## FM-011: An SVG with gradients in the asset catalog stalls the UI
+
+Symptoms:
+
+- The popover never opens (UI tests time out on "popover didn't open") once a view showing the image is on screen; no crash and no log.
+
+Detection:
+
+- An `.svg` with `<linearGradient>` or `<radialGradient>` in `Assets.xcassets`. Swap the `Image` for a system image; if the problem goes away, it's this.
+
+Recommendation:
+
+- Keep the SVG as the source in `docs/artwork/` and ship a PDF made from it (`docs/artwork/make-flame-pdf.swift` shows how). Flat single-color SVGs (the Phosphor icons) are fine.
+
+Examples:
+
+- T-008: the streak flame as an SVG with three gradients stalled the popover whenever habits were listed; the PDF works.
+
+Frequency:
+
+- Low
+
+Last Seen:
+
+- 2026-10-30
