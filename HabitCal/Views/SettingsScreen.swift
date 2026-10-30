@@ -20,7 +20,7 @@ struct SettingsScreen: View {
             VStack(spacing: 0) {
                 launchAtLoginRow
                 Divider().padding(.vertical, 8)
-                weekStartRow
+                weekStartRow.frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(10)
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
@@ -104,13 +104,12 @@ struct SettingsScreen: View {
         }
     }
 
-    /// The caption sits on its own line under the label and control: next to the control, the
-    /// narrow popover squeezes it (T-007).
+    /// The label, control, and caption each get their own line: side by side, the narrow popover
+    /// wraps the label (T-007, T-009).
     private var weekStartRow: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Week starts on")
-                Spacer()
                 Picker(
                     "Week starts on",
                     selection: Binding(get: { model.weekStart }, set: { model.pickWeekStart($0) })

@@ -29,7 +29,7 @@ The rules every change follows.
 - A form's Cancel button carries `.keyboardShortcut(.cancelAction)`: it catches Esc even from a focused text field, whose field editor otherwise swallows `cancelOperation`. Give it to one button per screen.
 - Give a text field its own `@State` text and enforce limits there, in `.onChange`; a clamped value pushed back through a model binding doesn't reach a field while it's being typed in.
 - Set `@FocusState` one run-loop turn after a screen appears (`DispatchQueue.main.async`); set synchronously in `onAppear`, it's lost in the popover.
-- The popover is narrow (280 pt): put a row's caption on its own line under its label and control, and give multi-line text `.fixedSize(horizontal: false, vertical: true)` so it wraps instead of truncating. Check new screens by screenshot (TESTING.md).
+- The popover is narrow (260 pt): put a row's caption on its own line under its label and control, and give multi-line text `.fixedSize(horizontal: false, vertical: true)` so it wraps instead of truncating. Check new screens by screenshot (TESTING.md).
 - Don't add `.accessibilityLabel` to a `Picker` or `Toggle` that has a title: SwiftUI already speaks the title, and a second label doubles it.
 
 ## Naming
