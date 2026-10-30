@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CalAccrue — Prototype</title>
+<style>
+  :root {
+    --page: #eceef2;
+    --text: #1d1d1f;
+    --muted: #6e6e73;
+    --faint: #b8b8be;
+    --card: #ffffff;
+    --card-border: rgba(0,0,0,.08);
+    --menubar: rgba(246,246,248,.78);
+    --menubar-text: #1d1d1f;
+    --menubar-hi: rgba(0,0,0,.12);
+    --pop: rgba(250,250,252,.86);
+    --pop-border: rgba(0,0,0,.14);
+    --pop-solid: #f6f6f8;
+    --sep: rgba(0,0,0,.09);
+    --hover: rgba(0,0,0,.05);
+    --accent: #0a84ff;
+    --done: #30b158;
+    --done-soft: rgba(48,177,88,.18);
+    --partial: #f5a623;
+    --missed: #e5484d;
+    --missed-soft: rgba(229,72,77,.14);
+    --flame: #ff7a1a;
+    --wall: linear-gradient(135deg,#9cc3ff 0%,#c9b6ff 45%,#ffc6a8 100%);
+    --shadow: 0 18px 50px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.08);
+  }
+  body.dark {
+    --page: #141416;
+    --text: #f5f5f7;
+    --muted: #98989f;
+    --faint: #55555b;
+    --card: #1e1e21;
+    --card-border: rgba(255,255,255,.08);
+    --menubar: rgba(30,30,34,.72);
+    --menubar-text: #f5f5f7;
+    --menubar-hi: rgba(255,255,255,.18);
+    --pop: rgba(40,40,44,.86);
+    --pop-border: rgba(255,255,255,.14);
+    --pop-solid: #2c2c30;
+    --sep: rgba(255,255,255,.1);
+    --hover: rgba(255,255,255,.07);
+    --accent: #0a84ff;
+    --done: #32d74b;
+    --done-soft: rgba(50,215,75,.2);
+    --partial: #ffb340;
+    --missed: #ff6961;
+    --missed-soft: rgba(255,105,97,.16);
+    --wall: linear-gradient(135deg,#1c2a4a 0%,#3a2557 50%,#5a2f2a 100%);
+    --shadow: 0 18px 50px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--text);
+    font: 13px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header.page {
+    max-width: 1280px; margin: 0 auto; padding: 32px 28px 8px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
+  }
+  header.page h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -.02em; }
+  header.page p { margin: 0; color: var(--muted); max-width: 720px; font-size: 14px; }
+  .mode-toggle {
+    flex: none; border: 1px solid var(--card-border); background: var(--card); color: var(--text);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  .mode-toggle:hover { background: var(--hover); }
+  .concept { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+  .concept-head { padding: 16px 18px 12px; }
+  .concept-head .num { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+  .concept-head h2 { margin: 2px 0 4px; font-size: 17px; letter-spacing: -.01em; }
+  .concept-head p { margin: 0; color: var(--muted); }
+  .desk { background: var(--wall); position: relative; min-height: 560px; padding-bottom: 24px; }
+  .menubar {
+    height: 26px; background: var(--menubar); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 8px; color: var(--menubar-text);
+    font-size: 13px; position: relative; z-index: 2;
+  }
+  .mb-left, .mb-right { display: flex; align-items: center; gap: 2px; }
+  .mb-left span { padding: 0 7px; }
+  .mb-left b { padding: 0 7px; }
+  .mb-item { height: 22px; display: inline-flex; align-items: center; padding: 0 7px; border-radius: 5px; gap: 5px; white-space: nowrap; }
+  .mb-item.app-item { background: var(--menubar-hi); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .mb-item svg { display:block; }
+  .popover {
+    position: absolute; top: 31px; right: 64px; width: 300px; background: var(--pop);
+    backdrop-filter: blur(30px) saturate(1.8); -webkit-backdrop-filter: blur(30px) saturate(1.8);
+    border: 1px solid var(--pop-border); border-radius: 12px; box-shadow: var(--shadow); padding: 10px; z-index: 3;
+  }
+  .sep { height: 1px; background: var(--sep); margin: 8px -10px; }
+  .notes { padding: 12px 18px 16px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--card-border); }
+  .notes b { color: var(--text); font-weight: 600; }
+  .notes ul { margin: 4px 0 0; padding-left: 16px; }
+
+  /* Shared calendar */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 6px; }
+  .cal-head .title { font-weight: 700; font-size: 13px; }
+  .cal-nav { display: flex; gap: 2px; }
+  .cal-nav button, .icon-btn {
+    border: 0; background: transparent; color: var(--text); width: 22px; height: 22px; border-radius: 5px; cursor: pointer; font: inherit; font-size: 13px; line-height: 1;
+  }
+  .cal-nav button:hover, .icon-btn:hover { background: var(--hover); }
+  .cal-nav button.today-dot { font-size: 9px; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 2px; text-align: center; }
+  .grid .dow { font-size: 10px; font-weight: 600; color: var(--muted); padding-bottom: 3px; }
+  .day { position: relative; height: 34px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 3px; font-variant-numeric: tabular-nums; border-radius: 6px; }
+  .day.other { color: var(--faint); }
+  .day .n { width: 22px; height: 22px; line-height: 22px; border-radius: 50%; font-size: 12px; }
+  .day.today .n { background: var(--accent); color: #fff; font-weight: 700; }
+  /* Habit strips */
+  .rows { display: flex; flex-direction: column; gap: 9px; padding: 2px 4px 2px; }
+  .row-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .row-top .nm { font-weight: 600; }
+  .strip { display: grid; grid-template-columns: repeat(31, 1fr); gap: 2px; }
+  .sq { aspect-ratio: 1; border-radius: 2px; background: var(--sep); opacity: .55; }
+  .sq.due { opacity: 1; background: var(--missed-soft); }
+  .sq.done { opacity: 1; background: var(--done); }
+  .sq.future { opacity: 1; background: transparent; box-shadow: inset 0 0 0 1px var(--sep); }
+  .sq.future.due { box-shadow: inset 0 0 0 1px var(--faint); }
+  .sq.today { outline: 1.5px solid var(--accent); outline-offset: 1px; cursor: pointer; }
+  .sq.past.due, .sq.past.done { cursor: pointer; }
+  .empty { color: var(--muted); padding: 6px 4px; font-size: 12px; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--muted); padding: 2px 4px 4px; text-transform: uppercase; letter-spacing: .04em; display:flex; justify-content:space-between; }
+  .foot { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; }
+  .link { border: 0; background: transparent; color: var(--accent); font: inherit; cursor: pointer; padding: 3px 4px; border-radius: 5px; }
+  .link:hover { background: var(--hover); }
+  .grid.compact .day { height: 24px; }
+  .grid.compact .day .n { width: 20px; height: 20px; line-height: 20px; font-size: 11px; }
+
+
+  /* Final */
+  .final-wrap { max-width: 1280px; margin: 20px auto 0; padding: 0 28px; }
+  .final { border: 2px solid var(--accent); }
+  .final .desk { min-height: 600px; }
+  .final .popover { width: 330px; right: 12px; }
+  .ph { display: inline-block; vertical-align: -0.15em; flex: none; }
+  .final .cal-nav button { display: grid; place-items: center; color: var(--muted); }
+  .final .cal-nav button:hover { color: var(--text); }
+  .hrow { display: flex; flex-direction: column; gap: 5px; }
+  .hrow-top { display: flex; align-items: center; gap: 8px; }
+  .hicon { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--hover); color: var(--text); flex: none; }
+  .hrow-top .stat + .stat { margin-left: 6px; }
+  .hrow-top .nm { flex: 1; min-width: 0; font-weight: 600; line-height: 1.2; }
+  .hrow-top .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+  .stat { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .stat.hot { color: var(--flame); font-weight: 600; }
+  .tick { width: 24px; height: 24px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); color: transparent; flex: none; padding: 0; }
+  .tick:hover { box-shadow: inset 0 0 0 1.5px var(--done); color: var(--done); }
+  .tick.on { background: var(--done); box-shadow: none; color: #fff; }
+  .tick.rest { cursor: default; box-shadow: none; border: 1.5px dashed var(--faint); }
+  .final .strip { margin-left: 32px; }
+  .final .rows { gap: 12px; }
+  .final .foot .link { display: inline-flex; align-items: center; gap: 4px; }
+  .final .icon-btn { display: grid; place-items: center; color: var(--muted); }
+
+
+  /* Final: edit habit */
+  .hrow-top .nm { cursor: pointer; }
+  .hrow-top .nm .pen { opacity: 0; color: var(--muted); margin-left: 4px; transition: opacity .1s; }
+  .hrow-top .nm:hover .pen { opacity: 1; }
+  .hrow-top .nm:hover > span:first-child { text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 2px; }
+  .ed-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 0 10px; }
+  .ed-head .ttl { font-weight: 700; }
+  .ed-head .link:first-child { justify-self: start; }
+  .ed-head .link:last-child { justify-self: end; font-weight: 600; }
+  .ed-head .link:disabled { color: var(--faint); cursor: default; background: transparent; }
+  .field-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 0 2px 5px; }
+  .ed-name { width: 100%; font: inherit; font-size: 14px; color: var(--text); background: var(--hover); border: 1px solid var(--sep); border-radius: 7px; padding: 7px 9px; outline: none; margin-bottom: 14px; }
+  .ed-name:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(10,132,255,.25); }
+  .wd { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 8px; }
+  .wd button { aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--sep); background: transparent; color: var(--text); font: inherit; font-weight: 600; font-size: 12px; cursor: pointer; padding: 0; }
+  .wd button:hover { background: var(--hover); }
+  .wd button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ed-note { width: 100%; font: inherit; font-size: 13px; line-height: 1.4; color: var(--text); background: var(--hover); border: 1px solid var(--sep); border-radius: 7px; padding: 7px 9px; outline: none; resize: none; margin-bottom: 12px; display: block; }
+  .ed-note:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(10,132,255,.25); }
+  .wd { margin-bottom: 14px !important; }
+  .hint { font-size: 11.5px; color: var(--muted); padding: 0 2px 12px; }
+  .danger { width: 100%; border: 0; border-radius: 7px; padding: 7px; background: var(--missed-soft); color: var(--missed); font: inherit; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .danger:hover { filter: brightness(1.05); }
+  .confirm { background: var(--missed-soft); border-radius: 8px; padding: 10px; }
+  .confirm p { margin: 0 0 4px; font-weight: 600; }
+  .confirm small { display: block; color: var(--muted); margin-bottom: 10px; }
+  .confirm .btns { display: flex; gap: 6px; justify-content: flex-end; }
+  .confirm .btns button { border: 0; border-radius: 6px; padding: 5px 12px; font: inherit; cursor: pointer; background: var(--hover); color: var(--text); }
+  .confirm .btns button.del { background: var(--missed); color: #fff; font-weight: 600; }
+  .ctx { position: absolute; z-index: 10; min-width: 150px; background: var(--pop); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--pop-border); border-radius: 8px; box-shadow: var(--shadow); padding: 4px; }
+  .ctx button { display: flex; width: 100%; align-items: center; gap: 8px; border: 0; background: transparent; color: var(--text); font: inherit; text-align: left; padding: 4px 8px; border-radius: 5px; cursor: default; }
+  .ctx button:hover { background: var(--accent); color: #fff; }
+  .ctx .sep { margin: 4px 0; }
+
+
+  /* Habit form screens */
+  .screens-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; }
+  .screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--card-border); }
+  @media (max-width: 1100px) { .screens { grid-template-columns: repeat(2, 1fr); } }
+  .screen .cap { min-height: 74px; }
+  .screen .desk { overflow: hidden; }
+  .screen .mb-left span, .screen .mb-right .mb-item:first-child { display: none; }
+  .screen { background: var(--card); display: flex; flex-direction: column; }
+  .screen .cap { padding: 12px 16px 10px; }
+  .screen .cap b { display: block; font-size: 13px; }
+  .screen .cap span { color: var(--muted); font-size: 12px; }
+  .screen .desk { min-height: 0; flex: 1; padding: 0 0 22px; }
+  .screen .popover { position: relative; top: auto; right: auto; margin: 6px 14px 0 auto; width: 290px; pointer-events: none; }
+
+
+  /* Final: settings */
+  .set-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 0 10px; }
+  .set-head .ttl { font-weight: 700; }
+  .set-head .link { justify-self: start; display: inline-flex; align-items: center; gap: 2px; }
+  .set-group { background: var(--hover); border-radius: 8px; margin-bottom: 12px; }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; min-height: 38px; }
+  .set-row + .set-row { border-top: 1px solid var(--sep); }
+  .set-row small { display: block; color: var(--muted); font-size: 11px; }
+  .switch { width: 32px; height: 19px; border-radius: 999px; border: 0; padding: 0; background: var(--faint); position: relative; cursor: pointer; flex: none; transition: background .15s; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: left .15s; }
+  .switch.on { background: var(--done); }
+  .switch.on::after { left: 15px; }
+  .seg { display: inline-flex; background: var(--sep); border-radius: 7px; padding: 2px; flex: none; }
+  .seg button { border: 0; background: transparent; color: var(--text); font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 5px; cursor: pointer; }
+  .seg button.on { background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.18); font-weight: 600; }
+  .about { text-align: center; color: var(--muted); font-size: 12px; padding: 0 0 14px; line-height: 1.5; }
+  .about a { color: var(--accent); text-decoration: none; }
+  .about a:hover { text-decoration: underline; }
+  .set-row small .link { padding: 0; font-size: 11px; }
+  .about b { color: var(--text); font-size: 15px; }
+  .quit { width: 100%; border: 0; border-radius: 7px; padding: 7px 10px; background: var(--hover); color: var(--text); font: inherit; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .quit:hover { background: var(--sep); }
+  .quit kbd { margin-left: auto; font: inherit; color: var(--muted); }
+
+  /* Icon lab */
+  .lab { max-width: 1280px; margin: 20px auto 0; padding: 0 28px; }
+  .lab-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px 18px 18px; }
+  .lab-card h2 { margin: 2px 0 4px; font-size: 17px; }
+  .lab-card > p { margin: 0 0 14px; color: var(--muted); }
+  .lab-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; }
+  .lab-bars { display: flex; flex-direction: column; gap: 10px; min-width: 300px; flex: 1; }
+  .lab-bar { border-radius: 8px; overflow: hidden; background: var(--wall); }
+  .lab-bar .menubar { border-radius: 0; }
+  .lab-bar.light .menubar { background: rgba(246,246,248,.82); color: #1d1d1f; --menubar-hi: rgba(0,0,0,.12); }
+  .lab-bar.dark .menubar { background: rgba(30,30,34,.78); color: #f5f5f7; --menubar-hi: rgba(255,255,255,.18); }
+  .lab-bar .cap { font-size: 11px; color: var(--muted); padding: 4px 8px; background: var(--card); }
+  .zooms { display: flex; gap: 10px; flex-wrap: wrap; }
+  .zoom { width: 96px; border-radius: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 14px 6px 10px; }
+  .zoom.light { background: #f3f3f5; color: #1d1d1f; }
+  .zoom.dark { background: #26262a; color: #f5f5f7; }
+  .zoom span { font-size: 11px; opacity: .7; text-align: center; }
+  .zoom.live { box-shadow: 0 0 0 2px var(--accent); }
+</style>
+</head>
+<body>
+<header class="page">
+  <div>
+    <h1>CalAccrue — prototype</h1>
+    <p>The menu bar icon, the popover, and its screens. Sample habits are Push-ups (every day), Run (Fri &amp; Sun), and Meditate (weekdays). The Final card is live: check off habits, change months, edit habits, and open Settings with the gear.</p>
+  </div>
+  <button class="mode-toggle" id="modeToggle" type="button"><span id="modeIcon">☾</span><span id="modeLabel">Dark mode</span></button>
+</header>
+<div class="lab" id="lab"></div>
+<div class="final-wrap" id="final"></div>
+<div class="final-wrap" id="screens"></div>
+
+<script>
+// ---------- Data ----------
+const DAY = 86400000;
+const now = new Date();
+const TODAY = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const sameDay = (a, b) => key(a) === key(b);
+const DOW = ['S','M','T','W','T','F','S'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const SHORT_WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const SHORT_MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const habits = [
+  { id: 'push', name: 'Push-ups', days: [0,1,2,3,4,5,6], label: 'Every day', icon: 'barbell', note: '3 sets of 20' },
+  { id: 'run',  name: 'Run',      days: [5,0],           label: 'Fri, Sun', icon: 'person-simple-run', note: '5k loop around the park' },
+  { id: 'med',  name: 'Meditate', days: [1,2,3,4,5],     label: 'Weekdays', icon: 'flower-lotus', note: '10 minutes before work' },
+];
+const HISTORY_DAYS = 150;
+const START = addDays(TODAY, -HISTORY_DAYS);
+const done = new Set();
+// A habit's schedule can change. Each change applies from its date onward, so past days are
+// judged by the schedule that was in force then. A habit isn't due before its first entry.
+habits.forEach(h => h.schedule = [{ from: new Date(2000, 0, 1), days: h.days }]);
+const daysOn = (h, d) => { let r = null; for (const e of h.schedule) if (e.from <= d) r = e.days; return r || []; };
+const isDue = (h, d) => daysOn(h, d).includes(d.getDay());
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+function scheduleLabel(days) {
+  const set = [...new Set(days)].sort();
+  if (set.length === 7) return 'Every day';
+  if (set.join() === '1,2,3,4,5') return 'Weekdays';
+  if (set.join() === '0,6') return 'Weekends';
+  return WEEK_ORDER.filter(d => set.includes(d)).map(d => SHORT_WD[d]).join(', ');
+}
+const isDone = (h, d) => done.has(h.id + '|' + key(d));
+
+// Seed believable history: mostly done, with a recent unbroken run per habit.
+(function seed() {
+  const recentRun = { push: 12, run: 6, med: 4 };
+  habits.forEach((h, hi) => {
+    const dueBack = [];
+    for (let i = 1; i <= HISTORY_DAYS; i++) { const d = addDays(TODAY, -i); if (isDue(h, d)) dueBack.push(d); }
+    dueBack.forEach((d, idx) => {
+      let ok;
+      if (idx < recentRun[h.id]) ok = true;
+      else if (idx === recentRun[h.id]) ok = false;
+      else ok = ((hi * 7919 + idx * 104729 + 17) % 100) < 80;
+      if (ok) done.add(h.id + '|' + key(d));
+    });
+  });
+  if (isDue(habits[0], TODAY)) done.add('push|' + key(TODAY)); // one already done today
+})();
+
+function toggle(h, d) {
+  if (d > TODAY || !isDue(h, d)) return;
+  const k = h.id + '|' + key(d);
+  done.has(k) ? done.delete(k) : done.add(k);
+  renderAll();
+}
+
+// A streak counts consecutive *due* days completed. Days a habit isn't scheduled are skipped,
+// and today doesn't break a streak until it's over.
+function currentStreak(h) {
+  let n = 0;
+  for (let d = TODAY; d >= START; d = addDays(d, -1)) {
+    if (!isDue(h, d)) continue;
+    if (isDone(h, d)) n++;
+    else if (sameDay(d, TODAY)) continue;
+    else break;
+  }
+  return n;
+}
+function bestStreak(h) {
+  let best = 0, run = 0;
+  for (let d = START; d <= TODAY; d = addDays(d, 1)) {
+    if (!isDue(h, d)) continue;
+    if (isDone(h, d)) { run++; best = Math.max(best, run); }
+    else if (!sameDay(d, TODAY)) run = 0;
+  }
+  return best;
+}
+
+// ---------- Shared UI helpers ----------
+const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+// The week start follows the system (the Mac's region setting; here, the browser's locale) until the
+// user picks Sunday or Monday, which overrides it. 0 = Sunday, 1 = Monday.
+function systemWeekStart() {
+  try {
+    const loc = new Intl.Locale(navigator.language);
+    const info = loc.getWeekInfo ? loc.getWeekInfo() : loc.weekInfo;
+    if (info && info.firstDay) return info.firstDay === 1 ? 1 : 0;
+  } catch (e) {}
+  return 0;
+}
+const settings = { launchAtLogin: true, weekStartOverride: null,
+  get weekStart() { return this.weekStartOverride ?? systemWeekStart(); } };
+const weekOrder = () => [0, 1, 2, 3, 4, 5, 6].map(i => (i + settings.weekStart) % 7);
+function monthCells(y, m) {
+  const first = new Date(y, m, 1);
+  const start = addDays(first, -((first.getDay() - settings.weekStart + 7) % 7));
+  return Array.from({ length: 42 }, (_, i) => addDays(start, i));
+}
+function grid(state, cellFn, cls = '') {
+  const g = el(`<div class="grid ${cls}"></div>`);
+  weekOrder().forEach(d => g.append(el(`<div class="dow">${DOW[d]}</div>`)));
+  monthCells(state.y, state.m).forEach(d => {
+    const c = cellFn(d, d.getMonth() !== state.m);
+    if (d.getMonth() !== state.m) c.classList.add('other');
+    if (sameDay(d, TODAY)) c.classList.add('today');
+    g.append(c);
+  });
+  return g;
+}
+function menubar(itemHTML) {
+  return el(`<div class="menubar">
+    <div class="mb-left"><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span></div>
+    <div class="mb-right">
+      <span class="mb-item">${ICON.wifi}</span>
+      <span class="mb-item">${ICON.battery}</span>
+      <span class="mb-item app-item">${itemHTML}</span>
+      <span class="mb-item">${ICON.cc}</span>
+      <span class="mb-item">${timeStr()}</span>
+    </div></div>`);
+}
+const timeStr = () => now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const ICON = {
+  wifi: '<svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 11.5 5.6 9a3.4 3.4 0 0 1 4.8 0L8 11.5Z"/><path d="M3.8 7.2a6 6 0 0 1 8.4 0l-1 1a4.6 4.6 0 0 0-6.4 0l-1-1Z"/><path d="M1.6 5a9.1 9.1 0 0 1 12.8 0l-1 1A7.7 7.7 0 0 0 2.6 6l-1-1Z"/></svg>',
+  battery: '<svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor"><rect x=".5" y=".5" width="20" height="10" rx="3" opacity=".5"/><rect x="2" y="2" width="14" height="7" rx="1.5" fill="currentColor" stroke="none"/><path d="M22 4v3" stroke-linecap="round" opacity=".5"/></svg>',
+  cc: '<svg width="15" height="13" viewBox="0 0 15 13" fill="none" stroke="currentColor" stroke-width="1.3"><rect x=".7" y="1" width="13.6" height="4.4" rx="2.2"/><rect x=".7" y="7.6" width="13.6" height="4.4" rx="2.2"/><circle cx="3.2" cy="3.2" r="1.2" fill="currentColor"/><circle cx="11.8" cy="9.8" r="1.2" fill="currentColor"/></svg>',
+};
+// Concept 5 icon: a calendar page (month on top, day below) whose outline doubles as a
+// progress ring, traced clockwise from top-centre. frac = null means nothing is due today.
+let iconSeq = 0;
+// Rounded rectangle; the header bar is clipped to it.
+function pagePath(w, h, i, r) {
+  const x0 = i, y0 = i, x1 = w - i, y1 = h - i;
+  return `M${x0 + r} ${y0}H${x1 - r}A${r} ${r} 0 0 1 ${x1} ${y0 + r}V${y1 - r}A${r} ${r} 0 0 1 ${x1 - r} ${y1}` +
+         `H${x0 + r}A${r} ${r} 0 0 1 ${x0} ${y1 - r}V${y0 + r}A${r} ${r} 0 0 1 ${x0 + r} ${y0}Z`;
+}
+// Concept 5 icon: a tear-off calendar page. The month is cut out of a solid header bar,
+// so the menu bar shows through it, and the day is below.
+function calIcon(date, scale = 1) {
+  const W = 21, H = 21, d = pagePath(W, H, 0.75, 4.2), id = 'ci' + (iconSeq++);
+  const mon = SHORT_MO[date.getMonth()].toUpperCase();
+  return `<svg width="${W * scale}" height="${H * scale}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <clipPath id="${id}o"><path d="${pagePath(W, H, 0, 4.95)}"/></clipPath>
+      <mask id="${id}m" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">
+        <rect width="${W}" height="${H}" fill="#fff"/>
+        <!-- Baseline = bar centre (4.8) + half the cap height (~3.75 / 2), so the caps sit centred. -->
+        <text x="10.5" y="6.7" text-anchor="middle" font-size="5.2" font-weight="800" letter-spacing=".3" fill="#000" font-family="-apple-system,sans-serif">${mon}</text>
+      </mask>
+    </defs>
+    <path d="${d}" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="0" y="0" width="${W}" height="9.6" fill="currentColor" mask="url(#${id}m)" clip-path="url(#${id}o)"/>
+    <text x="10.5" y="17.6" text-anchor="middle" font-size="8.4" font-weight="700" fill="currentColor" font-family="-apple-system,sans-serif" style="font-variant-numeric:tabular-nums">${date.getDate()}</text></svg>`;
+}
+
+// ---------- Icon lab (Concept 5 icon) ----------
+function renderLab() {
+  const months = [0, 1, 2, 4, 8, 11].map(m => new Date(TODAY.getFullYear(), m, m === 1 ? 28 : m === 8 ? 7 : 1 + m * 2));
+  const zooms = (mode) => [TODAY, ...months].map((d, i) =>
+    `<div class="zoom ${mode} ${i ? '' : 'live'}">${calIcon(d, 3.4)}<span>${i ? SHORT_MO[d.getMonth()] + ' ' + d.getDate() : 'Today'}</span></div>`).join('');
+  const lab = document.getElementById('lab');
+  lab.innerHTML = '';
+  const card = el(`<div class="lab-card"><div class="concept-head" style="padding:0"><div class="num">Menu bar icon · Concept 5</div></div>
+    <h2>Tear-off calendar page</h2>
+    <p>The month is cut out of a solid header bar, like an old tear-off calendar, with the day below. All four corners are rounded. Other dates are shown so you can check how wider month names and two-digit days fit.</p>
+    <div class="lab-row">
+      <div class="lab-bars">
+        <div class="lab-bar light"></div>
+        <div class="lab-bar dark"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="zooms">${zooms('light')}</div>
+        <div class="zooms">${zooms('dark')}</div>
+      </div>
+    </div></div>`);
+  ['light', 'dark'].forEach(m => {
+    const b = card.querySelector(`.lab-bar.${m}`);
+    b.append(menubar(calIcon(TODAY)), el(`<div class="cap">Actual size · ${m} menu bar</div>`));
+  });
+  lab.append(card);
+}
+
+// Phosphor Icons v2.1.1 (MIT) — https://phosphoricons.com
+const PH = {
+"power": "<path d=\"M120,128V48a8,8,0,0,1,16,0v80a8,8,0,0,1-16,0Zm60.37-78.7a8,8,0,0,0-8.74,13.4C194.74,77.77,208,101.57,208,128a80,80,0,0,1-160,0c0-26.43,13.26-50.23,36.37-65.3a8,8,0,0,0-8.74-13.4C47.9,67.38,32,96.06,32,128a96,96,0,0,0,192,0C224,96.06,208.1,67.38,180.37,49.3Z\"/>",
+"pencil-simple": "<path d=\"M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z\"/>",
+"trash": "<path d=\"M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z\"/>",
+ "barbell": "<path d=\"M248,120h-8V88a16,16,0,0,0-16-16H208V64a16,16,0,0,0-16-16H168a16,16,0,0,0-16,16v56H104V64A16,16,0,0,0,88,48H64A16,16,0,0,0,48,64v8H32A16,16,0,0,0,16,88v32H8a8,8,0,0,0,0,16h8v32a16,16,0,0,0,16,16H48v8a16,16,0,0,0,16,16H88a16,16,0,0,0,16-16V136h48v56a16,16,0,0,0,16,16h24a16,16,0,0,0,16-16v-8h16a16,16,0,0,0,16-16V136h8a8,8,0,0,0,0-16ZM32,168V88H48v80Zm56,24H64V64H88V192Zm104,0H168V64h24V175.82c0,.06,0,.12,0,.18s0,.12,0,.18V192Zm32-24H208V88h16Z\"/>",
+ "calendar-dot": "<path d=\"M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-64-56a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z\"/>",
+ "caret-left": "<path d=\"M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z\"/>",
+ "caret-right": "<path d=\"M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z\"/>",
+ "check": "<path d=\"M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z\"/>",
+ "fire": "<path d=\"M143.38,17.85a8,8,0,0,0-12.63,3.41l-22,60.41L84.59,58.26a8,8,0,0,0-11.93.89C51,87.53,40,116.08,40,144a88,88,0,0,0,176,0C216,84.55,165.21,36,143.38,17.85Zm40.51,135.49a57.6,57.6,0,0,1-46.56,46.55A7.65,7.65,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z\"/>",
+ "flower-lotus": "<path d=\"M245.83,121.63a15.53,15.53,0,0,0-9.52-7.33,73.51,73.51,0,0,0-22.17-2.22c4-19.85,1-35.55-2.06-44.86a16.15,16.15,0,0,0-18.79-10.88,85.53,85.53,0,0,0-28.55,12.12,94.58,94.58,0,0,0-27.11-33.25,16.05,16.05,0,0,0-19.26,0A94.48,94.48,0,0,0,91.26,68.46,85.53,85.53,0,0,0,62.71,56.34,16.15,16.15,0,0,0,43.92,67.22c-3,9.31-6,25-2.06,44.86a73.51,73.51,0,0,0-22.17,2.22,15.53,15.53,0,0,0-9.52,7.33,16,16,0,0,0-1.6,12.27c3.39,12.57,13.8,36.48,45.33,55.32S113.13,208,128.05,208s42.67,0,74-18.78c31.53-18.84,41.94-42.75,45.33-55.32A16,16,0,0,0,245.83,121.63ZM59.14,72.14a.2.2,0,0,1,.23-.15A70.43,70.43,0,0,1,85.18,83.66,118.65,118.65,0,0,0,80,119.17c0,18.74,3.77,34,9.11,46.28A123.59,123.59,0,0,1,69.57,140C51.55,108.62,55.3,84,59.14,72.14Zm3,103.35C35.47,159.57,26.82,140.05,24,129.7a59.82,59.82,0,0,1,22.5-1.17,129.08,129.08,0,0,0,9.15,19.41,142.28,142.28,0,0,0,34,39.56A114.92,114.92,0,0,1,62.1,175.49ZM128,190.4c-9.33-6.94-32-28.23-32-71.23C96,76.7,118.38,55.24,128,48c9.62,7.26,32,28.72,32,71.19C160,162.17,137.33,183.46,128,190.4ZM170.82,83.66A70.43,70.43,0,0,1,196.63,72a.2.2,0,0,1,.23.15C200.7,84,204.45,108.62,186.43,140a123.32,123.32,0,0,1-19.54,25.48c5.34-12.26,9.11-27.54,9.11-46.28A118.65,118.65,0,0,0,170.82,83.66ZM232,129.72c-2.77,10.25-11.4,29.81-38.09,45.77a114.92,114.92,0,0,1-27.55,12,142.28,142.28,0,0,0,34-39.56,129.08,129.08,0,0,0,9.15-19.41A59.69,59.69,0,0,1,232,129.71Z\"/>",
+ "gear-six": "<path d=\"M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A112.1,112.1,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.62a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21Zm-15,34.91-28.57,16.25a8,8,0,0,0-3,3c-.58,1-1.19,2.06-1.81,3.06a7.94,7.94,0,0,0-1.22,4.21l-.15,32.25a95.89,95.89,0,0,1-25.37,14.3L134,199.13a8,8,0,0,0-3.91-1h-.19c-1.21,0-2.43,0-3.64,0a8.08,8.08,0,0,0-4.1,1l-28.84,16.1A96,96,0,0,1,67.88,201l-.11-32.2a8,8,0,0,0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.09,8.09,0,0,0-3-3.06l-28.6-16.29a90.49,90.49,0,0,1,0-28.26L61.67,97.63a8,8,0,0,0,3-3c.58-1,1.19-2.06,1.81-3.06a7.94,7.94,0,0,0,1.22-4.21l.15-32.25a95.89,95.89,0,0,1,25.37-14.3L122,56.87a8,8,0,0,0,4.1,1c1.21,0,2.43,0,3.64,0a8.08,8.08,0,0,0,4.1-1l28.84-16.1A96,96,0,0,1,188.12,55l.11,32.2a8,8,0,0,0,1.22,4.22c.62,1,1.23,2,1.8,3.06a8.09,8.09,0,0,0,3,3.06l28.6,16.29A90.49,90.49,0,0,1,222.9,142.12Z\"/>",
+ "person-simple-run": "<path d=\"M152,88a32,32,0,1,0-32-32A32,32,0,0,0,152,88Zm0-48a16,16,0,1,1-16,16A16,16,0,0,1,152,40Zm67.31,100.68c-.61.28-7.49,3.28-19.67,3.28-13.85,0-34.55-3.88-60.69-20a169.31,169.31,0,0,1-15.41,32.34,104.29,104.29,0,0,1,31.31,15.81C173.92,186.65,184,207.35,184,232a8,8,0,0,1-16,0c0-41.7-34.69-56.71-54.14-61.85-.55.7-1.12,1.41-1.69,2.1-19.64,23.8-44.25,36.18-71.63,36.18A92.29,92.29,0,0,1,31.2,208,8,8,0,0,1,32.8,192c25.92,2.58,48.47-7.49,67-30,12.49-15.14,21-33.61,25.25-47C86.13,92.35,61.27,111.63,61,111.84A8,8,0,1,1,51,99.36c1.5-1.2,37.22-29,89.51,6.57,45.47,30.91,71.93,20.31,72.18,20.19a8,8,0,1,1,6.63,14.56Z\"/>",
+ "plus": "<path d=\"M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z\"/>",
+ "trophy": "<path d=\"M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8Zm144-8.9c0,35.52-29,64.64-64,64.9a64,64,0,0,1-64-64V56H192ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z\"/>"
+};
+
+const ph = (name, size = 16) => `<svg class="ph" width="${size}" height="${size}" viewBox="0 0 256 256" fill="currentColor">${PH[name]}</svg>`;
+
+// ---------- Final: Concept 3's popover + Concept 5's menu bar icon ----------
+// view: 'list', or { mode: 'edit' | 'add', id, name, days, confirm } while the habit form is open.
+const finalState = { y: TODAY.getFullYear(), m: TODAY.getMonth(), view: 'list', ctx: null };
+function openEditor(h) {
+  finalState.ctx = null;
+  finalState.view = h ? { mode: 'edit', id: h.id, name: h.name, note: h.note || '', days: [...h.days], confirm: false }
+                      : { mode: 'add', id: null, name: '', note: '', days: [0, 1, 2, 3, 4, 5, 6], confirm: false };
+  renderAll();
+  const input = document.querySelector('#final .ed-name');
+  if (input) { input.focus(); input.select(); }
+}
+function saveHabit(v) {
+  const days = [...v.days].sort(), name = v.name.trim(), note = (v.note || '').trim();
+  if (v.mode === 'add') {
+    habits.push({ id: 'h' + Date.now(), name, note, days, label: scheduleLabel(days), schedule: [{ from: TODAY, days }] });
+  } else {
+    const h = habits.find(x => x.id === v.id);
+    h.name = name;
+    h.note = note;
+    if (days.join() !== [...h.days].sort().join()) {
+      // New schedule applies from today; earlier days keep the old one.
+      h.schedule = h.schedule.filter(e => e.from < TODAY).concat({ from: TODAY, days });
+      h.days = days; h.label = scheduleLabel(days);
+      for (const k of [...done]) if (k.startsWith(h.id + '|') && k.endsWith(key(TODAY)) && !days.includes(TODAY.getDay())) done.delete(k);
+    }
+  }
+  finalState.view = 'list';
+  renderAll();
+}
+function deleteHabit(id) {
+  const i = habits.findIndex(x => x.id === id);
+  if (i >= 0) habits.splice(i, 1);
+  for (const k of [...done]) if (k.startsWith(id + '|')) done.delete(k);
+  finalState.view = 'list';
+  renderAll();
+}
+
+function finalEditor(v) {
+  const pop = el('<div class="popover"></div>');
+  const valid = () => v.name.trim() && v.days.length;
+  const head = el(`<div class="ed-head"><button class="link" data-a="cancel">Cancel</button><span class="ttl">${v.mode === 'add' ? 'New habit' : 'Edit habit'}</span><button class="link" data-a="save">${v.mode === 'add' ? 'Add' : 'Save'}</button></div>`);
+  const saveBtn = head.querySelector('[data-a="save"]');
+  saveBtn.disabled = !valid();
+  head.querySelector('[data-a="cancel"]').onclick = () => { finalState.view = 'list'; renderAll(); };
+  saveBtn.onclick = () => valid() && saveHabit(v);
+  pop.append(head, el('<div class="field-label">Name</div>'));
+
+  const input = el(`<input class="ed-name" type="text" placeholder="e.g. Push-ups" maxlength="40">`);
+  input.value = v.name;
+  input.oninput = () => { v.name = input.value; saveBtn.disabled = !valid(); };
+  input.onkeydown = e => { if (e.key === 'Enter' && valid()) saveHabit(v); if (e.key === 'Escape') { finalState.view = 'list'; renderAll(); } };
+  pop.append(input, el('<div class="field-label">Repeats on</div>'));
+
+  const wd = el('<div class="wd"></div>');
+  weekOrder().forEach(d => {
+    const b = el(`<button class="${v.days.includes(d) ? 'on' : ''}" title="${WEEKDAYS[d]}">${DOW[d]}</button>`);
+    b.onclick = () => { v.days = v.days.includes(d) ? v.days.filter(x => x !== d) : [...v.days, d]; renderAll(); };
+    wd.append(b);
+  });
+  const notes = el('<textarea class="ed-note" rows="3" maxlength="280" placeholder="Optional details, e.g. 3 sets of 20, or the route you run"></textarea>');
+  notes.value = v.note || '';
+  notes.oninput = () => { v.note = notes.value; };
+  pop.append(wd, el('<div class="field-label">Notes</div>'), notes);
+
+  const summary = v.days.length ? scheduleLabel(v.days) : 'Pick at least one day';
+  if (v.mode === 'edit') {
+    const h = habits.find(x => x.id === v.id);
+    const changed = [...v.days].sort().join() !== [...h.days].sort().join();
+    if (!v.days.length) pop.append(el(`<div class="hint">${summary}.</div>`));
+    else if (changed) pop.append(el('<div class="hint">The new schedule starts today. Past days, and your streak, keep the old one.</div>'));
+    pop.append(el('<div class="sep"></div>'));
+    if (!v.confirm) {
+      const del = el(`<button class="danger">${ph('trash', 14)} Delete habit</button>`);
+      del.onclick = () => { v.confirm = true; renderAll(); };
+      pop.append(del);
+    } else {
+      const c = el(`<div class="confirm"><p>Delete “${h.name}”?</p><small>Its history and streaks are deleted too. This can't be undone.</small>
+        <div class="btns"><button data-a="no">Cancel</button><button class="del" data-a="yes">Delete</button></div></div>`);
+      c.querySelector('[data-a="no"]').onclick = () => { v.confirm = false; renderAll(); };
+      c.querySelector('[data-a="yes"]').onclick = () => deleteHabit(h.id);
+      pop.append(c);
+    }
+  } else {
+    if (!v.days.length) pop.append(el(`<div class="hint">${summary}.</div>`));
+  }
+  return pop;
+}
+
+
+function finalSettings(opts = {}) {
+  const pop = el('<div class="popover"></div>');
+  const back = () => { finalState.view = 'list'; renderAll(); };
+  const head = el(`<div class="set-head"><button class="link">${ph('caret-left', 13)} Back</button><span class="ttl">Settings</span><span></span></div>`);
+  head.querySelector('.link').onclick = back;
+  const group = el(`<div class="set-group">
+      <div class="set-row"><span>Launch at login<small>Start CalAccrue when you log in to this Mac</small></span><button class="switch ${settings.launchAtLogin ? 'on' : ''}" role="switch" aria-checked="${settings.launchAtLogin}" title="Launch at login"></button></div>
+      <div class="set-row"><span>Week starts on<small>${settings.weekStartOverride === null
+          ? `From your Mac's settings`
+          : `Your Mac uses ${WEEKDAYS[systemWeekStart()]} · <button class="link reset">Use Mac setting</button>`}</small></span><span class="seg"><button data-d="0" class="${settings.weekStart === 0 ? 'on' : ''}">Sunday</button><button data-d="1" class="${settings.weekStart === 1 ? 'on' : ''}">Monday</button></span></div>
+    </div>`);
+  group.querySelector('.switch').onclick = () => { settings.launchAtLogin = !settings.launchAtLogin; renderAll(); };
+  group.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+    const d = +b.dataset.d;
+    settings.weekStartOverride = d === systemWeekStart() && settings.weekStartOverride === null ? null : d;
+    renderAll();
+  });
+  const reset = group.querySelector('.reset');
+  if (reset) reset.onclick = () => { settings.weekStartOverride = null; renderAll(); };
+  const about = el(`<div class="about"><b>CalAccrue 1.0</b><br><a href="https://www.muchfiner.com" target="_blank" rel="noopener">www.muchfiner.com</a></div>`);
+  const quit = el(`<button class="quit">${ph('power', 15)} Quit CalAccrue <kbd>⌘Q</kbd></button>`);
+  quit.onclick = () => { quit.querySelector('kbd').textContent = '(prototype: nothing to quit)'; };
+  pop.append(head, about, el('<div class="field-label">General</div>'), group, el('<div class="sep"></div>'), quit);
+  return pop;
+}
+
+function finalList(s) {
+  const pop = el('<div class="popover"></div>');
+  const head = el(`<div class="cal-head"><span class="title">${MONTHS[s.m]} ${s.y}</span>
+    <span class="cal-nav"><button data-a="prev" title="Previous month">${ph('caret-left', 14)}</button><button data-a="today" title="Today">${ph('calendar-dot', 15)}</button><button data-a="next" title="Next month">${ph('caret-right', 14)}</button></span></div>`);
+  head.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'today') { s.y = TODAY.getFullYear(); s.m = TODAY.getMonth(); }
+    else { const d = new Date(s.y, s.m + (a === 'next' ? 1 : -1), 1); s.y = d.getFullYear(); s.m = d.getMonth(); }
+    renderAll();
+  });
+  pop.append(head, grid(s, d => el(`<div class="day"><span class="n">${d.getDate()}</span></div>`), 'compact'));
+
+  pop.append(el('<div class="sep"></div>'), el('<div class="section-label"><span>Habits</span></div>'));
+  const rows = el('<div class="rows"></div>');
+  if (!habits.length) rows.append(el('<div class="empty">No habits yet. Add one to start a streak.</div>'));
+  const daysIn = new Date(s.y, s.m + 1, 0).getDate();
+  habits.forEach(h => {
+    const cur = currentStreak(h), dueT = isDue(h, TODAY), onT = isDone(h, TODAY);
+    const r = el(`<div class="hrow"><div class="hrow-top">
+        ${dueT ? `<button class="tick ${onT ? 'on' : ''}" title="${onT ? 'Done today — click to undo' : 'Mark done today'}">${ph('check', 13)}</button>` : '<span class="tick rest" title="Not scheduled today"></span>'}
+        <span class="nm" title="Edit habit"><span>${h.name}</span><span class="pen">${ph('pencil-simple', 12)}</span><small>${h.label}</small></span>
+        <span class="stat ${cur >= 3 ? 'hot' : ''}" title="Current streak">${ph('fire', 13)}${cur}</span>
+        <span class="stat" title="Best streak">${ph('trophy', 13)}${bestStreak(h)}</span>
+      </div><div class="strip"></div></div>`);
+    const t = r.querySelector('button.tick');
+    if (t) t.onclick = () => toggle(h, TODAY);
+    r.querySelector('.nm').onclick = () => openEditor(h);
+    r.oncontextmenu = e => {
+      e.preventDefault();
+      const desk = r.closest('.desk').getBoundingClientRect();
+      finalState.ctx = { id: h.id, x: e.clientX - desk.left, y: e.clientY - desk.top };
+      renderAll();
+    };
+    const strip = r.querySelector('.strip');
+    for (let i = 1; i <= 31; i++) {
+      if (i > daysIn) { strip.append(el('<span></span>')); continue; }
+      const d = new Date(s.y, s.m, i);
+      const due = isDue(h, d), fut = d > TODAY, on = isDone(h, d);
+      const c = ['sq', due ? 'due' : '', on ? 'done' : '', fut ? 'future' : 'past', sameDay(d, TODAY) ? 'today' : ''].join(' ');
+      const sq = el(`<span class="${c}" title="${SHORT_MO[s.m]} ${i}${due ? (fut ? '' : on ? ' · done' : ' · missed') : ' · not scheduled'}"></span>`);
+      if (due && !fut) sq.onclick = () => toggle(h, d);
+      strip.append(sq);
+    }
+    rows.append(r);
+  });
+  const foot = el(`<div class="foot"><button class="link">${ph('plus', 14)} Add habit</button><button class="icon-btn" title="Settings">${ph('gear-six', 16)}</button></div>`);
+  foot.querySelector('.link').onclick = () => openEditor(null);
+  foot.querySelector('.icon-btn').onclick = () => { finalState.view = 'settings'; finalState.ctx = null; renderAll(); };
+  pop.append(rows, el('<div class="sep"></div>'), foot);
+  return pop;
+}
+
+function renderFinal() {
+  const s = finalState;
+  const wrap = document.getElementById('final');
+  wrap.innerHTML = '';
+  const card = el(`<section class="concept final"><div class="concept-head"><div class="num">Final</div><h2>Habit Rows + tear-off calendar icon</h2>
+    <p>Concept 3's popover under the locked menu bar icon, with icons from Phosphor. Each habit row starts with its done button for today, and its streaks sit on the right.</p></div>
+    <div class="desk"></div>
+    <div class="notes"><ul>
+      <li><b>Today:</b> click the round button at the start of a habit's row. On a day the habit isn't scheduled, the button is a dashed circle.</li>
+      <li><b>Fix a past day:</b> click any square in a habit's strip.</li>
+      <li><b>Edit a habit:</b> click its name (a pencil appears on hover), or right-click the row for Edit / Delete. "+ Add habit" opens the same form, empty.</li>
+      <li><b>Settings:</b> the gear opens the app name and website, Launch at login, Week starts on (it starts from your Mac's setting; picking the other day overrides it, and the calendar and the habit form's day buttons both reorder), and Quit — a menu bar app has no Dock icon, so Quit lives here.</li>
+      <li><b>Changing a schedule</b> applies from today. Past days, and the streak through them, keep the old schedule.</li>
+      <li><b>Streaks:</b> ${ph('fire', 12)} is the current streak and ${ph('trophy', 12)} is the best. A day the habit isn't scheduled never breaks the streak.</li>
+      <li><b>Icons:</b> Phosphor, regular weight, to match SF Symbols' line style.</li>
+    </ul></div></section>`);
+  const desk = card.querySelector('.desk');
+  desk.append(menubar(calIcon(TODAY)), s.view === 'list' ? finalList(s) : s.view === 'settings' ? finalSettings() : finalEditor(s.view));
+
+  if (s.ctx && s.view === 'list') {
+    const h = habits.find(x => x.id === s.ctx.id);
+    const menu = el(`<div class="ctx" style="left:${s.ctx.x}px;top:${s.ctx.y}px">
+      <button data-a="edit">${ph('pencil-simple', 14)} Edit…</button><div class="sep"></div><button data-a="del">${ph('trash', 14)} Delete…</button></div>`);
+    menu.onclick = e => e.stopPropagation();
+    menu.querySelector('[data-a="edit"]').onclick = () => openEditor(h);
+    menu.querySelector('[data-a="del"]').onclick = () => { openEditor(h); finalState.view.confirm = true; renderAll(); };
+    desk.append(menu);
+  }
+  wrap.append(card);
+}
+document.addEventListener('click', () => { if (finalState.ctx) { finalState.ctx = null; renderAll(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && finalState.ctx) { finalState.ctx = null; renderAll(); } });
+
+
+// ---------- Habit form screens (static snapshots of the editor) ----------
+function renderScreens() {
+  const wrap = document.getElementById('screens');
+  wrap.innerHTML = '';
+  const run = { mode: 'edit', id: 'run', name: 'Run', note: '5k loop around the park', days: [0, 5], confirm: false };
+  const shots = [
+    ['Add habit', 'Opens from "+ Add habit". Starts empty and set to every day; Add stays greyed out until there is a name. Notes are optional.',
+      { mode: 'add', id: null, name: '', note: '', days: [0, 1, 2, 3, 4, 5, 6], confirm: false }],
+    ['Add habit, filled in', 'A name, the days it repeats, and a note with the details.',
+      { mode: 'add', id: null, name: 'Stretch', note: 'Hamstrings and hips, 10 minutes after waking up', days: [1, 2, 3, 4, 5], confirm: false }],
+    ['Edit habit', 'Opens from clicking a habit\'s name, or Edit… in its right-click menu.', run],
+    ['Edit habit, schedule changed', 'A note explains that the change applies from today.',
+      { ...run, days: [1, 3, 5] }],
+    ['Delete habit', 'From the Delete button, or Delete… in the right-click menu. Asks first.',
+      { ...run, confirm: true }],
+  ];
+  const card = el(`<div class="screens-card"><div class="concept-head"><div class="num">Final · Screens</div><h2>Add habit, Edit habit, and Settings</h2>
+    <p>Each screen replaces the habit list inside the popover, then returns to it. One form covers adding and editing. These are static snapshots; try them live in the Final card above.</p></div>
+    <div class="screens"></div></div>`);
+  const grid = card.querySelector('.screens');
+  shots.forEach(([title, cap, v]) => {
+    if (v.mode === 'edit' && !habits.find(h => h.id === v.id)) return;
+    const sc = el(`<div class="screen"><div class="cap"><b>${title}</b><span>${cap}</span></div><div class="desk"></div></div>`);
+    sc.querySelector('.desk').append(menubar(calIcon(TODAY)), finalEditor({ ...v, days: [...v.days] }));
+    grid.append(sc);
+  });
+  const st = el(`<div class="screen"><div class="cap"><b>Settings</b><span>Opens from the gear. Changes apply right away, so there's no Save; Back returns to the habits.</span></div><div class="desk"></div></div>`);
+  st.querySelector('.desk').append(menubar(calIcon(TODAY)), finalSettings());
+  grid.append(st);
+  wrap.append(card);
+}
+
+// ---------- Render ----------
+function renderAll() {
+  renderLab();
+  renderFinal();
+  renderScreens();
+}
+
+// ---------- Light / dark ----------
+const toggleBtn = document.getElementById('modeToggle');
+function setMode(dark) {
+  document.body.classList.toggle('dark', dark);
+  document.getElementById('modeIcon').textContent = dark ? '☀︎' : '☾';
+  document.getElementById('modeLabel').textContent = dark ? 'Light mode' : 'Dark mode';
+}
+toggleBtn.onclick = () => setMode(!document.body.classList.contains('dark'));
+setMode(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+renderAll();
+</script>
+</body>
+</html>
