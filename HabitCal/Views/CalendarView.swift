@@ -5,12 +5,13 @@ import SwiftUI
 struct CalendarView: View {
     @Environment(AppModel.self) private var model
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
+    /// Fixed columns, centered, so the days sit close together instead of spreading across the popover (T-006).
+    private let columns = Array(repeating: GridItem(.fixed(32), spacing: 2), count: 7)
 
     var body: some View {
         VStack(spacing: 6) {
             header
-            LazyVGrid(columns: columns, spacing: 2) {
+            LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(model.weekStart.orderedWeekdays, id: \.self) { weekday in
                     Text(MonthNames.weekdayInitial(weekday))
                         .font(.caption2.weight(.semibold))
@@ -21,6 +22,7 @@ struct CalendarView: View {
                     DayCell(day: day, isToday: day == model.today, inMonth: model.displayedMonth.contains(day))
                 }
             }
+            .frame(maxWidth: .infinity)
         }
     }
 
@@ -67,7 +69,7 @@ private struct DayCell: View {
                     Circle().fill(Color.accentColor)
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 24)
+            .frame(width: 32, height: 24)
             .accessibilityElement()
             .accessibilityLabel(MonthNames.spokenCalendarDay(day, isToday: isToday))
     }

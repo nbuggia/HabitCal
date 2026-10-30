@@ -17,5 +17,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Last commit 6dd42c5. FM-010.
 - [x] T-004 Streaks · high · done 2026-10-29
       Last commit 3cc03da.
+- [ ] T-006 Calendar polish: tighter day grid · high
+      Customer request 2026-10-30; the full-date header was dropped by the customer. Spec in docs/work/T-006-calendar-polish/spec.md.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.
