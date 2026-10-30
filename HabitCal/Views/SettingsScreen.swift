@@ -61,26 +61,27 @@ struct SettingsScreen: View {
         }
     }
 
+    /// Caption on its own line under the label and switch, like the week-start row (T-007).
     private var launchAtLoginRow: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
                 Text("Launch at login")
-                launchAtLoginCaption
+                Spacer()
+                Toggle(
+                    "Launch at login",
+                    isOn: Binding(
+                        get: {
+                            _ = model.loginItemRevision
+                            return model.loginItemState == .on
+                        },
+                        set: { model.setLaunchAtLogin($0) })
+                )
+                .toggleStyle(.switch)
+                .labelsHidden()
+                .controlSize(.small)
+                .disabled(model.loginItemState == .notInApplications)
             }
-            Spacer()
-            Toggle(
-                "Launch at login",
-                isOn: Binding(
-                    get: {
-                        _ = model.loginItemRevision
-                        return model.loginItemState == .on
-                    },
-                    set: { model.setLaunchAtLogin($0) })
-            )
-            .toggleStyle(.switch)
-            .labelsHidden()
-            .controlSize(.small)
-            .disabled(model.loginItemState == .notInApplications)
+            launchAtLoginCaption
         }
     }
 
@@ -93,6 +94,8 @@ struct SettingsScreen: View {
             }
             .buttonStyle(.link)
             .font(.caption)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel("Open Login Items settings")
         case .notInApplications:
             caption("Move HabitCal to Applications to launch at login")

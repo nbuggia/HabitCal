@@ -14,3 +14,7 @@
 2026-10-29 · T-003 · QUESTION · Tab with Keyboard navigation off · spec changed
 2026-10-30 · T-006 · MINOR · Day cell repeated the column width literal · fixed
 2026-10-30 · T-006 · MINOR · Row spacing 0 also tightens the gap under the weekday initials · accepted risk
+2026-10-30 · T-007 · MAJOR · Launch at login caption squeezed and truncated at 280 pt · fixed
+2026-10-30 · T-007 · MINOR · Long schedule label wraps under the name · fixed
+2026-10-30 · T-007 · MINOR · Unreadable-data heading may not fit · fixed
+2026-10-30 · T-007 · QUESTION · Strip squares 16% smaller; ring overlapped by neighbors · fixed (ring); size accepted risk

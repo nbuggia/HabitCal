@@ -65,6 +65,8 @@ struct StripView: View {
     private func square(_ state: StripDay, number: Int, month: Month, isCursor: Bool) -> some View {
         let day = Day(year: month.year, month: month.month, day: number)
         StripSquare(state: state, isToday: day == model.today, isCursor: isCursor)
+            // The ring is wider than the square; draw it above the neighbors (T-007).
+            .zIndex(day == model.today || isCursor ? 1 : 0)
             .help(state == .blank ? "" : HabitLabels.stripTooltip(day, state))
             .onTapGesture {
                 guard state != .blank else { return }

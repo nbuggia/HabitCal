@@ -88,6 +88,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 
 ## The Popover
 
+- The popover is `PopoverRoot.width` (280 pt) wide, just wider than the calendar grid (fixed 32 pt columns, centered).
 - `AppModel.screen` (`Screen`) picks the screen; `PopoverRoot` switches on it. Every open calls `resetForOpen()`: back to the list and the current month.
 - Esc: `AppModel.escape()` backs out one level and returns `.closePopover` from the list. It's reached through `PopoverHostingController.cancelOperation`, and the hosting view is made first responder after each open and screen change, so it works whether or not a control has focus.
 - The habit form's contents are in `AppModel.form`, never inside `Screen`: changing `screen` resets first responder, so a draft inside it would pull focus out of the name field on every keystroke.

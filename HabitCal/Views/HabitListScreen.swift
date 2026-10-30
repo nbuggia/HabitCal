@@ -59,7 +59,9 @@ struct HabitListScreen: View {
         if case .unreadable(let path) = model.dataState {
             // Shown in place of the list; nothing is saved until the file can be read (T-003 E.5, D-004).
             VStack(alignment: .leading, spacing: 4) {
-                Text("HabitCal couldn't read your habits").fontWeight(.semibold)
+                Text("HabitCal couldn't read your habits")
+                    .fontWeight(.semibold)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(path)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)

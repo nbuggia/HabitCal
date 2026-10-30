@@ -11,6 +11,7 @@ Session: S-002 · 2026-10-29
 - T-002 built (4 slices), reviewed (6 findings fixed), and closed. 17 unit and 15 UI tests pass.
 - T-003 (3 slices) and T-004 built, reviewed, and closed. 55 unit and 31 UI tests pass. habits.json v1 is in CONTRACTS.md.
 - T-006 (tighter calendar grid) done 2026-10-30; the customer dropped the full-date header.
+- T-007 (popover 280 pt) done 2026-10-30.
 - Customer ruled: the prototype is the source of truth over the PRD. So the calendar grid has no completion marks (the strips carry history), and Notes stay.
 
 ## In Flight

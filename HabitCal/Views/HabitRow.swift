@@ -23,6 +23,7 @@ struct HabitRow: View {
                         }
                         Text(ScheduleLabel.text(for: habit.days(today: model.today)))
                             .font(.caption)
+                            .lineLimit(1)
                             .foregroundStyle(.secondary)
                     }
                     .contentShape(Rectangle())
