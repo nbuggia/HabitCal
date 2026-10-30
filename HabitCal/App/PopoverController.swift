@@ -7,28 +7,38 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     /// mouse-down, before the button's action runs. Without this window the action would reopen it.
     private static let reopenGuard: TimeInterval = 0.3
 
+    private let model: AppModel
     private let popover = NSPopover()
-    private let hostingController = PopoverHostingController(rootView: PopoverRoot())
+    private let hostingController: PopoverHostingController
     private var lastClosedUptime: TimeInterval = 0
 
-    override init() {
+    init(model: AppModel) {
+        self.model = model
+        hostingController = PopoverHostingController(model: model)
         super.init()
         popover.behavior = .transient
         popover.animates = false
         popover.contentViewController = hostingController
         popover.delegate = self
+        hostingController.close = { [weak self] in self?.close() }
     }
 
     func toggle(relativeTo button: NSView) {
         if popover.isShown {
-            popover.performClose(nil)
+            close()
             return
         }
         guard ProcessInfo.processInfo.systemUptime - lastClosedUptime > Self.reopenGuard else { return }
+        model.resetForOpen()
         // A Dock-less app must activate itself, or the popover never becomes key (FM-006).
         NSApp.activate()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        // Esc starts its trip up the responder chain here, so it reaches PopoverHostingController.
         hostingController.view.window?.makeFirstResponder(hostingController.view)
+    }
+
+    func close() {
+        popover.performClose(nil)
     }
 
     func popoverDidClose(_ notification: Notification) {

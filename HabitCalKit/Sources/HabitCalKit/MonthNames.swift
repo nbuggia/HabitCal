@@ -31,4 +31,9 @@ public enum MonthNames {
     public static func spokenDate(_ day: Day) -> String {
         "\(weekdayName(day.weekday)), \(name(of: day.month)) \(day.day)"
     }
+
+    /// "Thursday, October 29, 2026".
+    public static func spokenFullDate(_ day: Day) -> String {
+        "\(spokenDate(day)), \(day.year)"
+    }
 }

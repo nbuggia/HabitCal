@@ -51,7 +51,7 @@ Layer-first: all of HabitCalKit (Day, Month, MonthGrid, WeekStart, LaunchAtLogin
 
 | Field               | Value |
 | ------------------- | ----- |
-| Status              | Pending |
+| Status              | Done |
 | Scope               | `Month`, `MonthGrid`, `WeekStart.fromMac` / `resolve`, `macWeekStart` from `Calendar.autoupdatingCurrent` (+ locale-change observer and `-HabitCalMacFirstWeekday`). `CalendarView` with the header, ‹ / Today / ›, the 42-day grid, faint neighbors, today's circle, and spoken labels. The empty "Habits" area and the footer with the Settings gear (leading nowhere until Slice 4). `resetForOpen()`, `Screen` (`.list` only so far), `escape()`, and `cancelOperation` → `escape()` with `makeFirstResponder` after `show`. |
 | Demo criterion      | Unit: `gridAlwaysHasSixWeeksStartingOnWeekStart`, `gridIncludesNeighbouringMonthDays`, `nextAndPreviousMonthCrossYearBoundaries`, `macFirstWeekdayMapsMondayToMondayAndOthersToSunday`. UI: `popoverOpensOnCurrentMonthAndListAndClosesOnSecondClick` (replacing Slice 1's spike test), `pagingAcrossYearAndBackToToday`, `reopeningPopoverResetsToCurrentMonth`, and `escapeFromListClosesPopover`, a new test point proving the `cancelOperation` path with nothing focused. Manual: rollover while open (E.1); changing the Mac's first weekday while running (B.12). |
 | Dependencies        | Slice 2's `AppModel.today` and `DayWatcher`. |
@@ -104,6 +104,12 @@ Slice 1 → Slice 2 → Slice 3 → Slice 4
 - Commit: the "T-002 slice 2" commit.
 - Affected remaining slices reviewed: 3 (it uses `AppModel`, `MonthNames`, and `DayWatcher`; all three are in place). Slice 4 is unchanged.
 - Changed: `StatusItemController.refresh()` became `show(_ day:)`, taking the day explicitly. That's the same mechanism (DayWatcher calls it directly) with clearer data flow. `Day.weekday` and `MonthNames.spokenDate` are in HabitCalKit, so the icon's spoken label is unit-tested. The `.destinationOut` cut-out renders cleanly at 18 pt (checked with an 8× render in light and dark), so the Slice 2 fallback isn't needed. The manual tests (icon look, rollover) are written and need the customer's eyes and real time.
+
+### After Slice 3
+
+- Commit: the "T-002 slice 3" commit.
+- Affected remaining slices reviewed: 4 extends `Screen`, `escape()`, `WeekStart.resolve` (the override is still nil), and the gear's empty action. All are in place.
+- Changed: the Phosphor icons are bundled as template SVGs in `Assets.xcassets`, with an MIT notice in `THIRD-PARTY-NOTICES.md` (D-008). Two extra pieces landed early: `CalendarView` split into `HabitListScreen`, and a UI test `testCalendarColumnsFollowTheMacsWeekStart` that covers the Mac half of B.12. Slice 4's `macWeekStartIsUsedUntilOverridden` still covers the override half. On macOS, a static text's string is in its accessibility value, not its label, so tests read `.value`. `escapeFromListClosesPopover` passed, so the `cancelOperation` path works with nothing focused (design finding 11), and Slice 4 is unblocked.
 
 ## 6. Design Drift
 

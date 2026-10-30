@@ -1,10 +1,16 @@
 import SwiftUI
 
-/// The popover's content.
+/// The popover's content: one screen at a time.
 struct PopoverRoot: View {
+    let model: AppModel
+
     var body: some View {
-        Text("HabitCal")
-            .padding()
-            .frame(width: 330)
+        Group {
+            switch model.screen {
+            case .list: HabitListScreen()
+            }
+        }
+        .frame(width: 330)
+        .environment(model)
     }
 }

@@ -38,6 +38,11 @@ public struct Day: Hashable, Comparable, Sendable {
         String(format: "%04d-%02d-%02d", year, month, day)
     }
 
+    /// The day `count` days later (or earlier, if negative).
+    public func adding(days count: Int) -> Day {
+        Day(Self.gregorian.date(byAdding: .day, value: count, to: noonUTC)!, calendar: Self.gregorian)
+    }
+
     /// 1 = Sunday … 7 = Saturday.
     public var weekday: Int {
         Self.gregorian.component(.weekday, from: noonUTC)

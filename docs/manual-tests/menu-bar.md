@@ -36,3 +36,21 @@
 2. Change the time zone to one where it's already tomorrow (e.g. from New York to Tokyo in the evening), then change it back.
 
 **Expect:** after each change, the icon shows the matching date within a minute.
+
+## Today's circle moves at midnight while the popover is open
+
+**Setup:** HabitCal running, the popover open, a minute before midnight.
+
+1. Leave it open across midnight.
+
+**Expect:** within a minute, the filled circle moves to the new day and the popover stays open. The displayed month doesn't change, even on the 1st.
+
+## The calendar follows the Mac's first day of the week
+
+**Setup:** HabitCal running, no week-start override in Settings.
+
+1. In System Settings › General › Language & Region, set First day of week to Monday.
+2. Open the popover.
+3. Set it back to Sunday, and open the popover again.
+
+**Expect:** the calendar's columns start on Monday, then on Sunday, without relaunching.
