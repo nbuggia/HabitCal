@@ -35,8 +35,10 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Includes the fix for the customer's bug 8 (tabs overflowed the popover). Its two UI tests haven't run yet.
 - [ ] T-029 Open like Apple's menu bar extras: flush under the menu bar, no arrow, solid background, steady icon highlight · high
       Customer, 2026-10-30. Spike first: can SwiftUI MenuBarExtra meet D-005's needs (close on Esc, know when it opens)? Replaces T-017.
-- [ ] T-017 Bug: the popover opens too far below the menu bar icon · high
-      About 14 pt of gap between the menu bar and the popover's arrow. Diagnose first: status item button bounds, NSPopover positioning on macOS 26.
+- [ ] T-030 Retro: find the moments a prototype or spike should have been proposed · medium
+      Customer, 2026-10-30, after T-029: the NSPopover (D-005) should have been spiked against MenuBarExtra in T-002 (FM-012). Read this project's session logs (~/.claude/projects/-Users-nathan-workspace-HabitCal/*.jsonl), list each decision made on an untested platform or framework claim and each repeated customer complaint about one component, and propose changes to the st-design/st-spec/development.md prompts so the agent flags them. Log any change in customizations.md.
+- [x] T-017 Bug: the popover opens too far below the menu bar icon · high · done 2026-10-30
+      Dropped: superseded by T-029, which replaces the NSPopover (the gap's cause) with a MenuBarExtra.
 - [x] T-018 Bug: the bottom of the habit strips is clipped · high · done 2026-10-30
       Fix: 3 pt of padding inside the list's scroll view. Not yet confirmed on screen.
 - [x] T-019 Add button shows a plus in a circle · medium · done 2026-10-30

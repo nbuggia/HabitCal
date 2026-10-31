@@ -9,6 +9,11 @@ review. They are checks, not implementation prescriptions.
 - Which events change "today": midnight, wake, clock change, time zone change? Is each one observed, and is there a fallback timer?
 - What does each screen show while the date changes under it?
 
+## Platform Choice Review
+
+- For each rejected alternative that is a native component (SwiftUI, AppKit, the OS): was the reason it was rejected run on this OS, or only believed? If only believed, ask for a spike before approving (FM-012).
+- Does the most visible surface (what opens from the menu bar icon) look and behave like the platform's own apps? Has anyone compared them side by side?
+
 ## Menu Bar Popover Review
 
 - Who opens and closes the popover, and what state is reset on each open?

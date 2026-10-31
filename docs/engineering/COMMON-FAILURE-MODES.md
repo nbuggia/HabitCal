@@ -291,3 +291,32 @@ Frequency:
 Last Seen:
 
 - 2026-10-30
+
+## FM-012: Rejecting a native platform option on a claim nobody tested
+
+Symptoms:
+
+- The customer keeps reporting things that "don't feel like a Mac app" in one component (a gap, an arrow, the wrong material, the wrong highlight), and each fix is a workaround on top of the component rather than a change to it.
+- A decision's Rejected line dismisses the platform's own component with a claim about what it "can't do", and no spike, test, or documentation link backs the claim.
+
+Detection:
+
+- In a design or decision, find every rejected alternative that is a native framework component (SwiftUI, AppKit, the OS). For each, ask: was the reason for rejecting it run on this OS, or only believed? If only believed, and the component is something users see every time they use the app, it needs a spike before the decision is Active.
+- An HTML prototype that settled how a screen looks does not settle the native container it sits in (popover, panel, window, menu): the container's look and behavior come from the platform, not from the prototype.
+
+Recommendation:
+
+- Spike the rejected native option before choosing the custom one, at the moment of the decision (step 2 of development.md: "a technical assumption needs proof before design, such as an OS behavior"). The spike asks the exact questions the rejection rests on, runs on the customer's Mac, and logs what happened.
+- For the most visible surface of the product (for a menu bar app: what opens from the icon), compare it side by side with the platform's own apps before building on it.
+
+Examples:
+
+- T-002 / D-005 (2026-10-29): `MenuBarExtra` was rejected for "no supported way to close itself or to know when it opens" without a spike, and an `NSPopover` was built instead. The T-001 prototype was HTML, so it couldn't show the popover's arrow, gap, or glass. It cost T-017 (the gap), T-027 (a hand-made icon highlight), the FM-006 workarounds (a hosting controller for Esc, refocus hooks, a reopen guard), and several rounds of the customer's bug reports, until the customer compared it with Apple's Now Playing on 2026-10-30. A 30-minute spike (T-029) then showed `MenuBarExtra` could do everything D-005 needed, and D-009 replaced it.
+
+Frequency:
+
+- Medium
+
+Last Seen:
+
+- 2026-10-30
