@@ -13,11 +13,13 @@ Session: S-004 · 2026-10-31
 
 ## In Flight
 
-T-029 slice 2: the full UI suite still needs a complete run on the customer's screen. First find out why `openPopover()` sometimes fails: rerun one of the 5 failing tests alone (`-only-testing:HabitCalUITests/HabitFormUITests/testAddIsDisabledWithoutADay`). If it fails on a quiet Mac, make the open more reliable (retry the click, or wait for the panel longer). The run also answers the design's open questions: do the Esc tests pass without the refocus hooks (if yes, delete `AppModel.screenDidChange`/`listDidHideRows`); do ⌘Q and Edit work without `MainMenu` (if yes, delete it). Then the manual checks in design §13, then close T-029 (every st-close step: Complex), applying §16's Lasting Changes (ARCHITECTURE, CONVENTIONS, TESTING, FM-006, FM-008).
+T-035 Export and import (Complex): spec Approved 2026-10-31 after an st-crit review (CONCERNS, 4 findings accepted), docs/work/T-035-export-import/spec.md. Customer chose: import replaces after a confirmation; no backup or undo. Next: the tech design (st-design, Complex). Open technical question for the design: whether the MenuBarExtra panel can stay open while NSSavePanel/NSOpenPanel is up, and that the dialogs come to the front (E.8) — spike it (FM-012). Needs the user-selected read-write sandbox entitlement.
+
+T-029 slice 2 is paused: the full UI suite still needs a complete run on the customer's screen. 5 tests failed with "popover didn't open" (`openPopover()`, HabitCalUITests/HabitCalUITestCase.swift:46) in a partial run; rerun one alone first. Then the design's open questions (refocus hooks, `MainMenu`), the §13 manual checks, and the Complex close with §16's Lasting Changes.
 
 ## Suggested Start
 
-When the customer can give up the screen, rerun one failing test alone to see whether the "popover didn't open" failure is flaky or real.
+T-035's tech design, starting with a spike of the file dialogs from the MenuBarExtra panel. Or, with the customer's screen, the T-029 UI test rerun.
 
 ## Proposed Updates
 
@@ -30,3 +32,4 @@ When the customer can give up the screen, rerun one failing test alone to see wh
 
 - BACKLOG.md, from T-002's Deferred (Later, Source T-002): ←/→ keyboard shortcuts to page months and jump to today; a global hotkey to open the popover; localizing beyond English; week numbers in the grid.
 - DECISIONS.md: the app icon is a white calendar page with a black header and border and HabitCal's flame (customer, 2026-10-31). Rejected: green or orange header, black header with no border, the green check mark.
+- DECISIONS.md (T-035): HabitCal may read and write files the user picks in a save or open dialog, only during that export or import (user-selected read-write entitlement). Refines D-007, whose Why listed only the container, UserDefaults, SMAppService, and opening URLs; still no network entitlement.
