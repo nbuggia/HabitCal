@@ -89,7 +89,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 
 ## The Popover
 
-- The popover is `PopoverRoot.width` (260 pt) wide, with 12 pt padding each side. The calendar (fixed 28 pt columns, 208 pt, header included) is centered in it with small gutters (T-020).
+- The popover is `PopoverRoot.width` (232 pt) wide: one 200 pt column with `PopoverRoot.margin` (16 pt) each side, shared by every screen. The calendar (fixed 28 pt columns, 208 pt) hangs 4 pt into the margins, so its first and last date squares sit on the column's edges; its header is inset 4 pt to match (T-020, T-023, T-024).
 - The habit list shows `AppModel.shownDay`: the day selected in the calendar (`selectedDay`), or today when it is nil, so the selection follows today across midnight. Streaks, strips, and the leaderboard always count up to `today` (T-022).
 - `AppModel.screen` (`Screen`) picks the screen; `PopoverRoot` switches on it. Every open calls `resetForOpen()`: back to the list and the current month.
 - Esc: `AppModel.escape()` backs out one level and returns `.closePopover` from the list. It's reached through `PopoverHostingController.cancelOperation`, and the hosting view is made first responder after each open and screen change, so it works whether or not a control has focus.

@@ -27,7 +27,8 @@ struct SettingsScreen: View {
             Divider()
             quitButton
         }
-        .padding(12)
+        .padding(.horizontal, PopoverRoot.margin)
+        .padding(.vertical, 12)
     }
 
     private var header: some View {

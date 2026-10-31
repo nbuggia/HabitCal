@@ -35,7 +35,8 @@ struct LeaderboardScreen: View {
                 .scrollBounceBehavior(.basedOnSize)
             }
         }
-        .padding(12)
+        .padding(.horizontal, PopoverRoot.margin)
+        .padding(.vertical, 12)
     }
 
     private var header: some View {

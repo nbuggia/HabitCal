@@ -26,7 +26,8 @@ struct HabitListScreen: View {
             }
             habitList
         }
-        .padding(12)
+        .padding(.horizontal, PopoverRoot.margin)
+        .padding(.vertical, 12)
     }
 
     /// The section label with Add beside it, and the leaderboard and Settings at the far end; there is

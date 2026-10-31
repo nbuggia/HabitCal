@@ -29,9 +29,9 @@ The rules every change follows.
 - A form's Cancel button carries `.keyboardShortcut(.cancelAction)`: it catches Esc even from a focused text field, whose field editor otherwise swallows `cancelOperation`. Give it to one button per screen.
 - Give a text field its own `@State` text and enforce limits there, in `.onChange`; a clamped value pushed back through a model binding doesn't reach a field while it's being typed in.
 - Set `@FocusState` one run-loop turn after a screen appears (`DispatchQueue.main.async`); set synchronously in `onAppear`, it's lost in the popover.
-- The popover is narrow (260 pt): put a row's caption on its own line under its label and control, and give multi-line text `.fixedSize(horizontal: false, vertical: true)` so it wraps instead of truncating. Check new screens by screenshot (TESTING.md).
+- The popover is narrow (232 pt, a 200 pt column): screens pad by `PopoverRoot.margin` horizontally and 12 pt vertically; put a row's caption on its own line under its label and control, and give multi-line text `.fixedSize(horizontal: false, vertical: true)` so it wraps instead of truncating. Check new screens by screenshot (TESTING.md).
 - Popover buttons use `.buttonStyle(.hover)` (`HoverButtonStyle`) for their hover and pressed states, never `.borderless` or `.plain`. Text buttons take an `outset` of 3–4 pt; buttons with their own fill take `overLabel: true` and their shape's corner radius (T-021). Links keep `.link`.
-- A segmented `Picker` won't shrink below its labels; at 260 pt, use equal-width buttons instead when the labels are long (T-016).
+- A segmented `Picker` won't shrink below its labels; in the popover, use equal-width buttons instead when the labels are long (T-016).
 - Don't add `.accessibilityLabel` to a `Picker` or `Toggle` that has a title: SwiftUI already speaks the title, and a second label doubles it.
 
 ## Naming

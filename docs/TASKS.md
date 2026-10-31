@@ -50,7 +50,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-025 Streak colors: flame in color above 1; trophy in color when the current streak is above 1 and at or above the best · medium · done 2026-10-30
 - [x] T-026 Today's number keeps the normal color when another day is selected (the pale square stays) · medium · done 2026-10-30
 - [x] T-023 "October 2026" and the arrows line up with the first and last dates · medium · done 2026-10-30
-- [ ] T-024 Habits section lines up with the calendar's edges · medium
-      Waiting on the customer: narrow the popover (about 224 pt), or keep 260 pt with wide margins.
+- [x] T-024 Habits section lines up with the calendar's edges · medium · done 2026-10-30
+      Customer chose to narrow the popover: 232 pt, one 200 pt column for every screen.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.

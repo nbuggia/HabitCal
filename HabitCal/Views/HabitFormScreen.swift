@@ -31,7 +31,8 @@ struct HabitFormScreen: View {
                     deleteSection(form)
                 }
             }
-            .padding(12)
+            .padding(.horizontal, PopoverRoot.margin)
+            .padding(.vertical, 12)
             .onChange(of: name) { _, value in
                 if value.count > HabitDraft.maxNameLength { name = String(value.prefix(HabitDraft.maxNameLength)) }
                 model.updateDraft { $0.name = name }

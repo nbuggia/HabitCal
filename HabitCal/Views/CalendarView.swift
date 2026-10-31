@@ -33,7 +33,9 @@ struct CalendarView: View {
             }
         }
         .frame(width: Self.gridWidth)
-        .frame(maxWidth: .infinity)
+        // The grid's outer columns have 4 pt of room beside their squares; let it hang into the
+        // margin, so the squares, not the columns, line up with the habits below (T-024).
+        .padding(.horizontal, -(Self.columnWidth - 20) / 2)
     }
 
     private var header: some View {
