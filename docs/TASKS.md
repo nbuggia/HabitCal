@@ -56,5 +56,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-023 "October 2026" and the arrows line up with the first and last dates · medium · done 2026-10-30
 - [x] T-024 Habits section lines up with the calendar's edges · medium · done 2026-10-30
       Customer chose to narrow the popover: 232 pt, one 200 pt column for every screen.
+- [x] T-031 Remove the "Habits" label; Add, Leaderboard, and Settings move to a bottom row; empty list says "No habits" · high · done 2026-10-31
+      Customer, 2026-10-31. Reverses T-014's header row; no divider above the bottom row.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
-      Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.
+      App icon chosen 2026-10-31: fire with a black outline, in AppIcon.appiconset and Settings' About. A Developer ID Application certificate (NETORION LLC) is in the keychain; notarytool credentials not checked. Left: signing, notarization, the GitHub download and README, the manual test of a downloaded build.

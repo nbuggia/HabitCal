@@ -50,17 +50,28 @@ struct SettingsScreen: View {
         }
     }
 
+    /// The app icon beside the name and website. It's a copy of the icon in the asset catalog, not
+    /// `NSApp.applicationIconImage`: that asks macOS, which shows a blank icon until it has registered
+    /// the build's icon.
     private var about: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("HabitCal \(Self.version)").font(.body.weight(.semibold))
-            Button("www.muchfiner.com") {
-                NSWorkspace.shared.open(Self.website)
-                model.closePopover()
+        HStack(spacing: 10) {
+            Image("about-icon")
+                .resizable()
+                .frame(width: Self.iconSide, height: Self.iconSide)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("HabitCal \(Self.version)").font(.body.weight(.semibold))
+                Button("www.muchfiner.com") {
+                    NSWorkspace.shared.open(Self.website)
+                    model.closePopover()
+                }
+                .buttonStyle(.link)
+                .accessibilityLabel("muchfiner.com")
             }
-            .buttonStyle(.link)
-            .accessibilityLabel("muchfiner.com")
         }
     }
+
+    private static let iconSide: CGFloat = 40
 
     /// Caption on its own line under the label and switch, like the week-start row (T-007).
     private var launchAtLoginRow: some View {
