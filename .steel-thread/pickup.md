@@ -1,20 +1,19 @@
 # Pickup Note
 
-Session: S-003 · 2026-10-30
+Session: S-004 · 2026-10-31
 
 ## Accomplished
 
-- 2026-10-30: T-009 to T-016 and T-018 to T-028 done and committed (see TASKS.md and git log). D-009 logged (MenuBarExtra), superseding D-005.
-- T-029 (Complex): spike answered (spike/README.md), design Approved after 2 review passes, slice 1 committed b9bbac0. The customer tried it: "works great, feels much better".
-- UI tests have not run since T-016 (the customer was using the Mac). About 15 written since then have never run.
+- 2026-10-31: T-015 closed (a65171b): its choices all landed in T-016's code and tests; the rejected options were added to the pending PRD Leaderboard proposal.
+- T-029 slice 2 started: the full suite ran partway, then the customer asked to stop it. 11 UI tests passed and 5 failed, all with the same error, "popover didn't open" (`openPopover()`, HabitCalUITests/HabitCalUITestCase.swift:46): DaySelection testSelectingAPastDayShowsAndFixesItsHabits; HabitForm testAddingAHabitShowsItWithItsScheduleLabel, testAddIsDisabledWithoutADay, testEditingAHabitRenamesItAndChangesItsDays; Habits testCheckingOffTodayFillsTheButtonAndTodaysSquare. Other tests opened the panel the same way and passed, so it looks intermittent: a flaky status-item click on MenuBarExtra, or the Mac being used during the run. Not diagnosed. The full log was in the session scratchpad and is gone; the partial result bundle is build/T029-full.xcresult.
 
 ## In Flight
 
-T-029 slice 2: run the full UI suite (needs the customer's screen, about 10 minutes). It answers the design's open questions: does XCUITest's click open a MenuBarExtra; do the Esc tests pass without the refocus hooks (if yes, delete `AppModel.screenDidChange`/`listDidHideRows`); does ⌘Q and Edit work without `MainMenu` (if yes, delete it). Then the manual checks in design §13, then close T-029 (every st-close step: Complex), applying §16's Lasting Changes (ARCHITECTURE, CONVENTIONS, TESTING, FM-006, FM-008).
+T-029 slice 2: the full UI suite still needs a complete run on the customer's screen. First find out why `openPopover()` sometimes fails: rerun one of the 5 failing tests alone (`-only-testing:HabitCalUITests/HabitFormUITests/testAddIsDisabledWithoutADay`). If it fails on a quiet Mac, make the open more reliable (retry the click, or wait for the panel longer). The run also answers the design's open questions: do the Esc tests pass without the refocus hooks (if yes, delete `AppModel.screenDidChange`/`listDidHideRows`); do ⌘Q and Edit work without `MainMenu` (if yes, delete it). Then the manual checks in design §13, then close T-029 (every st-close step: Complex), applying §16's Lasting Changes (ARCHITECTURE, CONVENTIONS, TESTING, FM-006, FM-008).
 
 ## Suggested Start
 
-Ask the customer for the screen and run the full UI suite.
+When the customer can give up the screen, rerun one failing test alone to see whether the "popover didn't open" failure is flaky or real.
 
 ## Proposed Updates
 
