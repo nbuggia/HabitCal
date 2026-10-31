@@ -23,7 +23,7 @@ final class MenuBarUITests: HabitCalUITestCase {
         launch(today: "2026-10-29")
         openPopover()
         XCTAssertEqual(calendarTitle, "October 2026")
-        XCTAssertTrue(popover.staticTexts["habitsSection"].exists, "habit list not shown")
+        XCTAssertTrue(popover.buttons["Add habit"].exists, "habit list not shown")
         let today = popover.descendants(matching: .any)["Thursday, October 29, 2026, today"]
         XCTAssertTrue(today.exists, "today isn't marked")
         XCTAssertTrue(popover.descendants(matching: .any)["Sunday, September 27, 2026"].exists, "neighbor days missing")

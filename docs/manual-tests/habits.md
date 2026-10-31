@@ -17,7 +17,7 @@
 
 1. Open the popover.
 
-**Expect:** the calendar and the Habits header stay in place, the habit list scrolls, and the popover never runs off the bottom of the screen.
+**Expect:** the calendar and the bottom row stay in place, the habit list scrolls, and the popover never runs off the bottom of the screen.
 
 ## VoiceOver adjusts the strip day by day
 
@@ -58,7 +58,7 @@
 
 **Setup:** a habit or two, light mode then dark mode.
 
-1. Hover over, then press and hold, each kind of button: the calendar's arrows and Today; the Habits header's +, trophy, and Settings; a done button; a habit's name; "N not due today"; Back; the form's Cancel, Save, day circles, and Delete habit; Quit; the leaderboard's tabs.
+1. Hover over, then press and hold, each kind of button: the calendar's arrows and Today; the bottom row's +, trophy, and Settings; a done button; a habit's name; "N not due today"; Back; the form's Cancel, Save, day circles, and Delete habit; Quit; the leaderboard's tabs.
 2. Make Add unavailable (an unreadable data file) and hover over it.
 3. Hover a done button, press Esc, then reopen the popover.
 4. Turn on Keyboard navigation (System Settings › Keyboard) and Tab through the list and the form.

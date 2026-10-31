@@ -36,7 +36,7 @@ final class HabitsUITests: HabitCalUITestCase {
     func testEmptyListShowsPrompt() {
         launch()
         openPopover()
-        XCTAssertTrue(text("No habits yet. Add one to start a streak.").exists)
+        XCTAssertTrue(text("No habits").exists)
     }
 
     func testCheckingOffTodayFillsTheButtonAndTodaysSquare() {
@@ -107,7 +107,7 @@ final class HabitsUITests: HabitCalUITestCase {
         XCTAssertTrue(text("Nothing due today").exists, "no Nothing due today")
         XCTAssertEqual(notDueRow.label, "2 habits not due today")
         XCTAssertLessThan(text("Nothing due today").frame.minY, notDueRow.frame.minY, "should sit above the folded row")
-        XCTAssertFalse(text("No habits yet. Add one to start a streak.").exists)
+        XCTAssertFalse(text("No habits").exists)
     }
 
     func testFixingAMissedDayInTheStrip() {
