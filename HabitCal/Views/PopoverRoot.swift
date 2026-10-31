@@ -9,13 +9,23 @@ struct PopoverRoot: View {
 
     let model: AppModel
 
+    /// The list screen's height when last shown. Every other screen is at least this tall, so the panel
+    /// keeps its size as you move between screens (T-032). A screen with more content grows past it.
+    @State private var listHeight: CGFloat = 0
+
     var body: some View {
         Group {
             switch model.screen {
-            case .list: HabitListScreen()
-            case .settings: SettingsScreen()
-            case .form: HabitFormScreen()
-            case .leaderboard: LeaderboardScreen()
+            case .list:
+                HabitListScreen()
+                    .onGeometryChange(for: CGFloat.self) {
+                        $0.size.height
+                    } action: {
+                        listHeight = $0
+                    }
+            case .settings: SettingsScreen().frame(minHeight: listHeight, alignment: .top)
+            case .form: HabitFormScreen().frame(minHeight: listHeight, alignment: .top)
+            case .leaderboard: LeaderboardScreen().frame(minHeight: listHeight, alignment: .top)
             }
         }
         .id(model.openGeneration)
