@@ -41,3 +41,13 @@
 2026-10-30 · T-028 · MINOR · Strip states before the habit was added untested · fixed
 2026-10-30 · T-028 · MINOR · Walks start at the oldest check-off · accepted risk
 2026-10-30 · T-028 · QUESTION · New habit scores 0% in rolling windows; tests hid it · fixed (test names it)
+2026-10-30 · T-029 design · MAJOR · Switching apps wouldn't close a MenuBarExtra · fixed (resign-active close)
+2026-10-30 · T-029 design · MAJOR · Code close from contentView unproven · fixed (first responder, as spiked)
+2026-10-30 · T-029 design · QUESTION · isInserted may make the icon removable · fixed (dropped)
+2026-10-30 · T-029 design · MINOR · Display wake would reset a half-typed form · fixed
+2026-10-30 · T-029 design · MINOR · Refocus hooks' removal half justified · fixed (conditional)
+2026-10-30 · T-029 design · MINOR · Esc monitor would steal input-method Esc · fixed
+2026-10-30 · T-029 design · MINOR · More UI test changes needed · fixed
+2026-10-30 · T-029 design · MINOR · First open could miss its reset · fixed
+2026-10-30 · T-029 design · MINOR · Single-instance check order undocumented · fixed
+2026-10-30 · T-029 design · MINOR · Stale design spots · fixed

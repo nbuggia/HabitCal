@@ -13,6 +13,14 @@ Rejected: Alternatives considered and why not. (optional)
 Affects: Task IDs and files this touches. (optional)
 -->
 
+## D-009 · Menu bar via SwiftUI MenuBarExtra (window style) · 2026-10-30
+Status: Active
+Context: The customer wants HabitCal to open like Apple's menu bar extras: flush under the menu bar, no arrow, a solid background, and a steady icon highlight. An NSPopover can't do that.
+Decision: Use `MenuBarExtra` with `.menuBarExtraStyle(.window)`, hosting the existing SwiftUI screens.
+Why: The T-029 spike showed it meets what D-005 needed. Esc closes it natively; code closes it cleanly with `cancelOperation`; the window's occlusion notification reports every open, so it can reset to today and the list; the label redraws for the date.
+Rejected: Keeping NSPopover: an arrow, a gap, and glass that can't be made solid. A custom NSPanel: more code to rebuild what MenuBarExtra does natively. Closing with `window.close()` or `orderOut`: they leave the icon stuck highlighted and swallow the next click.
+Affects: T-029, ARCHITECTURE.md, the UI tests' popover helper
+
 ## D-008 · Menu bar icon is a tear-off calendar page with no progress indicator; Phosphor for in-app icons · 2026-10-29
 Status: Active
 Context: T-001 prototyped five menu bar and popover concepts.
@@ -38,7 +46,7 @@ Rejected: SwiftData and Core Data. Their automatic migrations and store files ma
 Affects: T-003, T-004, ARCHITECTURE.md
 
 ## D-005 · Menu bar via NSStatusItem and NSPopover hosting SwiftUI · 2026-10-29
-Status: Active
+Status: Superseded by D-009
 Context: T-002 needs the icon to redraw on date changes, the popover to reset to the habit list on every open, to close itself after opening the website link, and to follow Esc rules.
 Decision: Use AppKit's NSStatusItem and an NSPopover (transient), hosting the SwiftUI screens in an NSHostingController.
 Why: It gives direct control over opening, closing, and focus, which the specs need.

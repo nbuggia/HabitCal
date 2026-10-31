@@ -2,7 +2,7 @@
 
 ## Question
 
-D-005 rejected `MenuBarExtra` because it "has no supported way to close itself programmatically or to know when it opens". The customer wants HabitCal to open like Apple's menu bar extras (flush, no arrow, solid, steady icon highlight), which `MenuBarExtra` with `.window` style does natively. On macOS 26:
+D-005 rejected `MenuBarExtra` because it "has no supported way to close itself programmatically or to know when it opens". The customer wants HabitCal to open like Apple's menu bar extras (flush, no arrow, solid, steady icon highlight), which `MenuBarExtra` with `.window` style does natively. On macOS 27.0.1 (the customer's Mac):
 
 1. Does the window close by itself when a link opens the browser?
 2. Can Esc close it, natively or by our code, without the "click the icon twice" desync?
@@ -13,7 +13,7 @@ Build: `./build.sh <dir>`, run `open <dir>/MBXSpike.app --args <log file>`. Ever
 
 ## Answer
 
-**Yes: `MenuBarExtra` (`.window` style) can do everything D-005 needed** (run with the customer on macOS 26, 2026-10-30; log excerpts below).
+**Yes: `MenuBarExtra` (`.window` style) can do everything D-005 needed** (run with the customer on their Mac, 2026-10-30; log excerpts below).
 
 - **Look (customer):** flush under the menu bar, no arrow, a solid background like Apple's Now Playing, and a steady icon highlight while open.
 - **Q4, icon redraw (customer):** the label redraws when the model changes.
