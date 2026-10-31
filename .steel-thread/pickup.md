@@ -4,19 +4,17 @@ Session: S-003 · 2026-10-30
 
 ## Accomplished
 
-- T-009 to T-016 and T-020 done and committed today (see TASKS.md and git log). T-016 (consistency leaderboard) 33c94df; T-020 (28 pt calendar columns, centered) d90a464.
-- Customer's bug list captured as T-017 to T-022 (answers recorded on T-020 and T-022 in TASKS.md).
-- The customer asked to stop running UI tests while they use the Mac (they drive the real screen). UI tests for T-012 ran individually; T-016's two UI tests are written and compiled but have never run. Run the full suite when the customer is away.
+- 2026-10-30: T-009 to T-016 and T-018 to T-028 done and committed (see TASKS.md and git log). D-009 logged (MenuBarExtra), superseding D-005.
+- T-029 (Complex): spike answered (spike/README.md), design Approved after 2 review passes, slice 1 committed 64c4c42. The customer tried it: "works great, feels much better".
+- UI tests have not run since T-016 (the customer was using the Mac). About 15 written since then have never run.
 
 ## In Flight
 
-T-021 (hover and pressed states, Simple): `HoverButtonStyle` written and applied everywhere; spec, design, CONVENTIONS.md and manual test written; uncommitted; st-crit review running. Next: apply findings, commit, close (close.md).
-
-Then: T-019 (plus-circle asset already added, uncommitted: swap "plus" for "plus-circle" in `HabitListScreen.header`), T-018 (strip clipping: likely the list's ScrollView clipping today's ring; add bottom padding inside the scroll content), T-022 (day selection: needs spec), T-017 (popover gap: needs an on-screen measurement, so wait for the customer to be away).
+T-029 slice 2: run the full UI suite (needs the customer's screen, about 10 minutes). It answers the design's open questions: does XCUITest's click open a MenuBarExtra; do the Esc tests pass without the refocus hooks (if yes, delete `AppModel.screenDidChange`/`listDidHideRows`); does ⌘Q and Edit work without `MainMenu` (if yes, delete it). Then the manual checks in design §13, then close T-029 (every st-close step: Complex), applying §16's Lasting Changes (ARCHITECTURE, CONVENTIONS, TESTING, FM-006, FM-008).
 
 ## Suggested Start
 
-With the Mac free: run the full UI suite, and screenshot the list, leaderboard and form to check T-016, T-020 and T-021 by eye.
+Ask the customer for the screen and run the full UI suite.
 
 ## Proposed Updates
 
