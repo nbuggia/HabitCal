@@ -21,7 +21,7 @@ Ask the customer for the screen and run the full UI suite.
 - CONTEXT.md, Vocabulary, "Due day" (T-028): "A day the habit's schedule includes. Only due days count toward a streak." (drop "on or after the habit was added").
 
 - BACKLOG.md (Later, Source T-022): make the calendar grid one Tab stop driven by the arrow keys, like the strip; with Keyboard navigation on, its 42 day buttons now come before the habit list.
-- PRD.md: a "Feature: Leaderboard" section (T-016), and day selection under "Feature: Month Calendar" (T-022).
+- PRD.md: a "Feature: Leaderboard" section (T-016), and day selection under "Feature: Month Calendar" (T-022) Leaderboard Not Doing (T-015): ranking by current streak; a seven-day dots view.
 
 - PRD.md, "Feature: Habits" (from T-012): add "The list shows the habits due today; the others fold into a quiet 'N not due today' row that opens to show them." Not Doing: hiding not-due habits with no way back (they couldn't be edited that day); remembering whether the row is open.
 - PRD.md line 52 still says each grid day shows how its habits went, which D-003 removed. Propose deleting it.
