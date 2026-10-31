@@ -38,7 +38,7 @@ struct HabitListScreen: View {
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .accessibilityIdentifier("habitsSection")
-            headerButton("plus", size: 14, label: "Add habit") { model.openAddForm() }
+            headerButton("plus-circle", size: 17, label: "Add habit") { model.openAddForm() }
                 .disabled(!model.canAddHabits)
             Spacer()
             headerButton("trophy", size: 15, label: "Leaderboard") { model.openLeaderboard() }
