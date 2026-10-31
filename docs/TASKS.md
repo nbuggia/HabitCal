@@ -33,6 +33,8 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       The customer picked Consistency, with Past 7 days / Past 30 days / All time tabs.
 - [x] T-016 Consistency leaderboard: habits ranked by share of due days done · high · done 2026-10-30
       Includes the fix for the customer's bug 8 (tabs overflowed the popover). Its two UI tests haven't run yet.
+- [ ] T-029 Open like Apple's menu bar extras: flush under the menu bar, no arrow, solid background, steady icon highlight · high
+      Customer, 2026-10-30. Spike first: can SwiftUI MenuBarExtra meet D-005's needs (close on Esc, know when it opens)? Replaces T-017.
 - [ ] T-017 Bug: the popover opens too far below the menu bar icon · high
       About 14 pt of gap between the menu bar and the popover's arrow. Diagnose first: status item button bounds, NSPopover positioning on macOS 26.
 - [x] T-018 Bug: the bottom of the habit strips is clipped · high · done 2026-10-30
