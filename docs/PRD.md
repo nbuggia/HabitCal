@@ -13,12 +13,12 @@ HabitCal is a free macOS menu bar app for people building daily habits. The menu
 - Each habit shows a strip for the month on show in the calendar, marking each day as done, missed, or not scheduled.
 - Each habit shows its current streak and its best streak, and a day the habit wasn't scheduled never breaks a streak.
 - A missed check-off can be fixed by marking a past day done.
-- The app works fully offline, needs no account, and sends no data anywhere.
+- The app works fully offline and needs no account; habit data leaves the Mac only for the person's own iCloud, to sync their Macs (D-010).
 
 ## Not Doing
 
 - **Calendar events.** No Apple Calendar, Google, or iCloud events. Itsycal and Calendr do that well and for free; it would add permission prompts and pull HabitCal toward a meeting tool.
-- **Sync, accounts, or iPhone/iPad apps.** v1 is one Mac with local data. Sync is the main source of complexity and cost in competing apps.
+- **Accounts, or iPhone/iPad apps.** HabitCal has no sign-in and runs on the Mac only. Habits sync across a person's Macs through their own iCloud, invisibly (D-010); competing apps' accounts and servers are where their complexity and cost come from.
 - **Counted or timed goals** ("50 push-ups", "30 minutes"). A habit is done or not done for the day. Revisit after v1 (see BACKLOG.md).
 - **Reminders and notifications.** HabitCal is glanceable, not a nag. Revisit after v1.
 - **Payments, ads, habit limits, or social features.** The app is free with no ceiling — the category's upsells and social feeds are what users complain about.

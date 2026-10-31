@@ -13,6 +13,14 @@ Rejected: Alternatives considered and why not. (optional)
 Affects: Task IDs and files this touches. (optional)
 -->
 
+## D-010 · Habits sync across the user's Macs through CloudKit · 2026-10-31
+Status: Active
+Context: The customer wants their habits on every Mac they use. D-004 kept data on the Mac only, and the PRD listed sync under Not Doing.
+Decision: Sync habit data through CloudKit, in the user's private iCloud database, with the Apple Account signed into the Mac. HabitCal has no sign-in and we run no server. HabitCal keeps working from its local file and works fully without iCloud (signed out, HabitCal's iCloud switch off, offline); sync happens in the background. D-004's local rules still hold: the saved data carries a format version, every newer HabitCal reads every earlier format, and data HabitCal can't read is never overwritten.
+Why: Users don't have to do anything, it costs them and us nothing, and their data stays in their own iCloud, never on a server we run.
+Rejected: iCloud Drive file sync, which leaves HabitCal to combine conflicting copies of one file from two Macs. NSUbiquitousKeyValueStore, whose size limits don't fit years of history. Our own server, which means accounts, running costs, and a privacy promise to keep.
+Affects: D-004 (superseded), D-007 (whether CloudKit needs a network entitlement is for T-039's spike; a change gets its own decision), PRD.md, CONTEXT.md, T-039
+
 ## D-009 · Menu bar via SwiftUI MenuBarExtra (window style) · 2026-10-30
 Status: Active
 Context: The customer wants HabitCal to open like Apple's menu bar extras: flush under the menu bar, no arrow, a solid background, and a steady icon highlight. An NSPopover can't do that.
@@ -54,7 +62,7 @@ Rejected: SwiftUI MenuBarExtra. It has no supported way to close itself programm
 Affects: T-002, ARCHITECTURE.md
 
 ## D-004 · Habit data stays on the Mac, versioned and never overwritten when unreadable · 2026-10-29
-Status: Active
+Status: Superseded by D-010
 Context: The T-003 spec defines how habits are saved. Its review found that the next HabitCal release is the first reader of v1's data.
 Decision: Habit data is saved only on the Mac, and HabitCal makes no network requests. The saved data carries a format version. Every newer HabitCal reads every earlier format. Data HabitCal can't read, including a newer format, is never overwritten.
 Why: Streak history is the product's value, and losing it on an update or a downgrade is the worst failure. Local-only, with no account, is a differentiator (PRD Appendix).

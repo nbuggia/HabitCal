@@ -19,4 +19,4 @@
 
 ## What the Agent Should Never Do
 
-- Make the app send data off the Mac, or add a network entitlement, without a new decision (D-004, D-007).
+- Make the app send data anywhere but the user's own iCloud private database, or add a network entitlement, without a new decision (D-007, D-010).

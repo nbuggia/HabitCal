@@ -64,5 +64,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-034 Bug: today's strip ring is clipped on the right on the month's last day · high · done 2026-10-31
 - [ ] T-035 Export and import habit data from Settings · high
       Customer, 2026-10-31: so people can take their habit data with them. Complex: import replaces saved data, the exported file is a contract, and the sandbox needs user-selected file access (D-007). Spec next.
+- [ ] T-039 Sync habits across Macs with CloudKit · high
+      Customer, 2026-10-31: in v1 (D-010). Complex. Spike first: CloudKit under Developer ID; whether it needs a network entitlement (D-007).
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       App icon chosen 2026-10-31: fire with a black outline, in AppIcon.appiconset and Settings' About. A Developer ID Application certificate (NETORION LLC) is in the keychain; notarytool credentials not checked. Left: signing, notarization, the GitHub download and README, the manual test of a downloaded build.
