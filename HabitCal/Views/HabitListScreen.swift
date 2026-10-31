@@ -104,8 +104,9 @@ struct HabitListScreen: View {
                     }
                 }
                 // Room inside the scroll view's clip for what draws past a row's edges: today's
-                // strip ring (about 2 pt) and hover highlights (3 pt) (T-018).
-                .padding(.vertical, 3)
+                // strip ring (about 2 pt) and hover highlights (3 pt), on every side. The ring
+                // reaches past the right edge when today is the month's last day (T-018, T-034).
+                .padding(3)
                 .onGeometryChange(for: CGFloat.self) {
                     $0.size.height
                 } action: {
@@ -114,6 +115,8 @@ struct HabitListScreen: View {
             }
             .frame(height: min(listHeight, maxListHeight))
             .scrollBounceBehavior(.basedOnSize)
+            // Gives back the side padding above, so the rows still line up with the calendar (T-024).
+            .padding(.horizontal, -3)
         }
     }
 
