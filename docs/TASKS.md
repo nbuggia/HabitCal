@@ -29,6 +29,20 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-012 Show only habits due today; the rest collapse into a "N not due today" row · high · done 2026-10-30
 - [x] T-013 Today's calendar marker is a rounded square like the menu bar icon · high · done 2026-10-30
 - [x] T-014 Add and Settings buttons move into the Habits header row; footer removed · high · done 2026-10-30
-- [ ] T-015 Prototype a leaderboard of progress across all habits · medium
+- [x] T-015 Prototype a leaderboard of progress across all habits · medium · done 2026-10-30
+      The customer picked Consistency, with Past 7 days / Past 30 days / All time tabs.
+- [x] T-016 Consistency leaderboard: habits ranked by share of due days done · high · done 2026-10-30
+      Includes the fix for the customer's bug 8 (tabs overflowed the popover). Its two UI tests haven't run yet.
+- [ ] T-017 Bug: the popover opens too far below the menu bar icon · high
+      About 14 pt of gap between the menu bar and the popover's arrow. Diagnose first: status item button bounds, NSPopover positioning on macOS 26.
+- [ ] T-018 Bug: the bottom of the habit strips is clipped · high
+      Likely the habit list's ScrollView clips today's ring (drawn 1.5 pt outside the square) and the bottom edge of the last row. Confirm, then fix the list's height or padding.
+- [ ] T-019 Add button shows a plus in a circle · medium
+- [ ] T-020 Calendar columns closer together · medium
+      Customer, 2026-10-30: the popover stays 260 pt; the narrower grid is centered with small gutters.
+- [ ] T-021 Hover and pressed states on every button · medium
+      Icon buttons, Back, the done button, the habit name, the folded row, and the leaderboard tabs.
+- [ ] T-022 Select a day in the calendar to see and fix its habits; today keeps a light marker · high
+      Customer's items 6 and 7. Customer, 2026-10-30: on a selected past day, the done buttons check off that day. Defaults: the list shows habits due that day; future days view-only; every open goes back to today.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.

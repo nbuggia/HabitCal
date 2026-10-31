@@ -29,7 +29,8 @@ struct HabitListScreen: View {
         .padding(12)
     }
 
-    /// The section label with Add beside it and Settings at the far end; there is no footer (T-014).
+    /// The section label with Add beside it, and the leaderboard and Settings at the far end; there is
+    /// no footer (T-014, T-016).
     private var header: some View {
         HStack(spacing: 6) {
             Text("Habits")
@@ -37,29 +38,26 @@ struct HabitListScreen: View {
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .accessibilityIdentifier("habitsSection")
-            Button {
-                model.openAddForm()
-            } label: {
-                PhosphorIcon("plus", size: 14)
-                    .frame(width: 22, height: 22)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.borderless)
-            .disabled(!model.canAddHabits)
-            .accessibilityLabel("Add habit")
-            .help("Add habit")
+            headerButton("plus", size: 14, label: "Add habit") { model.openAddForm() }
+                .disabled(!model.canAddHabits)
             Spacer()
-            Button {
-                model.openSettings()
-            } label: {
-                PhosphorIcon("sliders", size: 16)
-                    .frame(width: 22, height: 22)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.borderless)
-            .accessibilityLabel("Settings")
-            .help("Settings")
+            headerButton("trophy", size: 15, label: "Leaderboard") { model.openLeaderboard() }
+                .disabled(!model.canAddHabits)
+            headerButton("sliders", size: 16, label: "Settings") { model.openSettings() }
         }
+    }
+
+    private func headerButton(
+        _ icon: String, size: CGFloat, label: String, action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            PhosphorIcon(icon, size: size)
+                .frame(width: 22, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(label)
+        .help(label)
     }
 
     @ViewBuilder

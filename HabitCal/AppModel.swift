@@ -9,6 +9,7 @@ enum Screen: Equatable {
     case list
     case settings
     case form
+    case leaderboard
 }
 
 /// The habit form's state (T-003 §5).
@@ -68,6 +69,8 @@ final class AppModel {
     private(set) var dataState: DataState
     /// Whether the habits not due today are shown under the folded row. Closed on every open (T-012 B.2).
     private(set) var showsNotDue = false
+    /// The leaderboard's range; it opens on the past 7 days (T-016 B.6).
+    private(set) var leaderboardRange: ConsistencyRange = .past7
     /// The open form, while `screen == .form`.
     private(set) var form: HabitForm?
     /// Bumped on every refresh, so the switch redraws even when a failed change leaves the state
@@ -149,6 +152,9 @@ final class AppModel {
             return .handled
         case .form:
             cancelForm()
+            return .handled
+        case .leaderboard:
+            closeLeaderboard()
             return .handled
         }
     }
@@ -264,6 +270,22 @@ final class AppModel {
     private func closeForm() {
         form = nil
         screen = .list
+    }
+
+    // MARK: Leaderboard
+
+    func openLeaderboard() {
+        leaderboardRange = .past7
+        screen = .leaderboard
+    }
+
+    /// Back to the list, on the month it was showing (T-016 B.6).
+    func closeLeaderboard() {
+        screen = .list
+    }
+
+    func pickLeaderboardRange(_ range: ConsistencyRange) {
+        leaderboardRange = range
     }
 
     // MARK: Settings

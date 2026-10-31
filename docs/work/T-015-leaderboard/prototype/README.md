@@ -12,4 +12,4 @@ The sample data is the same in all three: five habits with different schedules a
 
 ## Answer
 
-Not answered yet: waiting for the customer's pick (2026-10-30).
+**Option 2, Consistency (customer, 2026-10-30)**, with the range tabs renamed to **Past 7 days · Past 30 days · All time**: rolling windows ending today, not calendar weeks and months. Opens from a trophy button in the Habits header row. Built in T-016.

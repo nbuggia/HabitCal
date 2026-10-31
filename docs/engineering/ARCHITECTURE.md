@@ -38,7 +38,7 @@ HabitCal/                app target (LSUIElement: no Dock icon)
     LoginItem            SMAppService wrapper; /Applications policy wins over its status
   MenuBar/MenuBarIcon    tear-off calendar page as a template NSImage (D-008)
   Views/                 PopoverRoot, HabitListScreen, CalendarView, HabitRow (done button, name, streaks, context menu),
-                         StripView, HabitFormScreen, SettingsScreen, PhosphorIcon
+                         StripView, HabitFormScreen, SettingsScreen, LeaderboardScreen, PhosphorIcon
   AppModel.swift         @MainActor @Observable: today, displayed month, Screen and form, habits and DataState,
                          week-start override, login state; every habit change calls persist()
   Assets.xcassets        Phosphor icons as template SVGs (THIRD-PARTY-NOTICES.md)
@@ -56,6 +56,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
     ScheduleLabel, HabitLabels, StripDay   labels, tooltips, spoken text, strip states
     HabitStore           the only reader/writer of habits.json (format v1; CONTRACTS.md)
     Streaks              current and best streak
+    Consistency          leaderboard: share of due days done per range, ranked (T-016)
   Tests/HabitCalKitTests/
 ```
 
@@ -82,7 +83,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 - `habits.json` carries `formatVersion` (1 today). HabitCalKit will decode every earlier version and migrate in memory, and writes only the current one. A file it can't decode, with fields or values version 1 never writes, or with a newer `formatVersion`, puts the store in a read-only state: nothing is written (D-004). Saving is allowed only after a load returned loaded or empty.
 - The JSON shape lives in `HabitStore`'s private types, not on the model, so renaming a Swift property can't silently change the format. Codable directly on the model was rejected for that reason.
 - Schedules: a change applies from today. Entries starting today or later are replaced (so the last change of a day wins); `addedOn` governs the first due day. Today's check-off is removed if today is no longer due.
-- Streaks are computed from the habit and today on every render; nothing about them is stored.
+- Streaks and the leaderboard are computed from the habits and today on every render; nothing about them is stored.
 - Dates in the file are local calendar days (`"2026-10-29"`), not timestamps, so a check-off never moves when the time zone changes.
 - Saves are synchronous and atomic (write to a temporary file, then replace), on the main actor, after every change. The file is small: years of daily check-offs for a dozen habits stay well under 1 MB. Debounced or background saving was rejected as unneeded; move saving off the main actor only if a save ever exceeds ~10 ms.
 

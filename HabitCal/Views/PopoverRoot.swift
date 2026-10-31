@@ -14,6 +14,7 @@ struct PopoverRoot: View {
             case .list: HabitListScreen()
             case .settings: SettingsScreen()
             case .form: HabitFormScreen()
+            case .leaderboard: LeaderboardScreen()
             }
         }
         .frame(width: Self.width)

@@ -26,3 +26,5 @@
 2026-10-30 · T-012 · MINOR · Saved habit may sit below the scroll in a long list · spec changed
 2026-10-30 · T-012 · MINOR · B.5 unproven at view level; manual tests stale · fixed (manual test)
 2026-10-30 · T-012 · MINOR · "Above" not proven in Nothing-due test · fixed
+2026-10-30 · T-016 · MINOR · Score card read "— of due days done" when nothing was due yet · fixed
+2026-10-30 · T-016 · QUESTION · Rounding showed 100% for a record with misses · fixed (100% only when perfect)
