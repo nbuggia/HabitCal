@@ -30,7 +30,7 @@ Clicking a day in the calendar selects it, and the habit list shows that day: th
 - **Selected day:** the solid accent-colored rounded square with a white number, as today has now.
 - **Today, when another day is selected:** a pale square (the accent color at about 20% opacity) with the number in the accent color, bold.
 - **Hover:** a day under the pointer gets the soft hover highlight (T-021).
-- **Habits header:** "HABITS" while today is selected; "HABITS · FRI, OCT 23" while another day is.
+- **Habits header:** unchanged, "HABITS", whatever day is selected (the customer, 2026-10-30: the date isn't needed there; the calendar's solid square shows the selected day).
 - **Done buttons on a selected past day:** as today's, but their tooltips and spoken labels name the day: "Mark done for Oct 23", "Push-ups, done on October 23".
 - **Done buttons on a selected future day:** shown dimmed and can't be clicked; the tooltip is "Can't check off a future day".
 - **Folded row:** "N not due today" on today; "N not due that day" on another day.

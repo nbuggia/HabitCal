@@ -67,17 +67,6 @@ public enum HabitLabels {
         onToday ? "Nothing due today" : "Nothing due that day"
     }
 
-    /// "Habits, Friday, October 23": the header's spoken label, with the date in full (T-022 B.9).
-    public static func listHeaderSpoken(day: Day, today: Day) -> String {
-        day == today ? "Habits" : "Habits, \(MonthNames.spokenDate(day))"
-    }
-
-    /// "FRI, OCT 23" after the Habits label while another day is selected; nil on today (T-022).
-    public static func listHeader(day: Day, today: Day) -> String? {
-        guard day != today else { return nil }
-        return "\(MonthNames.weekdayName(day.weekday).prefix(3)), \(shortDate(day))".uppercased()
-    }
-
     /// "Oct 23".
     private static func shortDate(_ day: Day) -> String {
         "\(MonthNames.name(of: day.month).prefix(3)) \(day.day)"

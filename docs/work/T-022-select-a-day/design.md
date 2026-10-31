@@ -16,7 +16,6 @@ date created: 2026-10-30
 - `HabitCalKit/Sources/HabitCalKit/HabitLabels.swift`:
   - `doneButtonSpoken(name:dueToday:doneToday:)` and `doneButtonTooltip(...)` gain a `day:`/`today:` pair. On today they read as now. On a past day: "Push-ups, done on October 23" / "Push-ups, not done on October 23" / "Mark done for Oct 23" / "Done Oct 23 — click to undo". On a future day: "Can't check off a future day".
   - `notDueRowTitle(count:onToday:)` gives "3 not due today" or "3 not due that day"; `notDueRowSpoken` follows.
-  - `listHeader(day:today:)` gives nil on today, or "FRI, OCT 23".
   - `nothingDue(onToday:)` gives "Nothing due today" or "Nothing due that day".
 - `HabitCalKit/Sources/HabitCalKit/MonthNames.swift`: `spokenCalendarDay(_:isToday:isSelected:)`, adding ", selected".
 - `HabitCal/AppModel.swift`:
@@ -25,7 +24,7 @@ date created: 2026-10-30
   - `showToday()` and `resetForOpen()` clear the selection (B.6, B.7).
   - `toggleShown(_ id:)` replaces `toggleToday`, using `toggle(id, on: shownDay)`; `Habits.toggle` already refuses future and not-due days (B.5).
 - `HabitCal/Views/CalendarView.swift`: `DayCell` takes `isSelected` and becomes a `Button` with `.hover(cornerRadius: 4.7)`. Solid square when selected; pale square with an accent-colored number for today when not selected (B.2).
-- `HabitCal/Views/HabitListScreen.swift`: the split, "Nothing due…", and the folded row use `model.shownDay`; the header shows `listHeader` after "HABITS".
+- `HabitCal/Views/HabitListScreen.swift`: the split, "Nothing due…", and the folded row use `model.shownDay`. The header stays "HABITS".
 - `HabitCal/Views/HabitRow.swift`: `DoneButton` reads `model.shownDay`; on a future day it's disabled.
 
 ## Test Points
@@ -55,4 +54,4 @@ date created: 2026-10-30
 | 1 | MAJOR | A habit saved while a past day was selected vanished into the closed folded row (`saveForm` checked today, the list the shown day) | ACCEPT: `saveForm` checks `shownDay`; `testAddingAHabitWhileAPastDayIsSelectedKeepsItInView` | Pass 1 |
 | 2 | MINOR | A not-due habit on a future day said "can't check off a future day" | ACCEPT: not-scheduled checked first; `aFutureDayThatIsNotDueSaysNotScheduled` | Pass 1 |
 | 3 | MINOR | With Keyboard navigation on, 42 day buttons become Tab stops before the list | DEFER: TESTING.md notes the Tab-loop tests assume it's off; backlog row proposed (grid as one arrow-key stop, like the strip) | Pass 1 |
-| 4 | QUESTION | Header's spoken label abbreviated ("FRI, OCT") | ACCEPT: `listHeaderSpoken`, "Habits, Friday, October 23" | Pass 1 |
+| 4 | QUESTION | Header's spoken label abbreviated ("FRI, OCT") | Moot: the customer dropped the date from the header after the review | Pass 1 |

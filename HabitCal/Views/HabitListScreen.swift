@@ -33,12 +33,10 @@ struct HabitListScreen: View {
     /// no footer (T-014, T-016).
     private var header: some View {
         HStack(spacing: 6) {
-            Text(header(for: model.shownDay))
+            Text("Habits")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-                .lineLimit(1)
-                .accessibilityLabel(HabitLabels.listHeaderSpoken(day: model.shownDay, today: model.today))
                 .accessibilityIdentifier("habitsSection")
             headerButton("plus-circle", size: 17, label: "Add habit") { model.openAddForm() }
                 .disabled(!model.canAddHabits)
@@ -121,12 +119,6 @@ struct HabitListScreen: View {
             .frame(height: min(listHeight, maxListHeight))
             .scrollBounceBehavior(.basedOnSize)
         }
-    }
-
-    /// "Habits", or "Habits · Fri, Oct 23" while another day is selected (T-022).
-    private func header(for day: Day) -> String {
-        guard let date = HabitLabels.listHeader(day: day, today: model.today) else { return "Habits" }
-        return "Habits · \(date)"
     }
 
     private func notDueRow(count: Int, onToday: Bool) -> some View {

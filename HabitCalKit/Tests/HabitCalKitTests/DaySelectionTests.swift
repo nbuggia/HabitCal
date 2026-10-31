@@ -49,10 +49,6 @@ struct DaySelectionTests {
     }
 
     @Test func listLabelsFollowTheSelectedDay() {
-        #expect(HabitLabels.listHeaderSpoken(day: oct(23), today: today) == "Habits, Friday, October 23")
-        #expect(HabitLabels.listHeaderSpoken(day: today, today: today) == "Habits")
-        #expect(HabitLabels.listHeader(day: today, today: today) == nil)
-        #expect(HabitLabels.listHeader(day: oct(23), today: today) == "FRI, OCT 23")
         #expect(HabitLabels.notDueRowTitle(count: 2, onToday: false) == "2 not due that day")
         #expect(HabitLabels.notDueRowSpoken(count: 1, onToday: false) == "1 habit not due that day")
         #expect(HabitLabels.nothingDue(onToday: true) == "Nothing due today")

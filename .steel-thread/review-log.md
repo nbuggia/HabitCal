@@ -35,4 +35,4 @@
 2026-10-30 · T-022 · MAJOR · Habit saved on a selected past day vanished into the folded row · fixed
 2026-10-30 · T-022 · MINOR · Not-due habit on a future day said "can't check off" · fixed
 2026-10-30 · T-022 · MINOR · 42 day buttons become Tab stops with Keyboard navigation on · deferred (backlog proposed)
-2026-10-30 · T-022 · QUESTION · Header's spoken date abbreviated · fixed
+2026-10-30 · T-022 · QUESTION · Header's spoken date abbreviated · moot (customer dropped the date)
