@@ -35,8 +35,8 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Includes the fix for the customer's bug 8 (tabs overflowed the popover). Its two UI tests haven't run yet.
 - [ ] T-017 Bug: the popover opens too far below the menu bar icon · high
       About 14 pt of gap between the menu bar and the popover's arrow. Diagnose first: status item button bounds, NSPopover positioning on macOS 26.
-- [ ] T-018 Bug: the bottom of the habit strips is clipped · high
-      Likely the habit list's ScrollView clips today's ring (drawn 1.5 pt outside the square) and the bottom edge of the last row. Confirm, then fix the list's height or padding.
+- [x] T-018 Bug: the bottom of the habit strips is clipped · high · done 2026-10-30
+      Fix: 3 pt of padding inside the list's scroll view. Not yet confirmed on screen.
 - [x] T-019 Add button shows a plus in a circle · medium · done 2026-10-30
 - [x] T-020 Calendar columns closer together · medium · done 2026-10-30
       Customer, 2026-10-30: the popover stays 260 pt; the narrower grid is centered with small gutters.

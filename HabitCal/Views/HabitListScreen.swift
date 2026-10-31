@@ -106,6 +106,9 @@ struct HabitListScreen: View {
                         }
                     }
                 }
+                // Room inside the scroll view's clip for what draws past a row's edges: today's
+                // strip ring (about 2 pt) and hover highlights (3 pt) (T-018).
+                .padding(.vertical, 3)
                 .onGeometryChange(for: CGFloat.self) {
                     $0.size.height
                 } action: {
