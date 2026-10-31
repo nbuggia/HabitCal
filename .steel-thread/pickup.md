@@ -13,6 +13,10 @@ Session: S-004 · 2026-10-31
 
 ## In Flight
 
+T-039 iCloud sync (Complex, D-010): spike in docs/work/T-039-icloud-sync/spike/ (README has results). Development-signed CloudKit round trip works with no network entitlement; CKSyncEngine starts. This Mac was registered in the developer account (customer OK'd). Open: the Developer ID export fails ("No Accounts" / no Developer ID profile) — likely needs the Account Holder/Admin role or a profile made at developer.apple.com; and the no-account behavior (turn HabitCal's iCloud switch off and rerun). Then spec (st-spec), design.
+
+Uncommitted, awaiting the customer's look: T-036 (no not-due habits listed), T-038 (live editing, Close button), T-037 (screens grow past the list height; Trivial-sized but cited as T-037 in PopoverRoot.swift). PRD Habits section needs the folded row replaced; T-035 spec B.10 cites the folded row.
+
 T-035 Export and import (Complex): spec Approved 2026-10-31 after an st-crit review (CONCERNS, 4 findings accepted), docs/work/T-035-export-import/spec.md. Customer chose: import replaces after a confirmation; no backup or undo. Next: the tech design (st-design, Complex). Open technical question for the design: whether the MenuBarExtra panel can stay open while NSSavePanel/NSOpenPanel is up, and that the dialogs come to the front (E.8) — spike it (FM-012). Needs the user-selected read-write sandbox entitlement.
 
 T-029 slice 2 is paused: the full UI suite still needs a complete run on the customer's screen. 5 tests failed with "popover didn't open" (`openPopover()`, HabitCalUITests/HabitCalUITestCase.swift:46) in a partial run; rerun one alone first. Then the design's open questions (refocus hooks, `MainMenu`), the §13 manual checks, and the Complex close with §16's Lasting Changes.
