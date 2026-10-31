@@ -11,7 +11,7 @@ D-010 chose CloudKit. Before designing on it (FM-012), on the customer's Mac (ma
 
 Build: `CloudSpike.xcodeproj` (one target, bundle ID `com.muchfiner.HabitCal.cloudspike`, container `iCloud.com.muchfiner.HabitCal`, entitlements in `CloudSpike.entitlements`). Development: `xcodebuild -project CloudSpike.xcodeproj -scheme CloudSpike -allowProvisioningUpdates build`. Every check runs on launch and is logged to `~/Library/Containers/com.muchfiner.HabitCal.cloudspike/Data/spike.log`.
 
-## Answer (so far, 2026-10-31)
+## Answer (2026-10-31)
 
 - **Q1, development-signed: yes.** Account available, user record ID read, a custom zone and a record saved, the record read back unchanged, the zone deleted.
 - **Q2: no network entitlement needed.** The app has `network.client=false` and the round trip still worked: CloudKit traffic goes through the system, so D-007's no-network rule can stay.
@@ -20,11 +20,13 @@ Build: `CloudSpike.xcodeproj` (one target, bundle ID `com.muchfiner.HabitCal.clo
   - Xcode's automatic provisioning registered the container (and this Mac, with the customer's OK).
   - A new container took about a minute to reach CloudKit's servers. Before that, every call failed with CKError 5, "Couldn't get container configuration from the server".
   - The development build gets `aps-environment` (push), which `CKSyncEngine` uses to hear about changes from the other Mac.
-- **Q1, Developer ID: not answered yet.** The archive succeeds, but exporting it for Developer ID fails with "No Accounts" / "No profiles for 'com.muchfiner.HabitCal.cloudspike' were found". Xcode won't create a Developer ID provisioning profile with this account from the command line. Creating Developer ID profiles needs the team's Account Holder or Admin role, which may be the cause.
+- **Q1, Developer ID: yes.** Signed with the keychain's Developer ID Application certificate (expires 2027-02-01) and a Developer ID profile with iCloud, made at developer.apple.com, the app reached CloudKit's **production** environment:
+  - account available, user record ID read, and a custom zone saved;
+  - saving a record failed only with CKError 12, "Cannot create new type SpikeHabit in production schema", as expected.
+  - Record types have to be deployed from development to production in the CloudKit Console before release. HabitCal's real types get deployed in T-005. The spike's type is never deployed, so no junk type ends up in production.
+  - Xcode's command-line export couldn't create the Developer ID profile ("No Accounts"), so for now the release build is signed by hand with a downloaded profile. NETORION LLC has two Developer ID Application certificates; only the one expiring 2027-02-01 has its private key on this Mac, so profiles must name that one.
 - **Q3: only "available" seen.** Signed-out and iCloud-switch-off behavior still needs a run with HabitCal's iCloud switch turned off in System Settings.
 
-Known for the design, not yet seen here:
-- A Developer ID build talks to CloudKit's **production** environment. Its record types exist only once the development schema is deployed to production in the CloudKit Console, so that's a release step for T-005.
 
 Log excerpt (development build, second attempt):
 
