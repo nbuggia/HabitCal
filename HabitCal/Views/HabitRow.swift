@@ -97,10 +97,11 @@ private struct StreakStats: View {
     var body: some View {
         let current = Streaks.current(habit, today: model.today)
         let best = Streaks.best(habit, today: model.today)
-        let hot = current >= Streaks.hotThreshold
+        let hot = Streaks.isHot(current: current)
+        let record = Streaks.isRecord(current: current, best: best)
         HStack(spacing: 10) {
             HStack(spacing: 3) {
-                // HabitCal's own flame (T-008), in full color once the streak is hot, grey below that.
+                // HabitCal's own flame (T-008), in full color once the streak is above 1, grey below (T-025).
                 Image("flame")
                     .resizable()
                     .frame(width: 14, height: 14)
@@ -113,10 +114,12 @@ private struct StreakStats: View {
             }
             .help("Current streak")
             HStack(spacing: 3) {
+                // Gold while the current streak is the record (T-025).
                 PhosphorIcon("trophy", size: 13)
+                    .foregroundStyle(record ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.secondary))
                 Text("\(best)")
+                    .foregroundStyle(.secondary)
             }
-            .foregroundStyle(.secondary)
             .help("Best streak")
         }
         .font(.callout.monospacedDigit())

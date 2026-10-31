@@ -1,8 +1,15 @@
 /// Current and best streaks, counting only the days a habit was due (T-004). A day the habit wasn't
 /// scheduled never breaks a streak, and today doesn't break it until the day is over.
 public enum Streaks {
-    /// A current streak this long is shown in flame-orange.
-    public static let hotThreshold = 3
+    /// A current streak above 1 shows the flame in color (T-025).
+    public static func isHot(current: Int) -> Bool {
+        current > 1
+    }
+
+    /// A hot streak that has reached the best shows the trophy in color (T-025).
+    public static func isRecord(current: Int, best: Int) -> Bool {
+        isHot(current: current) && current >= best
+    }
 
     /// The unbroken run of done due days, walking back from today. Today counts if it's done and is
     /// skipped if it isn't yet; the first earlier due day that wasn't done ends the run (B.1, B.2).

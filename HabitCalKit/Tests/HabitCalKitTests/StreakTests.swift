@@ -75,4 +75,13 @@ struct StreakTests {
         #expect(Streaks.spoken(current: 12, best: 30) == "Current streak 12 days, best streak 30 days")
         #expect(Streaks.spoken(current: 1, best: 1) == "Current streak 1 day, best streak 1 day")
     }
+
+    @Test func flameIsInColorAboveOneAndTrophyWhenTheStreakIsTheRecord() {
+        #expect(!Streaks.isHot(current: 1))
+        #expect(Streaks.isHot(current: 2))
+        #expect(Streaks.isRecord(current: 2, best: 2))
+        #expect(!Streaks.isRecord(current: 2, best: 5))
+        #expect(!Streaks.isRecord(current: 1, best: 1))  // a streak of 1 isn't hot yet
+        #expect(!Streaks.isRecord(current: 0, best: 0))
+    }
 }

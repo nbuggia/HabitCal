@@ -47,7 +47,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-028 Bug: schedules apply to past days too, so a new habit's earlier days show and can be checked off · high · done 2026-10-30
       Customer, 2026-10-30: no start date; a habit is due on every day its schedule includes. Leaderboard All time still starts when added.
 - [x] T-027 The menu bar icon stays highlighted while the popover is open · high · done 2026-10-30
-- [ ] T-025 Streak colors: flame in color above 1; trophy in color when the current streak is above 1 and at or above the best · medium
+- [x] T-025 Streak colors: flame in color above 1; trophy in color when the current streak is above 1 and at or above the best · medium · done 2026-10-30
 - [x] T-026 Today's number keeps the normal color when another day is selected (the pale square stays) · medium · done 2026-10-30
 - [x] T-023 "October 2026" and the arrows line up with the first and last dates · medium · done 2026-10-30
 - [ ] T-024 Habits section lines up with the calendar's edges · medium
