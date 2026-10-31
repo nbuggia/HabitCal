@@ -1,6 +1,8 @@
 import AppKit
 import HabitCalKit
 
+/// Builds the model and its watchers. SwiftUI builds the menu bar extra's scene before
+/// `applicationDidFinishLaunching`, so they're built in `init` (T-029).
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private static func launchedBefore(_ a: NSRunningApplication, _ b: NSRunningApplication) -> Bool {
@@ -9,23 +11,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return aDate == bDate ? a.processIdentifier < b.processIdentifier : aDate < bDate
     }
 
-    private var model: AppModel?
-    private var statusItemController: StatusItemController?
-    private var popoverController: PopoverController?
-    private var dayWatcher: DayWatcher?
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        // Another copy is already in the menu bar: keep a single icon (T-002 E.2). Only the later of
-        // two copies exits, so two started at the same moment don't both quit.
+    /// Another copy is already in the menu bar: keep a single icon (T-002 E.2). Only the later of
+    /// two copies exits, so two started at the same moment don't both quit. It runs before anything
+    /// is built, so the exiting copy never writes a seed or shows an icon.
+    private static func exitIfAnotherCopyIsRunning() {
         let current = NSRunningApplication.current
         let earlier = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "")
-            .filter { $0 != current && Self.launchedBefore($0, current) }
-        guard earlier.isEmpty else {
-            NSApp.terminate(nil)
-            return
-        }
-        MainMenu.install()
+            .filter { $0 != current && launchedBefore($0, current) }
+        if !earlier.isEmpty { exit(0) }
+    }
 
+    let model: AppModel
+    let panel: PanelController
+    private let dayWatcher: DayWatcher
+
+    override init() {
+        Self.exitIfAnotherCopyIsRunning()
         let options = LaunchOptions(arguments: ProcessInfo.processInfo.arguments)
         let store = HabitStore(directory: options.dataDirectory)
         if let seed = options.seedData {
@@ -39,20 +40,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             defaults: options.defaults,
             loginItem: LoginItem())
         self.model = model
+        panel = PanelController(model: model)
+        dayWatcher = DayWatcher(source: options.todaySource, macFirstWeekday: options.macFirstWeekday, model: model)
+        super.init()
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        MainMenu.install()
         model.applyFirstLaunchLoginItemDefault()
-
-        let popoverController = PopoverController(model: model)
-        self.popoverController = popoverController
-        let statusItemController = StatusItemController { button in
-            popoverController.toggle(relativeTo: button)
-        }
-        statusItemController.show(model.today)
-        self.statusItemController = statusItemController
-
-        dayWatcher = DayWatcher(
-            source: options.todaySource, macFirstWeekday: options.macFirstWeekday, model: model
-        ) { today in
-            statusItemController.show(today)
-        }
     }
 }

@@ -21,5 +21,9 @@ struct PopoverRoot: View {
         .id(model.openGeneration)
         .frame(width: Self.width)
         .environment(model)
+        // UI tests find the MenuBarExtra panel by this (T-029); `.contain` keeps it from being
+        // dropped or passed down to the children.
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("habitcalPanel")
     }
 }

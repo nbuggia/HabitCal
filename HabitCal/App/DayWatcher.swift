@@ -11,18 +11,14 @@ final class DayWatcher {
     private let source: any TodaySource
     private let macFirstWeekday: () -> Int
     private let model: AppModel
-    private let onTodayChange: (Day) -> Void
     private var observers: [(NotificationCenter, NSObjectProtocol)] = []
     private var timer: Timer?
 
-    init(
-        source: any TodaySource, macFirstWeekday: @escaping () -> Int, model: AppModel,
-        onTodayChange: @escaping (Day) -> Void
-    ) {
+    /// The menu bar icon observes `model.today`, so setting it is all a new day needs (T-029).
+    init(source: any TodaySource, macFirstWeekday: @escaping () -> Int, model: AppModel) {
         self.source = source
         self.macFirstWeekday = macFirstWeekday
         self.model = model
-        self.onTodayChange = onTodayChange
 
         let local = NotificationCenter.default
         let workspace = NSWorkspace.shared.notificationCenter
@@ -36,7 +32,7 @@ final class DayWatcher {
         }
     }
 
-    /// Reads today and the Mac's week start again, and reports today only when the date actually changed.
+    /// Reads today and the Mac's week start again, and sets today only when the date actually changed.
     func recompute() {
         let macWeekStart = WeekStart.fromMac(firstWeekday: macFirstWeekday())
         if macWeekStart != model.macWeekStart {
@@ -46,7 +42,6 @@ final class DayWatcher {
         let today = source.today(in: .autoupdatingCurrent)
         guard today != model.today else { return }
         model.today = today
-        onTodayChange(today)
     }
 
     private func observe(_ name: Notification.Name, on center: NotificationCenter) {

@@ -7,7 +7,6 @@ final class MenuBarUITests: HabitCalUITestCase {
         XCTAssertTrue(statusItem.waitForExistence(timeout: 10), "status item not found")
 
         statusItem.click()
-        let popover = app.popovers.firstMatch
         XCTAssertTrue(popover.waitForExistence(timeout: 5), "popover didn't open")
 
         statusItem.click()

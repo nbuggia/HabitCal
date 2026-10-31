@@ -30,12 +30,14 @@ class HabitCalUITestCase: XCTestCase {
         app.launch()
     }
 
+    /// The app's only status item. An identifier set on a MenuBarExtra's label may not reach it (T-029).
     var statusItem: XCUIElement {
-        app.statusItems["HabitCalStatusItem"]
+        app.statusItems.firstMatch
     }
 
+    /// The MenuBarExtra panel, found by the identifier on `PopoverRoot` (T-029, D-009).
     var popover: XCUIElement {
-        app.popovers.firstMatch
+        app.descendants(matching: .any).matching(identifier: "habitcalPanel").firstMatch
     }
 
     func openPopover() {
