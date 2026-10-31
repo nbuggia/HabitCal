@@ -109,7 +109,7 @@ final class MenuBarUITests: HabitCalUITestCase {
         let suite = "uitest-\(UUID().uuidString)"
         launch(today: "2026-10-29", suite: suite, ["-HabitCalMacFirstWeekday", "1"])
         openSettings()
-        element("Monday").click()
+        pickWeekStart("Monday")
         popover.buttons["Back"].click()
         assertMondayFirstGrid("calendar didn't reorder to Monday")
 
@@ -122,14 +122,19 @@ final class MenuBarUITests: HabitCalUITestCase {
     func testMacWeekStartIsUsedUntilOverridden() {
         launch(today: "2026-10-29", ["-HabitCalMacFirstWeekday", "2"])
         openSettings()
-        XCTAssertTrue(text("From your Mac's settings").exists)
-        element("Sunday").click()
-        XCTAssertTrue(text("Your Mac uses Monday").waitForExistence(timeout: 5))
-        // Link-style buttons are links, not buttons, to accessibility.
-        element("Use Mac setting").click()
-        XCTAssertTrue(text("From your Mac's settings").waitForExistence(timeout: 5))
+        XCTAssertEqual(weekStartMenu.value as? String, "Monday", "menu doesn't show the Mac's week start")
         popover.buttons["Back"].click()
-        assertMondayFirstGrid("didn't go back to the Mac's Monday start")
+        assertMondayFirstGrid("calendar doesn't start on the Mac's Monday")
+    }
+
+    /// The week-start pop-up menu in Settings (T-033).
+    private var weekStartMenu: XCUIElement {
+        popover.popUpButtons["Week starts on"]
+    }
+
+    private func pickWeekStart(_ day: String) {
+        weekStartMenu.click()
+        app.menuItems[day].click()
     }
 
     func testQuitButtonQuits() {

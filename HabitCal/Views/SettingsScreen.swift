@@ -116,35 +116,23 @@ struct SettingsScreen: View {
         }
     }
 
-    /// The label, control, and caption each get their own line: side by side, the narrow popover
-    /// wraps the label (T-007, T-009).
+    /// The label and a pop-up menu on one line. It shows the Mac's week start until the user picks
+    /// another day (T-002 B.13); there's no caption or "Use Mac setting" (T-033).
     private var weekStartRow: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Week starts on")
-                Picker(
-                    "Week starts on",
-                    selection: Binding(get: { model.weekStart }, set: { model.pickWeekStart($0) })
-                ) {
-                    Text("Sunday").tag(WeekStart.sunday)
-                    Text("Monday").tag(WeekStart.monday)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .controlSize(.small)
-                .fixedSize()
+        HStack {
+            Text("Week starts on")
+            Spacer()
+            Picker(
+                "Week starts on",
+                selection: Binding(get: { model.weekStart }, set: { model.pickWeekStart($0) })
+            ) {
+                Text("Sunday").tag(WeekStart.sunday)
+                Text("Monday").tag(WeekStart.monday)
             }
-            if model.weekStartOverride == nil {
-                caption("From your Mac's settings")
-            } else {
-                HStack(spacing: 4) {
-                    caption("Your Mac uses \(MonthNames.weekdayName(model.macWeekStart.weekday))")
-                    caption("·")
-                    Button("Use Mac setting") { model.useMacWeekStart() }
-                        .buttonStyle(.link)
-                        .font(.caption)
-                }
-            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .controlSize(.small)
+            .fixedSize()
         }
     }
 
@@ -156,7 +144,6 @@ struct SettingsScreen: View {
                 PhosphorIcon("power", size: 15)
                 Text("Quit HabitCal")
                 Spacer()
-                Text("⌘Q").foregroundStyle(.secondary)
             }
             .contentShape(Rectangle())
         }

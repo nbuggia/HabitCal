@@ -329,10 +329,6 @@ final class AppModel {
         setWeekStartOverride(WeekStart.overrideAfterPicking(picked, current: weekStartOverride, mac: macWeekStart))
     }
 
-    func useMacWeekStart() {
-        setWeekStartOverride(nil)
-    }
-
     /// Re-reads launch at login from macOS. The user can change it in System Settings at any time (E.5).
     func refreshLoginItemState() {
         loginItemState = loginItem.state
