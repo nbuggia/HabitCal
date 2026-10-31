@@ -40,21 +40,37 @@ HabitCal is a free macOS menu bar app for people building daily habits. The menu
 **For:** someone looking up a date, or a day of the week, in this or another month.
 **Why it matters:** a month grid in one click replaces opening Calendar.app — and it's the canvas the habit history is drawn on.
 
+### Not Doing
+- Checking off future days. A selected future day shows its habits, read-only (T-022).
+
+### Flows
+- Spans Habits: selecting a day shows that day's habits and whether each was done; on a past day you can fix them there, without hunting for its square in the strip (T-022). Today keeps a light marker so it's always easy to find.
+
 ## Feature: Habits
 
 **For:** someone building a few recurring habits — some daily, some on specific weekdays.
 **Why it matters:** checking off a habit has to be quicker than skipping it, or the tracking stops.
 
+The list shows the habits due today; the others fold into a quiet "N not due today" row that opens to show them, so today's list stays short (T-012).
+
 ### Not Doing
 - Habit categories or journaling — keep the list short and flat. An optional note per habit ("3 sets of 20") is fine (D-003).
-
-### Flows
-- Spans Month Calendar: each day in the grid shows how that day's due habits went.
+- Hiding not-due habits with no way back — they couldn't be edited that day (T-012).
+- Remembering whether the "N not due today" row is open (T-012).
 
 ## Feature: Streaks
 
 **For:** the same person, wanting to see momentum and not break the chain.
 **Why it matters:** the streak is the motivation; it must be fair — a run that's due only on Fridays and Sundays keeps its streak through the week in between.
+
+## Feature: Leaderboard
+
+**For:** someone with several habits who wants to see which ones they actually keep up.
+**Why it matters:** ranking by the share of due days done, not a count, lets a habit due twice a week compete fairly with a daily one (T-016).
+
+### Not Doing
+- Ranking by current streak, or a this-week view with each day as a dot — the other two options in the T-015 prototype.
+- Calendar weeks and months. The ranges are rolling windows ending today.
 
 ## Appendix: Competitive Analysis
 

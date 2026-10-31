@@ -4,6 +4,7 @@ Session: S-004 · 2026-10-31
 
 ## Accomplished
 
+- 2026-10-31: The customer approved the PRD updates: Leaderboard section, day selection under Month Calendar, the folded row under Habits, and the stale grid flow removed.
 - 2026-10-31: T-015 closed (a65171b): its choices all landed in T-016's code and tests; the rejected options were added to the pending PRD Leaderboard proposal.
 - T-029 slice 2 started: the full suite ran partway, then the customer asked to stop it. 11 UI tests passed and 5 failed, all with the same error, "popover didn't open" (`openPopover()`, HabitCalUITests/HabitCalUITestCase.swift:46): DaySelection testSelectingAPastDayShowsAndFixesItsHabits; HabitForm testAddingAHabitShowsItWithItsScheduleLabel, testAddIsDisabledWithoutADay, testEditingAHabitRenamesItAndChangesItsDays; Habits testCheckingOffTodayFillsTheButtonAndTodaysSquare. Other tests opened the panel the same way and passed, so it looks intermittent: a flaky status-item click on MenuBarExtra, or the Mac being used during the run. Not diagnosed. The full log was in the session scratchpad and is gone; the partial result bundle is build/T029-full.xcresult.
 
@@ -20,16 +21,11 @@ When the customer can give up the screen, rerun one failing test alone to see wh
 - CONTEXT.md, Vocabulary, "Due day" (T-028): "A day the habit's schedule includes. Only due days count toward a streak." (drop "on or after the habit was added").
 
 - BACKLOG.md (Later, Source T-022): make the calendar grid one Tab stop driven by the arrow keys, like the strip; with Keyboard navigation on, its 42 day buttons now come before the habit list.
-- PRD.md: a "Feature: Leaderboard" section (T-016), and day selection under "Feature: Month Calendar" (T-022) Leaderboard Not Doing (T-015): ranking by current streak; a seven-day dots view.
-
-- PRD.md, "Feature: Habits" (from T-012): add "The list shows the habits due today; the others fold into a quiet 'N not due today' row that opens to show them." Not Doing: hiding not-due habits with no way back (they couldn't be edited that day); remembering whether the row is open.
-- PRD.md line 52 still says each grid day shows how its habits went, which D-003 removed. Propose deleting it.
 
 - BACKLOG.md, from T-003's Deferred (Later, Source T-003): drag to reorder habits; show notes outside the form (e.g. a row tooltip); undo for delete.
 - Spec clarification made during T-003 review (E.8): Tab reaches buttons with the Mac's Keyboard navigation on; the strip is always a Tab stop. Tell the customer.
 
 - BACKLOG.md, from T-002's Deferred (Later, Source T-002): ←/→ keyboard shortcuts to page months and jump to today; a global hotkey to open the popover; localizing beyond English; week numbers in the grid.
-
 
 - DECISIONS.md: menu bar icon is the tear-off calendar page with no progress indicator (ring and progress line tried and rejected as too busy); Phosphor for UI icons.
 
