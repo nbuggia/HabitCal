@@ -14,7 +14,9 @@ struct CalendarView: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            header
+            // Inset so "October 2026" starts at the first date's square and the arrows end at the last
+            // one's: each 20 pt square sits centered in its 28 pt column (T-023).
+            header.padding(.horizontal, (Self.columnWidth - 20) / 2)
             LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(model.weekStart.orderedWeekdays, id: \.self) { weekday in
                     Text(MonthNames.weekdayInitial(weekday))
@@ -61,7 +63,8 @@ struct CalendarView: View {
 }
 
 /// A day in the grid. Clicking it selects it for the habit list (T-022). The selected day has the
-/// solid square; today, while another day is selected, a pale one.
+/// solid square; today, while another day is selected, a pale one with the number in the usual color
+/// (T-026).
 private struct DayCell: View {
     @Environment(AppModel.self) private var model
     let day: Day
@@ -95,7 +98,6 @@ private struct DayCell: View {
 
     private var numberStyle: AnyShapeStyle {
         if isSelected { return AnyShapeStyle(.white) }
-        if isToday { return AnyShapeStyle(Color.accentColor) }
         return inMonth ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary)
     }
 }
