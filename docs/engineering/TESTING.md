@@ -29,6 +29,8 @@ XCUITest on macOS: a SwiftUI `Text`'s string is its accessibility **value**, not
 
 ## Commands
 
+`./run.py` wraps these (standard library only, the macOS Python 3.9): `run`, `build`, `open`, `stop`, `test`, `uitest [Suite[/test]]`, `lint`, `format`, `clean`. `./run.py --help` lists them.
+
 ```sh
 # Unit and integration tests (fast; run on every change to HabitCalKit)
 swift test --package-path HabitCalKit
