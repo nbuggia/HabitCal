@@ -38,7 +38,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [ ] T-018 Bug: the bottom of the habit strips is clipped · high
       Likely the habit list's ScrollView clips today's ring (drawn 1.5 pt outside the square) and the bottom edge of the last row. Confirm, then fix the list's height or padding.
 - [ ] T-019 Add button shows a plus in a circle · medium
-- [ ] T-020 Calendar columns closer together · medium
+- [x] T-020 Calendar columns closer together · medium · done 2026-10-30
       Customer, 2026-10-30: the popover stays 260 pt; the narrower grid is centered with small gutters.
 - [ ] T-021 Hover and pressed states on every button · medium
       Icon buttons, Back, the done button, the habit name, the folded row, and the leaderboard tabs.

@@ -2,8 +2,8 @@ import SwiftUI
 
 /// The popover's content: one screen at a time.
 struct PopoverRoot: View {
-    /// The calendar grid (236 pt) plus the screens' 12 pt padding, so the grid's edges line up with
-    /// the habit rows (T-009).
+    /// Wide enough for the habit rows and the leaderboard's tabs. The calendar grid is narrower and
+    /// centered, with small gutters (T-009, T-020).
     static let width: CGFloat = 260
 
     let model: AppModel

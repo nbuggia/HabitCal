@@ -5,8 +5,12 @@ import SwiftUI
 struct CalendarView: View {
     @Environment(AppModel.self) private var model
 
-    /// Fixed columns, centered, so the days sit close together instead of spreading across the popover (T-006).
-    private let columns = Array(repeating: GridItem(.fixed(32), spacing: 2), count: 7)
+    /// Fixed columns, centered, so the days sit close together instead of spreading across the popover
+    /// (T-006, T-020). The header shares the grid's width, so its title and arrows line up with it.
+    private static let columnWidth: CGFloat = 28
+    private static let columnSpacing: CGFloat = 2
+    private static let gridWidth = columnWidth * 7 + columnSpacing * 6
+    private let columns = Array(repeating: GridItem(.fixed(columnWidth), spacing: columnSpacing), count: 7)
 
     var body: some View {
         VStack(spacing: 6) {
@@ -23,8 +27,9 @@ struct CalendarView: View {
                     DayCell(day: day, isToday: day == model.today, inMonth: model.displayedMonth.contains(day))
                 }
             }
-            .frame(maxWidth: .infinity)
         }
+        .frame(width: Self.gridWidth)
+        .frame(maxWidth: .infinity)
     }
 
     private var header: some View {
