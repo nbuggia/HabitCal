@@ -16,7 +16,8 @@ public struct Habit: Identifiable, Hashable, Sendable {
     public let id: UUID
     public internal(set) var name: String
     public internal(set) var note: String
-    /// Governs when the habit is first due. The schedule's first entry normally starts here, but
+    /// The day the habit was added. It starts the leaderboard's All time range, but a habit is due on
+    /// its scheduled days before it too (T-028). The schedule's first entry normally starts here, but
     /// after the clock moves backward it can start later; that's legal (T-003 E.7).
     public let addedOn: Day
     /// Sorted by `from`. A change applies from its day onward, so past days keep the schedule that
@@ -33,11 +34,18 @@ public struct Habit: Identifiable, Hashable, Sendable {
         self.checkOffs = checkOffs
     }
 
-    /// The weekdays in force on `day`: none before the habit was added; otherwise the latest entry
-    /// starting on or before `day`, or the first entry if none starts that early.
+    /// The weekdays in force on `day`: the latest entry starting on or before `day`, or the first
+    /// entry if none starts that early. There's no start date: a habit is due on its scheduled days
+    /// before it was added too (T-028).
     public func days(on day: Day) -> Set<Int> {
-        guard day >= addedOn, let first = schedule.first else { return [] }
+        guard let first = schedule.first else { return [] }
         return schedule.last(where: { $0.from <= day })?.days ?? first.days
+    }
+
+    /// The earliest day a streak could start: the first check-off, or today if there is none. Every
+    /// due day before it is missed, so walks over a habit's history begin here (T-028).
+    public func trackedFrom(today: Day) -> Day {
+        min(checkOffs.min() ?? today, today)
     }
 
     /// The days currently in force, as the form shows them.

@@ -31,20 +31,29 @@ struct ConsistencyTests {
         #expect(Consistency.tally(pushUps, range: .past30, today: today) == ConsistencyTally(done: 2, due: 29))
     }
 
-    @Test func allTimeStartsWhenTheHabitWasAdded() {
+    @Test func allTimeStartsAtTheEarlierOfAddedAndFirstCheckOff() {
         let run = habit("Run", days: [6, 1], addedOn: oct(9), done: [oct(9)])  // Fri, Sun; added Friday Oct 9
-        // Due: Oct 9, 11, 16, 18, 23, 25 (today, Thursday, isn't due).
+        // All time from Oct 9: Oct 9, 11, 16, 18, 23, 25 (today, Thursday, isn't due).
         #expect(Consistency.tally(run, range: .allTime, today: today) == ConsistencyTally(done: 1, due: 6))
-        // A habit added inside the window isn't due before it was added.
-        #expect(Consistency.tally(run, range: .past30, today: today) == ConsistencyTally(done: 1, due: 6))
+        // A rolling window counts days before it was added too (T-028): add Fri 2 and Sun 4.
+        #expect(Consistency.tally(run, range: .past30, today: today) == ConsistencyTally(done: 1, due: 8))
+        // A check-off before it was added starts All time there: Sun 4, then Fri 9 onward.
+        let early = habit("Run", days: [6, 1], addedOn: oct(9), done: [oct(4), oct(9)])
+        #expect(Consistency.tally(early, range: .allTime, today: today) == ConsistencyTally(done: 2, due: 7))
+    }
+
+    @Test func rollingWindowCountsDaysBeforeAHabitWasAdded() {
+        // Added today, every day: Oct 23–28 were due and missed (T-028 B.4).
+        let fresh = habit("Read", addedOn: today)
+        #expect(Consistency.tally(fresh, range: .past7, today: today) == ConsistencyTally(done: 0, due: 6))
     }
 
     @Test func todayCountsOnlyOnceDone() {
         let notYet = habit("Read", addedOn: today)
-        #expect(Consistency.tally(notYet, range: .past7, today: today) == ConsistencyTally(done: 0, due: 0))
-        #expect(Consistency.tally(notYet, range: .past7, today: today).share == nil)
+        #expect(Consistency.tally(notYet, range: .allTime, today: today) == ConsistencyTally(done: 0, due: 0))
+        #expect(Consistency.tally(notYet, range: .allTime, today: today).share == nil)
         let done = habit("Read", addedOn: today, done: [today])
-        #expect(Consistency.tally(done, range: .past7, today: today) == ConsistencyTally(done: 1, due: 1))
+        #expect(Consistency.tally(done, range: .allTime, today: today) == ConsistencyTally(done: 1, due: 1))
     }
 
     @Test func boardRanksByShareTiesKeepOrderAndNoDueDaysLast() {
@@ -53,7 +62,7 @@ struct ConsistencyTests {
         let half = habit("Half", done: Array(week.prefix(3)))
         let fullA = habit("Full A", done: week)
         let fullB = habit("Full B", done: week)
-        let board = Consistency.board([fresh, half, fullA, fullB], range: .past7, today: today)
+        let board = Consistency.board([fresh, half, fullA, fullB], range: .allTime, today: today)
         #expect(board.map(\.habit.name) == ["Full A", "Full B", "Half", "Fresh"])
     }
 

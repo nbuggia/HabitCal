@@ -26,10 +26,11 @@ final class LeaderboardUITests: HabitCalUITestCase {
         XCTAssertEqual(rowLabel("Push-ups"), "1st, Push-ups, 17 percent")
         XCTAssertEqual(rowLabel("Run"), "2nd, Run, 0 percent")
 
-        // Past 30 days (Sep 30 – Oct 28): Push-ups 1 of 28, Run 0 of 8; overall 1 of 36.
+        // Past 30 days (Sep 30 – Oct 28): Push-ups 1 of 29 (due before it was added too, T-028), Run 0
+        // of 8; overall 1 of 37.
         element("Past 30 days").click()
         XCTAssertEqual(score.label, "3 percent of due days done across all habits")
-        XCTAssertEqual(rowLabel("Push-ups"), "1st, Push-ups, 4 percent")
+        XCTAssertEqual(rowLabel("Push-ups"), "1st, Push-ups, 3 percent")
     }
 
     func testEscFromLeaderboardReturnsToList() {

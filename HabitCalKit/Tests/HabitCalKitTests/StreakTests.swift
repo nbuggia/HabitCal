@@ -63,11 +63,12 @@ struct StreakTests {
         #expect(Streaks.best(run, today: oct(22)) == 4)
     }
 
-    @Test func streakIgnoresDaysBeforeAddedAndCheckOffsAfterToday() {
-        // Added Fri 9; a stray check-off on Sun 4 (before) and Fri 16 (after today, the clock moved back).
+    @Test func streakCountsCheckOffsBeforeTheHabitWasAddedButNotAfterToday() {
+        // Added Fri 9; Sun 4 checked off before it (T-028), Fri 2 missed, and Fri 16 is after today (the
+        // clock moved back). Today is Wed 14: Sun 4 ✓, Fri 9 ✓, Sun 11 ✓.
         let run = habit(addedOn: oct(9), done: [4, 9, 11, 16])
-        #expect(Streaks.current(run, today: oct(14)) == 2)
-        #expect(Streaks.best(run, today: oct(14)) == 2)
+        #expect(Streaks.current(run, today: oct(14)) == 3)
+        #expect(Streaks.best(run, today: oct(14)) == 3)
     }
 
     @Test func streakSpokenLabelUsesDayAndDays() {

@@ -9,7 +9,8 @@ public enum Streaks {
     public static func current(_ habit: Habit, today: Day) -> Int {
         var count = 0
         var day = today
-        while day >= habit.addedOn {
+        let start = habit.trackedFrom(today: today)
+        while day >= start {
             if habit.isDue(on: day) {
                 if habit.isDone(on: day) {
                     count += 1
@@ -22,12 +23,12 @@ public enum Streaks {
         return count
     }
 
-    /// The longest unbroken run of done due days from the day the habit was added to today, including
+    /// The longest unbroken run of done due days from the first check-off to today, including
     /// the current one. Each past day is judged by the schedule in force on it (B.3, B.4).
     public static func best(_ habit: Habit, today: Day) -> Int {
         var best = 0
         var run = 0
-        var day = habit.addedOn
+        var day = habit.trackedFrom(today: today)
         while day <= today {
             if habit.isDue(on: day) {
                 if habit.isDone(on: day) {

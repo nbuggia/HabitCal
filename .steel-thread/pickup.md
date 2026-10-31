@@ -20,6 +20,8 @@ With the Mac free: run the full UI suite, and screenshot the list, leaderboard a
 
 ## Proposed Updates
 
+- CONTEXT.md, Vocabulary, "Due day" (T-028): "A day the habit's schedule includes. Only due days count toward a streak." (drop "on or after the habit was added").
+
 - BACKLOG.md (Later, Source T-022): make the calendar grid one Tab stop driven by the arrow keys, like the strip; with Keyboard navigation on, its 42 day buttons now come before the habit list.
 - PRD.md: a "Feature: Leaderboard" section (T-016), and day selection under "Feature: Month Calendar" (T-022).
 

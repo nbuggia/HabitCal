@@ -57,7 +57,7 @@ public struct Habits: Equatable, Sendable {
         all.filter { !$0.isDue(on: day) }
     }
 
-    /// Adds a habit due from today, at the bottom of the list (B.11, B.14).
+    /// Adds a habit, added today, at the bottom of the list (B.11, B.14).
     @discardableResult
     public mutating func add(_ draft: HabitDraft, today: Day) -> UUID {
         let draft = draft.clamped.trimmed
@@ -78,7 +78,13 @@ public struct Habits: Equatable, Sendable {
         habit.name = draft.name
         habit.note = draft.note
         if draft.days != habit.days(today: today) {
-            habit.schedule = habit.schedule.filter { $0.from < today } + [ScheduleEntry(from: today, days: draft.days)]
+            var past = habit.schedule.filter { $0.from < today }
+            if past.isEmpty {
+                // Every entry starts today or later, but past days are due too (T-028): pin the old
+                // days to them, or the new schedule would apply backward through the first-entry rule.
+                past = [ScheduleEntry(from: today.adding(days: -1), days: habit.days(today: today))]
+            }
+            habit.schedule = past + [ScheduleEntry(from: today, days: draft.days)]
             if !habit.isDue(on: today) {
                 habit.checkOffs.remove(today)
             }

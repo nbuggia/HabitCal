@@ -24,7 +24,7 @@ final class DaySelectionUITests: HabitCalUITestCase {
         popover.buttons["Add habit"].click()
         XCTAssertTrue(popover.textFields["nameField"].waitForExistence(timeout: 5), "form didn't open")
         app.typeText("Swim\r")
-        // Added today, so not due on October 23: the folded row opens to show it (T-012 B.4).
+        // Every day, so due on October 23 too (T-028); either way it must be in view (T-012 B.4).
         XCTAssertTrue(element("Edit Swim").waitForExistence(timeout: 5), "new habit hidden in the folded row")
     }
 

@@ -17,10 +17,11 @@ struct HabitTests {
         return (habits, id)
     }
 
-    @Test func habitIsDueOnlyOnScheduledWeekdaysFromTheDayItWasAdded() throws {
+    @Test func habitIsDueOnEveryScheduledWeekdayBeforeAndAfterItWasAdded() throws {
         let (habits, id) = runHabit(addedOn: oct(9))  // a Friday
         let habit = try #require(habits[id])
-        #expect(!habit.isDue(on: oct(2)))  // a Friday before it was added
+        #expect(habit.isDue(on: oct(2)))  // a Friday before it was added (T-028)
+        #expect(!habit.isDue(on: oct(5)))  // a Monday before it was added
         #expect(habit.isDue(on: oct(9)))  // Friday
         #expect(habit.isDue(on: oct(11)))  // Sunday
         #expect(!habit.isDue(on: oct(12)))  // Monday
@@ -45,12 +46,21 @@ struct HabitTests {
         #expect(habit.days(on: oct(28)) == [fri, sun])
     }
 
-    @Test func editingAHabitAddedTodayChangesItsOnlySchedule() throws {
+    @Test func editingAHabitAddedTodayChangesItFromTodayOn() throws {
         var (habits, id) = runHabit(addedOn: today)
         habits.update(id, with: HabitDraft(name: "Run", note: "", days: [5]), today: today)
         let habit = try #require(habits[id])
-        #expect(habit.schedule.count == 1)
+        // The old days stay pinned to the past, since past days are due too (T-028).
+        #expect(
+            habit.schedule == [ScheduleEntry(from: oct(28), days: [fri, sun]), ScheduleEntry(from: today, days: [5])])
         #expect(habit.isDue(on: today))
+    }
+
+    @Test func pastDaysBeforeAddedCanBeCheckedOff() throws {
+        var (habits, id) = runHabit(addedOn: today)
+        let checked = habits.toggle(id, on: oct(25), today: today)  // a Sunday before it was added (T-028)
+        #expect(checked)
+        #expect(try #require(habits[id]).isDone(on: oct(25)))
     }
 
     @Test func togglingOnlyWorksOnDueDaysUpToToday() throws {
@@ -90,6 +100,27 @@ struct HabitTests {
 
         let november = try #require(habits[id]).strip(for: Month(year: 2026, month: 11), today: today)
         #expect(november[30] == .blank)  // November has 30 days
+    }
+
+    @Test func stripShowsDaysBeforeAddedAsMissedOrDone() throws {
+        var (habits, id) = runHabit(addedOn: today)
+        habits.toggle(id, on: Day(year: 2026, month: 9, day: 4), today: today)  // Fri Sep 4, before it was added
+        let september = try #require(habits[id]).strip(for: Month(year: 2026, month: 9), today: today)
+        #expect(september[3] == .done)  // Sep 4, Fri
+        #expect(september[5] == .missed)  // Sep 6, Sun
+        #expect(september[4] == .notScheduled)  // Sep 5, Sat
+    }
+
+    @Test func scheduleEditOnTheDayAddedKeepsPastDaysOnTheOldSchedule() throws {
+        var (habits, id) = runHabit(addedOn: today)  // Fri, Sun
+        habits.toggle(id, on: oct(25), today: today)  // Sun, before it was added
+        habits.update(id, with: HabitDraft(name: "Run", note: "", days: [2]), today: today)  // Mondays from today
+        let habit = try #require(habits[id])
+        #expect(habit.isDue(on: oct(25)))  // a past Sunday keeps the old schedule
+        #expect(habit.isDone(on: oct(25)))
+        #expect(!habit.isDue(on: oct(26)))  // a past Monday wasn't on the old schedule
+        #expect(habit.isDue(on: Day(year: 2026, month: 11, day: 2)))  // Monday, new schedule
+        #expect(Streaks.current(habit, today: today) == 1)
     }
 
     @Test func checkOffsAfterTodayAreShownAsFuture() throws {
@@ -144,12 +175,12 @@ struct HabitTests {
         #expect(habits.all.isEmpty)
     }
 
-    @Test func addedOnGovernsWhenTheScheduleStartsLater() {
-        // After the clock moves backward, an edit can start the schedule before addedOn (E.7). Legal.
+    @Test func beforeTheFirstScheduleEntryTheFirstEntryApplies() {
+        // After the clock moves backward, an edit can start the schedule after addedOn (E.7). Legal.
         let habit = Habit(
             id: UUID(), name: "Run", note: "", addedOn: oct(5),
             schedule: [ScheduleEntry(from: oct(9), days: [fri])], checkOffs: [])
-        #expect(!habit.isDue(on: oct(2)))  // before addedOn
+        #expect(habit.isDue(on: oct(2)))  // before addedOn: due anyway (T-028)
         #expect(habit.days(on: oct(6)) == [fri])  // before the first entry: the first entry applies
         #expect(habit.isDue(on: oct(9)))
     }

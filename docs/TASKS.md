@@ -44,7 +44,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Icon buttons, Back, the done button, the habit name, the folded row, and the leaderboard tabs.
 - [x] T-022 Select a day in the calendar to see and fix its habits; today keeps a light marker · high · done 2026-10-30
       Customer's items 6 and 7. Customer, 2026-10-30: on a selected past day, the done buttons check off that day. Defaults: the list shows habits due that day; future days view-only; every open goes back to today.
-- [ ] T-028 Bug: schedules apply to past days too, so a new habit's earlier days show and can be checked off · high
+- [x] T-028 Bug: schedules apply to past days too, so a new habit's earlier days show and can be checked off · high · done 2026-10-30
       Customer, 2026-10-30: no start date; a habit is due on every day its schedule includes. Leaderboard All time still starts when added.
 - [x] T-027 The menu bar icon stays highlighted while the popover is open · high · done 2026-10-30
 - [ ] T-025 Streak colors: flame in color above 1; trophy in color when the current streak is above 1 and at or above the best · medium

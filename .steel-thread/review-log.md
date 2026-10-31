@@ -36,3 +36,8 @@
 2026-10-30 · T-022 · MINOR · Not-due habit on a future day said "can't check off" · fixed
 2026-10-30 · T-022 · MINOR · 42 day buttons become Tab stops with Keyboard navigation on · deferred (backlog proposed)
 2026-10-30 · T-022 · QUESTION · Header's spoken date abbreviated · moot (customer dropped the date)
+2026-10-30 · T-028 · MAJOR · Schedule edit on the day added applied the new schedule to every past day · fixed
+2026-10-30 · T-028 · MINOR · Stale comments on addedOn and add · fixed
+2026-10-30 · T-028 · MINOR · Strip states before the habit was added untested · fixed
+2026-10-30 · T-028 · MINOR · Walks start at the oldest check-off · accepted risk
+2026-10-30 · T-028 · QUESTION · New habit scores 0% in rolling windows; tests hid it · fixed (test names it)

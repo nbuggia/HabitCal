@@ -47,7 +47,9 @@ public struct ConsistencyEntry: Sendable {
 public enum Consistency {
     /// Today counts only once it's done, so a habit isn't marked down before the day is over (B.3).
     public static func tally(_ habit: Habit, range: ConsistencyRange, today: Day) -> ConsistencyTally {
-        var day = max(range.start(today: today) ?? habit.addedOn, habit.addedOn)
+        // All time starts when the habit was added, or at an earlier check-off; the rolling windows
+        // count every due day in them, even before the habit was added (T-028 B.4).
+        var day = range.start(today: today) ?? min(habit.addedOn, habit.trackedFrom(today: today))
         var done = 0
         var due = 0
         while day <= today {
