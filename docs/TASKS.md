@@ -42,7 +42,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Customer, 2026-10-30: the popover stays 260 pt; the narrower grid is centered with small gutters.
 - [x] T-021 Hover and pressed states on every button · medium · done 2026-10-30
       Icon buttons, Back, the done button, the habit name, the folded row, and the leaderboard tabs.
-- [ ] T-022 Select a day in the calendar to see and fix its habits; today keeps a light marker · high
+- [x] T-022 Select a day in the calendar to see and fix its habits; today keeps a light marker · high · done 2026-10-30
       Customer's items 6 and 7. Customer, 2026-10-30: on a selected past day, the done buttons check off that day. Defaults: the list shows habits due that day; future days view-only; every open goes back to today.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       Needs the customer's Apple Developer account. Covers the Finder app icon, the GitHub README, and the manual test of a downloaded build.

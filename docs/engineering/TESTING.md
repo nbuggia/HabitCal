@@ -23,6 +23,8 @@ UI tests launch the app with Debug-only launch arguments, so they never depend o
 
 The UI-test app runs from DerivedData, never /Applications, so it never registers a login item.
 
+The UI tests assume the Mac's Keyboard navigation setting is off: the Tab loops in `HabitsUITests` press Tab a few times to reach a strip, and with the setting on every button (the 42 calendar days included, T-022) is a Tab stop before it.
+
 XCUITest on macOS: a SwiftUI `Text`'s string is its accessibility **value**, not its label; link-style buttons are links, not buttons, so find them by label; text inside a button merges into the button's label (find habit rows by "Edit <name>", whose value is the schedule label); keyboard focus isn't exposed for SwiftUI focusable views, so prove focus by behavior (Tab, then a key that changes something). To look at a screen, attach `popover.screenshot()` as an `XCTAttachment` (keepAlways), run with `-resultBundlePath`, and `xcrun xcresulttool export attachments`. Mark test classes `@MainActor` with async `setUp`/`tearDown` under Swift 6. A test that reopens the popover right after closing it waits 0.5 s first (the reopen guard).
 
 ## Commands

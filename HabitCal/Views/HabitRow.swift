@@ -48,19 +48,21 @@ struct HabitRow: View {
     }
 }
 
-/// The round button that checks off today; a dashed circle on a day the habit isn't due.
+/// The round button that checks off the shown day (today, or the day selected in the calendar);
+/// a dashed circle on a day the habit isn't due. Dimmed and inert on a future day (T-022 B.5).
 private struct DoneButton: View {
     @Environment(AppModel.self) private var model
     let habit: Habit
 
     var body: some View {
-        let due = habit.isDue(on: model.today)
-        let done = habit.isDone(on: model.today)
-        let spoken = HabitLabels.doneButtonSpoken(name: habit.name, dueToday: due, doneToday: done)
-        let tooltip = HabitLabels.doneButtonTooltip(dueToday: due, doneToday: done)
+        let day = model.shownDay
+        let due = habit.isDue(on: day)
+        let done = habit.isDone(on: day)
+        let spoken = HabitLabels.doneButtonSpoken(name: habit.name, day: day, today: model.today, due: due, done: done)
+        let tooltip = HabitLabels.doneButtonTooltip(day: day, today: model.today, due: due, done: done)
         if due {
             Button {
-                model.toggleToday(habit.id)
+                model.toggleShownDay(habit.id)
             } label: {
                 ZStack {
                     Circle().strokeBorder(done ? Color.clear : Color.secondary, lineWidth: 1.5)
@@ -73,6 +75,7 @@ private struct DoneButton: View {
                 .contentShape(Circle())
             }
             .buttonStyle(.hover(cornerRadius: 12, overLabel: true))
+            .disabled(day > model.today)
             .help(tooltip)
             .accessibilityLabel(spoken)
         } else {

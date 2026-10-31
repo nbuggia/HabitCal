@@ -58,6 +58,9 @@ final class AppModel {
     /// The Mac's first day of the week, mapped to Sunday or Monday. Only `DayWatcher` sets it.
     var macWeekStart: WeekStart
     private(set) var displayedMonth: Month
+    /// The day the habit list shows, or nil for today, so the selection follows today across
+    /// midnight (T-022 B.8).
+    private(set) var selectedDay: Day?
     private(set) var screen: Screen = .list {
         didSet { if screen != oldValue { screenDidChange() } }
     }
@@ -131,8 +134,22 @@ final class AppModel {
         openGeneration += 1
         form = nil
         showsNotDue = false
+        selectedDay = nil
         screen = .list
         displayedMonth = Month(today)
+    }
+
+    /// The day the habit list shows: the selected day, or today (T-022).
+    var shownDay: Day {
+        selectedDay ?? today
+    }
+
+    /// Selects a day from the grid; a day from a neighboring month pages to it (T-022 B.1).
+    func select(_ day: Day) {
+        selectedDay = day == today ? nil : day
+        if !displayedMonth.contains(day) {
+            displayedMonth = Month(day)
+        }
     }
 
     func showPreviousMonth() {
@@ -143,7 +160,9 @@ final class AppModel {
         displayedMonth = displayedMonth.next
     }
 
+    /// Back to today's month, with today selected (T-022 B.6).
     func showToday() {
+        selectedDay = nil
         displayedMonth = Month(today)
     }
 
@@ -173,9 +192,10 @@ final class AppModel {
         }
     }
 
-    /// Toggles today's check-off from the done button (T-003 B.4).
-    func toggleToday(_ id: UUID) {
-        toggle(id, on: today)
+    /// Toggles the shown day's check-off from the done button (T-003 B.4, T-022 B.4). Future and
+    /// not-due days are refused by `Habits.toggle`.
+    func toggleShownDay(_ id: UUID) {
+        toggle(id, on: shownDay)
     }
 
     /// Toggles a strip day, if it's due and not in the future (B.5, B.6).
@@ -243,7 +263,7 @@ final class AppModel {
     }
 
     /// Add or Save (B.11). Does nothing until the draft is valid (B.10). A habit saved that isn't due
-    /// today opens the folded row, so it doesn't vanish from the list (T-012 B.4).
+    /// on the day the list shows opens the folded row, so it doesn't vanish (T-012 B.4, T-022).
     func saveForm() {
         guard let form, form.draft.isValid else { return }
         let id: UUID
@@ -253,7 +273,7 @@ final class AppModel {
             id = edited
             habits.update(edited, with: form.draft, today: today)
         }
-        if habits[id]?.isDue(on: today) == false {
+        if habits[id]?.isDue(on: shownDay) == false {
             showsNotDue = true
         }
         persist()

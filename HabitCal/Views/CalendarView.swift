@@ -24,7 +24,9 @@ struct CalendarView: View {
                         .accessibilityHidden(true)
                 }
                 ForEach(model.gridDays, id: \.self) { day in
-                    DayCell(day: day, isToday: day == model.today, inMonth: model.displayedMonth.contains(day))
+                    DayCell(
+                        day: day, isToday: day == model.today, isSelected: day == model.shownDay,
+                        inMonth: model.displayedMonth.contains(day))
                 }
             }
         }
@@ -58,26 +60,42 @@ struct CalendarView: View {
     }
 }
 
+/// A day in the grid. Clicking it selects it for the habit list (T-022). The selected day has the
+/// solid square; today, while another day is selected, a pale one.
 private struct DayCell: View {
+    @Environment(AppModel.self) private var model
     let day: Day
     let isToday: Bool
+    let isSelected: Bool
     let inMonth: Bool
 
     var body: some View {
-        Text("\(day.day)")
-            .font(.system(size: 11, weight: isToday ? .bold : .medium).monospacedDigit())
-            .foregroundStyle(
-                isToday ? AnyShapeStyle(.white) : inMonth ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary)
-            )
-            .frame(width: 20, height: 20)
-            .background {
-                if isToday {
+        Button {
+            model.select(day)
+        } label: {
+            Text("\(day.day)")
+                .font(.system(size: 11, weight: isToday || isSelected ? .bold : .medium).monospacedDigit())
+                .foregroundStyle(numberStyle)
+                .frame(width: 20, height: 20)
+                .background {
                     // A rounded square in the menu bar icon's proportions (4.95 pt corners on 21 pt) (T-013).
-                    RoundedRectangle(cornerRadius: 4.7).fill(Color.accentColor)
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 4.7).fill(Color.accentColor)
+                    } else if isToday {
+                        RoundedRectangle(cornerRadius: 4.7).fill(Color.accentColor.opacity(0.2))
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity, minHeight: 24)
-            .accessibilityElement()
-            .accessibilityLabel(MonthNames.spokenCalendarDay(day, isToday: isToday))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.hover(cornerRadius: 4.7, overLabel: true))
+        .frame(maxWidth: .infinity, minHeight: 24)
+        .accessibilityLabel(MonthNames.spokenCalendarDay(day, isToday: isToday, isSelected: isSelected))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var numberStyle: AnyShapeStyle {
+        if isSelected { return AnyShapeStyle(.white) }
+        if isToday { return AnyShapeStyle(Color.accentColor) }
+        return inMonth ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary)
     }
 }

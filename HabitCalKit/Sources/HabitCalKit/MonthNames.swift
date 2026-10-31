@@ -38,7 +38,8 @@ public enum MonthNames {
     }
 
     /// A calendar cell's spoken label: "Thursday, October 29, 2026", plus ", today" on today (T-002 E.6).
-    public static func spokenCalendarDay(_ day: Day, isToday: Bool) -> String {
-        spokenFullDate(day) + (isToday ? ", today" : "")
+    /// Adds ", selected" on the selected day (T-022 B.9).
+    public static func spokenCalendarDay(_ day: Day, isToday: Bool, isSelected: Bool = false) -> String {
+        spokenFullDate(day) + (isToday ? ", today" : "") + (isSelected && !isToday ? ", selected" : "")
     }
 }

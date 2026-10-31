@@ -131,3 +131,14 @@
 2. Move VoiceOver over the icon, the calendar days, and each control.
 
 **Expect:** Tab reaches every button, the switch, the Sunday/Monday control, and the link. VoiceOver reads the icon as "HabitCal, Thursday, October 29", each day as its full date ("…, today" on today), and each control by name.
+
+## Selecting a day across midnight, and its markers
+
+**Setup:** HabitCal running, the popover open a minute before midnight, light mode then dark mode.
+
+1. With today selected, leave it open across midnight.
+2. Select an earlier day, and leave it open across the next midnight (or change the clock).
+3. Look at the selected day and today in both appearances.
+
+**Expect:** in step 1 the selection moves to the new today. In step 2 the earlier day stays selected and the header still names it. The selected day has the solid square with a white number; today, when not selected, a pale square with an accent-colored number. Both are easy to tell apart from each other and from plain days (T-022).
+

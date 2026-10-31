@@ -32,3 +32,7 @@
 2026-10-30 · T-021 · QUESTION · Custom style may change borderless buttons' colors · deferred to screenshot pass
 2026-10-30 · T-021 · QUESTION · Disabled buttons may be double-dimmed · deferred to screenshot pass
 2026-10-30 · T-021 · QUESTION · No visible focus with Keyboard navigation on · fixed (focus shows the highlight)
+2026-10-30 · T-022 · MAJOR · Habit saved on a selected past day vanished into the folded row · fixed
+2026-10-30 · T-022 · MINOR · Not-due habit on a future day said "can't check off" · fixed
+2026-10-30 · T-022 · MINOR · 42 day buttons become Tab stops with Keyboard navigation on · deferred (backlog proposed)
+2026-10-30 · T-022 · QUESTION · Header's spoken date abbreviated · fixed

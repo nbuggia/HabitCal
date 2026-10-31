@@ -33,10 +33,12 @@ struct HabitListScreen: View {
     /// no footer (T-014, T-016).
     private var header: some View {
         HStack(spacing: 6) {
-            Text("Habits")
+            Text(header(for: model.shownDay))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
+                .lineLimit(1)
+                .accessibilityLabel(HabitLabels.listHeaderSpoken(day: model.shownDay, today: model.today))
                 .accessibilityIdentifier("habitsSection")
             headerButton("plus-circle", size: 17, label: "Add habit") { model.openAddForm() }
                 .disabled(!model.canAddHabits)
@@ -86,19 +88,20 @@ struct HabitListScreen: View {
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    // Today's habits; the rest fold into a row under them (T-012).
-                    let due = model.habits.dueOn(model.today)
-                    let notDue = model.habits.notDueOn(model.today)
+                    // The shown day's habits; the rest fold into a row under them (T-012, T-022).
+                    let onToday = model.shownDay == model.today
+                    let due = model.habits.dueOn(model.shownDay)
+                    let notDue = model.habits.notDueOn(model.shownDay)
                     ForEach(due) { habit in
                         HabitRow(habit: habit)
                     }
                     if due.isEmpty {
-                        Text("Nothing due today")
+                        Text(HabitLabels.nothingDue(onToday: onToday))
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
                     if !notDue.isEmpty {
-                        notDueRow(count: notDue.count)
+                        notDueRow(count: notDue.count, onToday: onToday)
                         if model.showsNotDue {
                             ForEach(notDue) { habit in
                                 HabitRow(habit: habit)
@@ -120,12 +123,18 @@ struct HabitListScreen: View {
         }
     }
 
-    private func notDueRow(count: Int) -> some View {
+    /// "Habits", or "Habits · Fri, Oct 23" while another day is selected (T-022).
+    private func header(for day: Day) -> String {
+        guard let date = HabitLabels.listHeader(day: day, today: model.today) else { return "Habits" }
+        return "Habits · \(date)"
+    }
+
+    private func notDueRow(count: Int, onToday: Bool) -> some View {
         Button {
             model.toggleNotDue()
         } label: {
             HStack(spacing: 4) {
-                Text(HabitLabels.notDueRowTitle(count: count))
+                Text(HabitLabels.notDueRowTitle(count: count, onToday: onToday))
                 PhosphorIcon(model.showsNotDue ? "caret-down" : "caret-right", size: 11)
             }
             .font(.caption)
@@ -133,7 +142,7 @@ struct HabitListScreen: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.hover(outset: 3))
-        .accessibilityLabel(HabitLabels.notDueRowSpoken(count: count))
+        .accessibilityLabel(HabitLabels.notDueRowSpoken(count: count, onToday: onToday))
         .accessibilityValue(model.showsNotDue ? "expanded" : "collapsed")
     }
 }
