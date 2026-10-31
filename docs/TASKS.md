@@ -58,5 +58,11 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Customer chose to narrow the popover: 232 pt, one 200 pt column for every screen.
 - [x] T-031 Remove the "Habits" label; Add, Leaderboard, and Settings move to a bottom row; empty list says "No habits" · high · done 2026-10-31
       Customer, 2026-10-31. Reverses T-014's header row; no divider above the bottom row.
+- [x] T-032 Settings, the habit form, and the leaderboard are at least as tall as the main screen · medium · done 2026-10-31
+- [x] T-033 Week start is a pop-up menu; no Mac-setting captions or Use Mac setting; no ⌘Q label on Quit · medium · done 2026-10-31
+      Once the user picks a day, it no longer follows the Mac. ⌘Q still quits (CONTRACTS.md).
+- [x] T-034 Bug: today's strip ring is clipped on the right on the month's last day · high · done 2026-10-31
+- [ ] T-035 Export and import habit data from Settings · high
+      Customer, 2026-10-31: so people can take their habit data with them. Complex: import replaces saved data, the exported file is a contract, and the sandbox needs user-selected file access (D-007). Spec next.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       App icon chosen 2026-10-31: fire with a black outline, in AppIcon.appiconset and Settings' About. A Developer ID Application certificate (NETORION LLC) is in the keychain; notarytool credentials not checked. Left: signing, notarization, the GitHub download and README, the manual test of a downloaded build.
