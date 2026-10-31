@@ -29,4 +29,4 @@
 | Spec summary and intent | docs/PRD.md, "Feature: Menu Bar Date" and "Feature: Month Calendar" (already state it; unchanged) |
 | Success criteria | docs/PRD.md, Done Means (already listed) |
 | Deferred: ←/→ month shortcuts, global hotkey, localization, week numbers | BACKLOG.md: proposed, awaiting the customer's approval (pickup.md, Proposed Updates) |
-| Drift: `show(_:)` instead of `refresh()`; first-launch default in AppModel; extra tests | Commit messages c7056b2, 3892268, 549073b |
+| Drift: `show(_:)` instead of `refresh()`; first-launch default in AppModel; extra tests | Commit messages 3b63128, 4d7d519, 0f513a4 |

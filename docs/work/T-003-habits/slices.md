@@ -2,7 +2,7 @@
 name: Habits slicing plan
 task: T-003
 design doc: docs/work/T-003-habits/design.md
-design doc version/commit: ae1ee35
+design doc version/commit: 567f02b
 date created: 2026-10-29
 last updated: 2026-10-29
 status: Approved
@@ -69,7 +69,7 @@ Form first (add a habit, then show it). Rejected because the form would need a t
 | 3 | Label/tooltip split unclear | SLICING | MINOR | ACCEPT | 1, 3 | Ownership | Row labels/tooltips in Slice 1; form labels and the full check in Slice 3 |
 | 4 | Name-click edit unassigned | SLICING | MINOR | ACCEPT | 2 | Coverage | Added to Slice 2 |
 | 5 | Invalidation risks incomplete | SLICING | MINOR | ACCEPT | 1–3 | Named risks | Added |
-| 6 | Plan pinned to an uncommitted design | SLICING | MINOR | ACCEPT | all | Drift baseline | Pinned to ae1ee35 |
+| 6 | Plan pinned to an uncommitted design | SLICING | MINOR | ACCEPT | all | Drift baseline | Pinned to 567f02b |
 
 ## 4. Dependency Graph
 

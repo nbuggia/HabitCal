@@ -256,7 +256,7 @@ Recommendation:
 
 Examples:
 
-- T-003: the name field kept 45 characters while the draft held 40. `testNameStopsAtFortyCharacters` caught it; fixed in 6dd42c5.
+- T-003: the name field kept 45 characters while the draft held 40. `testNameStopsAtFortyCharacters` caught it; fixed in af353d3.
 
 Frequency:
 

@@ -2,7 +2,7 @@
 name: Menu bar date and month calendar slicing plan
 task: T-002
 design doc: docs/work/T-002-menubar-calendar/design.md
-design doc version/commit: 1cfa4bb
+design doc version/commit: b6efab4
 date created: 2026-10-29
 last updated: 2026-10-29
 status: Approved
@@ -95,7 +95,7 @@ Slice 1 → Slice 2 → Slice 3 → Slice 4
 
 ### After Slice 1
 
-- Commit: the "T-002 slice 1" commit following 899eed8.
+- Commit: the "T-002 slice 1" commit following c9dc37c.
 - Affected remaining slices reviewed: 2, 3, and 4. The FM-008 spike passed (`statusItems` can be clicked), so the `-HabitCalOpenPopover` fallback isn't needed, and `reopeningPopoverResetsToCurrentMonth` and click-to-close stay automated. The hand-written project worked with the UI-test target and the package product, so there's no drift.
 - Changed: added a `.swift-format` config (4-space indent, 120 columns), because the formatter's 2-space default fought Xcode's style. XCTest UI tests need `@MainActor` on the class and async `setUp`/`tearDown` under Swift 6. Slices 2–4 follow both.
 

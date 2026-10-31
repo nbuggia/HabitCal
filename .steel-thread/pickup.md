@@ -5,7 +5,7 @@ Session: S-003 · 2026-10-30
 ## Accomplished
 
 - 2026-10-30: T-009 to T-016 and T-018 to T-028 done and committed (see TASKS.md and git log). D-009 logged (MenuBarExtra), superseding D-005.
-- T-029 (Complex): spike answered (spike/README.md), design Approved after 2 review passes, slice 1 committed 64c4c42. The customer tried it: "works great, feels much better".
+- T-029 (Complex): spike answered (spike/README.md), design Approved after 2 review passes, slice 1 committed b9bbac0. The customer tried it: "works great, feels much better".
 - UI tests have not run since T-016 (the customer was using the Mac). About 15 written since then have never run.
 
 ## In Flight

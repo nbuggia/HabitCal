@@ -25,4 +25,4 @@
 | Intent and success criteria | docs/PRD.md, "Feature: Habits" and Done Means (already state it) |
 | Deferred: drag to reorder, notes outside the form, undo for delete | BACKLOG.md: proposed, awaiting the customer's approval |
 | Deferred: export and backup | Already in BACKLOG.md |
-| Drift: data-dir seam, focus timing, row lookups | Commit messages 435f04a, 7236e39, 6dd42c5 |
+| Drift: data-dir seam, focus timing, row lookups | Commit messages aff120d, 9dd7d86, af353d3 |
