@@ -42,7 +42,7 @@ struct SettingsScreen: View {
                         Text("Back")
                     }
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.hover(outset: 3))
                 .accessibilityLabel("Back")
                 Spacer()
             }
@@ -148,7 +148,7 @@ struct SettingsScreen: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.hover(outset: 4))
         .accessibilityLabel("Quit HabitCal")
     }
 

@@ -122,8 +122,13 @@ final class AppModel {
 
     // MARK: Popover and calendar
 
+    /// Bumped on every open. `PopoverRoot` rebuilds its views with it, so hover state left over
+    /// when the popover closed under the pointer (Esc, ⌘-Tab) doesn't come back (T-021).
+    private(set) var openGeneration = 0
+
     /// Every open starts from the habit list and the current month (T-002 B.4).
     func resetForOpen() {
+        openGeneration += 1
         form = nil
         showsNotDue = false
         screen = .list

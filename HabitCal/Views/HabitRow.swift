@@ -28,7 +28,7 @@ struct HabitRow: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.hover(outset: 3))
                 .onHover { hovering = $0 }
                 .help("Edit habit")
                 .accessibilityLabel(HabitLabels.editSpoken(name: habit.name))
@@ -72,7 +72,7 @@ private struct DoneButton: View {
                 .frame(width: 24, height: 24)
                 .contentShape(Circle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.hover(cornerRadius: 12, overLabel: true))
             .help(tooltip)
             .accessibilityLabel(spoken)
         } else {

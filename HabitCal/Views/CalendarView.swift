@@ -52,7 +52,7 @@ struct CalendarView: View {
                 .frame(width: 22, height: 22)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.hover)
         .accessibilityLabel(label)
         .help(label)
     }

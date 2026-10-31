@@ -28,3 +28,7 @@
 2026-10-30 · T-012 · MINOR · "Above" not proven in Nothing-due test · fixed
 2026-10-30 · T-016 · MINOR · Score card read "— of due days done" when nothing was due yet · fixed
 2026-10-30 · T-016 · QUESTION · Rounding showed 100% for a record with misses · fixed (100% only when perfect)
+2026-10-30 · T-021 · MINOR · Hover highlight stuck after closing the popover under the pointer · fixed
+2026-10-30 · T-021 · QUESTION · Custom style may change borderless buttons' colors · deferred to screenshot pass
+2026-10-30 · T-021 · QUESTION · Disabled buttons may be double-dimmed · deferred to screenshot pass
+2026-10-30 · T-021 · QUESTION · No visible focus with Keyboard navigation on · fixed (focus shows the highlight)

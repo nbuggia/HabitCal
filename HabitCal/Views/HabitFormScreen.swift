@@ -56,11 +56,11 @@ struct HabitFormScreen: View {
             HStack {
                 // The window handles this shortcut before a focused field sees Esc (T-003 B.12).
                 Button("Cancel") { model.cancelForm() }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.hover(outset: 3))
                     .keyboardShortcut(.cancelAction)
                 Spacer()
                 Button(adding ? "Add" : "Save") { model.saveForm() }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.hover(outset: 3))
                     .fontWeight(.semibold)
                     .disabled(!form.draft.isValid)
             }
@@ -82,12 +82,13 @@ struct HabitFormScreen: View {
                 } label: {
                     Text(MonthNames.weekdayInitial(weekday))
                         .font(.callout.weight(.semibold))
-                        .frame(maxWidth: .infinity, minHeight: 26)
+                        .frame(width: 26, height: 26)
                         .foregroundStyle(on ? Color.white : Color.primary)
                         .background(on ? Color.accentColor : Color.secondary.opacity(0.15), in: Circle())
                         .contentShape(Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.hover(cornerRadius: 13, overLabel: true))
+                .frame(maxWidth: .infinity)
                 .help(MonthNames.weekdayName(weekday))
                 .accessibilityLabel(MonthNames.weekdayName(weekday))
                 .accessibilityAddTraits(on ? .isSelected : [])
@@ -161,7 +162,7 @@ struct HabitFormScreen: View {
                 .foregroundStyle(.red)
                 .background(Color.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.hover(cornerRadius: 7, overLabel: true))
             .accessibilityLabel("Delete habit")
         }
     }

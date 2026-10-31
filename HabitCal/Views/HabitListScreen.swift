@@ -55,7 +55,7 @@ struct HabitListScreen: View {
                 .frame(width: 22, height: 22)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.hover)
         .accessibilityLabel(label)
         .help(label)
     }
@@ -129,7 +129,7 @@ struct HabitListScreen: View {
             .foregroundStyle(.secondary)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.hover(outset: 3))
         .accessibilityLabel(HabitLabels.notDueRowSpoken(count: count))
         .accessibilityValue(model.showsNotDue ? "expanded" : "collapsed")
     }

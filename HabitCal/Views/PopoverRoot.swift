@@ -17,6 +17,7 @@ struct PopoverRoot: View {
             case .leaderboard: LeaderboardScreen()
             }
         }
+        .id(model.openGeneration)
         .frame(width: Self.width)
         .environment(model)
     }

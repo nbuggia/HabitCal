@@ -53,3 +53,15 @@
 1. Open the popover; hover each number.
 
 **Expect:** each row shows a fire with the current streak and a trophy with the best. At 3 or more the fire and its number turn orange and bold; below 3 they're grey. Tooltips read "Current streak" and "Best streak". Large numbers show in full (e.g. 1095), never abbreviated.
+
+## Buttons answer the pointer
+
+**Setup:** a habit or two, light mode then dark mode.
+
+1. Hover over, then press and hold, each kind of button: the calendar's arrows and Today; the Habits header's +, trophy, and Settings; a done button; a habit's name; "N not due today"; Back; the form's Cancel, Save, day circles, and Delete habit; Quit; the leaderboard's tabs.
+2. Make Add unavailable (an unreadable data file) and hover over it.
+3. Hover a done button, press Esc, then reopen the popover.
+4. Turn on Keyboard navigation (System Settings › Keyboard) and Tab through the list and the form.
+
+**Expect:** a soft highlight on hover and a darker one while pressed, shaped to the button (round for the done button and day circles). Text doesn't shift. Button colors match the previous build (borderless icons and Back may have been tinted). Disabled buttons are dimmed but still legible, and don't highlight. After reopening, no button is left highlighted. With Keyboard navigation on, the focused button shows the highlight.
+

@@ -50,7 +50,7 @@ struct LeaderboardScreen: View {
                         Text("Back")
                     }
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.hover(outset: 3))
                 .accessibilityLabel("Back")
                 Spacer()
             }
@@ -138,12 +138,11 @@ private struct LeaderboardRow: View {
     }
 }
 
-/// One range tab: accent-filled when selected, a soft highlight on hover.
+/// One range tab: accent-filled when selected; hover and press come from the shared style (T-021).
 private struct RangeTab: View {
     let title: String
     let selected: Bool
     let action: () -> Void
-    @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
@@ -154,18 +153,14 @@ private struct RangeTab: View {
                 .foregroundStyle(selected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
                 .frame(maxWidth: .infinity, minHeight: 20)
                 .background {
-                    RoundedRectangle(cornerRadius: 5).fill(fill)
+                    if selected {
+                        RoundedRectangle(cornerRadius: 5).fill(Color.accentColor)
+                    }
                 }
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
+        .buttonStyle(.hover(cornerRadius: 5, overLabel: true))
         .accessibilityLabel(title)
         .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-
-    private var fill: AnyShapeStyle {
-        if selected { return AnyShapeStyle(Color.accentColor) }
-        return AnyShapeStyle(.quaternary.opacity(hovering ? 1 : 0))
     }
 }

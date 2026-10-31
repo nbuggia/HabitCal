@@ -40,7 +40,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [ ] T-019 Add button shows a plus in a circle · medium
 - [x] T-020 Calendar columns closer together · medium · done 2026-10-30
       Customer, 2026-10-30: the popover stays 260 pt; the narrower grid is centered with small gutters.
-- [ ] T-021 Hover and pressed states on every button · medium
+- [x] T-021 Hover and pressed states on every button · medium · done 2026-10-30
       Icon buttons, Back, the done button, the habit name, the folded row, and the leaderboard tabs.
 - [ ] T-022 Select a day in the calendar to see and fix its habits; today keeps a light marker · high
       Customer's items 6 and 7. Customer, 2026-10-30: on a selected past day, the done buttons check off that day. Defaults: the list shows habits due that day; future days view-only; every open goes back to today.
