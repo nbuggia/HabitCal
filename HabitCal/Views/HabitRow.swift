@@ -114,12 +114,12 @@ private struct StreakStats: View {
             }
             .help("Current streak")
             HStack(spacing: 3) {
-                // Gold while the current streak is the record (T-025).
+                // Gold while the current streak is the record, like the flame's orange (T-025).
                 PhosphorIcon("trophy", size: 13)
-                    .foregroundStyle(record ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.secondary))
                 Text("\(best)")
-                    .foregroundStyle(.secondary)
+                    .fontWeight(record ? .semibold : .regular)
             }
+            .foregroundStyle(record ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.secondary))
             .help("Best streak")
         }
         .font(.callout.monospacedDigit())
