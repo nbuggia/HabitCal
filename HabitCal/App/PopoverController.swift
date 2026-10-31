@@ -11,6 +11,8 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private let hostingController: PopoverHostingController
     private var lastClosedUptime: TimeInterval = 0
+    /// The status item's button, highlighted while the popover is open, like an open menu (T-027).
+    private weak var anchor: NSButton?
 
     init(model: AppModel) {
         self.model = model
@@ -36,6 +38,13 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         // A Dock-less app must activate itself, or the popover never becomes key (FM-006).
         NSApp.activate()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        // The button un-highlights itself when the click that opened the popover ends, so highlight it
+        // after that.
+        anchor = button as? NSButton
+        DispatchQueue.main.async { [weak self] in
+            guard let self, popover.isShown else { return }
+            anchor?.highlight(true)
+        }
         // Esc starts its trip up the responder chain here, so it reaches PopoverHostingController.
         focusHostingView()
     }
@@ -52,5 +61,6 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         lastClosedUptime = ProcessInfo.processInfo.systemUptime
+        anchor?.highlight(false)
     }
 }
