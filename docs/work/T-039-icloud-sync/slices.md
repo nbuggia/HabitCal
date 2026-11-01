@@ -31,7 +31,7 @@ Also rejected: a kit-only slice for `SyncPolicy`. It has no demo of its own, and
 
 | Field | Value |
 | --- | --- |
-| Status | Pending |
+| Status | Done (b0428b7); UI tests and the on-screen check of real v1 data outstanding, customer chose to test later |
 | Scope | **HabitCalKit:** `details` and per-day `checks` registers; `createdAt`, `deletedAt`; `all` (shown) vs `records` (stored); due includes live check-offs (B.21); stamping operations `toggle`, `add`, `setDetails`, `delete`, `replaceAll`, `applyFormEdit`; `merge` with the tie rule; `mergeFirstSync` (ID and name pairing, B.8a intersection plus today's entry, B.8b); order (B.12); `HabitCodec`; `HabitStore` v2 with the v1 migration and a v3-unknown gate. **App:** `AppModel` gets an injected `now` clock from `LaunchOptions` and calls the stamping operations; `updateDraft` uses `applyFormEdit`. Existing tests on `update`/`replace`/`delete` are rewritten onto the new operations, keeping their rules (design §6 "Existing API that changes"). |
 | Demo criterion | `swift test` green, including a test for every conflict-table row, every first-sync rule, order independence, and fixture loads of v1 and v2. The app runs on the customer's existing v1 file and shows every habit, streak, and strip exactly as before. After one check-off, `habits.json` is v2. The habits, form, and day-selection UI tests pass on the customer's screen. |
 | Dependencies | Current main (T-038's `formStart`/`Habits.replace`, T-036's due-only list). |
@@ -117,6 +117,14 @@ main ──▶ Slice 2 (signing, status) ──┴──▶ Slice 3 (sync) ─�
 Slices 1 and 2 are independent of each other; slice 3 needs both; slice 4 needs slice 3; slice 5 needs slice 4 and T-035.
 
 ## 5. Checkpoint Log
+
+### After Slice 1
+
+- Commit: b0428b7
+- Affected remaining slices reviewed: 2 (independent of the model: unchanged), 3 (consumes `merge`, `mergeFirstSync`, `HabitCodec`, `MergeResult.toSend`: as planned), 5 (`replaceAll` exists).
+- Changed: none.
+- Unchanged and why: the kit API matches design §7 except the order key (Design Drift); slice 3's inputs exist as specified.
+- New conflicts: none. Outstanding from slice 1's demo: the habits, form, and day-selection UI tests, and a look at the customer's real data after the v1 → v2 change.
 
 ## 6. Design Drift
 
