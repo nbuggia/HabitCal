@@ -104,7 +104,7 @@ Rules are checked per habit and per day, not per file, so unrelated changes on t
 | Deleted the habit | Checked off, or edited it | Deleted. Why: deleting asks first and says it can't be undone (T-003 B.15); a check-off on another Mac shouldn't bring back a habit someone chose to delete |
 | Added a habit | Added a habit | Both kept (B.9 doesn't apply after the first sync) |
 | Changed the schedule so day D isn't due | Checked off day D | The check-off stays and day D counts as due and done for that habit (B.21) |
-| Imported a file (B.13) | Any change made before the import, or a habit added before it | Replaced by the import: the habit added before it is removed |
+| Imported a file (B.13) | Any change made before the import, or a habit added before it, on a Mac that was already syncing | Replaced by the import: the habit added before it is removed. A Mac that hadn't synced yet keeps its own habits at its first sync, by B.7 (customer, 2026-11-01) |
 | Imported a file (B.13) | A check-off or edit made after the import, to a habit the import kept | Applied on top of the imported habits |
 | Imported a file (B.13) | Deleted a habit, before the import | The import brings it back if the file has it |
 

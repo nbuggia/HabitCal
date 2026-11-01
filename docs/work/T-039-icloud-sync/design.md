@@ -113,6 +113,7 @@ HabitSync (app target) ── CKSyncEngine ── iCloud private DB, zone "Habit
   - current fields from the side changed last, or by B.8b, the most recent check-off, else remote;
   - schedule entries before today become the per-interval intersection of both histories (B.8a), and an entry at `today` carries the winner's current days, so the merged habit always has days in force today. Empty entries exist only before today;
   - the pair takes the **earlier** `createdAt`, and any register of either copy older than it is raised to it, so no check-off is hidden by the ignore rule (B.7, B.21). `merge` (ongoing) keeps "later `createdAt`", which is what makes an import win.
+  - When iCloud holds an `importedAt`, every local habit (paired or not) has its `createdAt`, and any register older than `importedAt`, raised to `importedAt` first. A Mac joining after a restore keeps its own habits (B.7; customer, 2026-11-01). The import still replaces habits on Macs that were already syncing.
   - Unpaired habits are kept as they are.
 - **Order (B.12):** sorted by `addedOn`, then `createdAt`, then ID: a fixed order, the same on every Mac.
 - v1 data migrates with `createdAt` = `distantPast` plus the habit's position in the list in milliseconds, so its order holds and no v1 time can be later than a real one. Every `changedAt` is nil.
@@ -305,7 +306,7 @@ More than two slices, so st-slice writes the slicing plan. Proposed order:
 | `formEditChangesOnlyTheTouchedField`, `formEditRestoresTodayWhenItsDayComesBack` (kit: a remote rename merged, then a note edit) | unit | B.11, T-038 | The form overwriting remote changes |
 | `syncPolicy…` one per outcome: conflict merges and re-queues, zone deleted resets and re-queues all, quota → full, network → waiting, newer format → update needed and flag, sign-in/switch reset and first sync, sign-out → off, fetch finished sets first sync done | unit | E.2–E.6, E.9, B.7 | Wrong reaction to a CloudKit event |
 | `firstSyncNeverPairsWithADeletedHabit`, `tiesBreakTheSameWayEverywhere`, `v1HabitsStayVisibleAndEditableAfterMigration`, `deletedHabitsNeverInAll` | unit | B.7, B.10, B.12, B.18 | Pass 1 findings 2, 3, 7, 10 |
-| `firstSyncPairKeepsTimestampedCheckOffsOlderThanTheOtherCopy`, `firstSyncMergedHabitHasDaysToday`, `syncPolicyHoldsSendsUntilFirstSyncDone`, `syncPolicyRequeuesUnsentChangesAtStart` | unit | B.7, B.8a, B.21, E.10 | Pass 2 findings 1, 3, 4, 5 |
+| `firstSyncAfterARemoteImportKeepsThisMacsHabits`, `firstSyncPairKeepsTimestampedCheckOffsOlderThanTheOtherCopy`, `firstSyncMergedHabitHasDaysToday`, `syncPolicyHoldsSendsUntilFirstSyncDone`, `syncPolicyRequeuesUnsentChangesAtStart` | unit | B.7, B.8a, B.21, E.10 | Pass 2 findings 1, 3, 4, 5 |
 | Existing habit/form UI tests, plus `testSettingsShowsSyncStatus` with `-HabitCalSyncStatus` | UI | B.6, UI section, E.11 | |
 | Manual, CloudKit Console: edit a record in Development → shows within 1 minute; delete the zone → resent | manual (real boundary; CloudKit can't run under `swift test`, which is unsigned) | B.2, B.3, B.4, E.4 | Push/fallback broken |
 | Manual, two Macs (or two macOS users on one Apple Account): check off, edit the same habit on both (system fields cache), edit offline on both, delete vs edit, first sync with habits on both, quit mid-fetch and relaunch | manual (real boundary) | B.1, B.5, B.7, B.9, conflict table end to end, E.9, E.10 | Engine wiring broken |
@@ -334,7 +335,7 @@ Direct ship, no flag: v1 isn't released, so no user has v1 data or a v1 build. S
 | 10 | Tombstones would show in the leaderboard and list | MINOR | Deleted habits visible | ACCEPT | | all = shown, records = stored | Yes | Pass 1 |
 | 11 | Lasting Changes missing several items | MINOR | Later changes re-derive or break them | ACCEPT | | Added to §16 | | Pass 1 |
 | 12 | First sync hides check-offs: merged pair took the later createdAt | BLOCKER | Silent history loss at first sync | ACCEPT | | Pair takes the earlier createdAt; older registers raised to it | Yes | Pass 2 |
-| 13 | First sync against a remote import: the import row hides a joining Mac's habits; B.7 keeps them | QUESTION | A Mac joining after a restore shows none of its habits | ASK CUSTOMER | Spec conflict | Recommend B.7 wins (clamp to importedAt) | Spec | Pass 2 |
+| 13 | First sync against a remote import: the import row hides a joining Mac's habits; B.7 keeps them | QUESTION | A Mac joining after a restore shows none of its habits | ACCEPT | Customer chose keep (2026-11-01) | Local createdAt and older registers raised to importedAt at first sync; spec import row clarified | Spec | Pass 2 |
 | 14 | A local habit name-paired after being sent leaves a duplicate record | MAJOR | Duplicates on other Macs | ACCEPT | | No sends until first sync done | | Pass 2 |
 | 15 | E.10 fallback only on a write failure | MAJOR | Lost change after a quick quit | ACCEPT | | Re-queue at every start against lastSentAt | | Pass 2 |
 | 16 | B.8a can leave no days today | MINOR | Habit hidden; form refuses edits | ACCEPT | | Entry at today with the winner's days | | Pass 2 |
