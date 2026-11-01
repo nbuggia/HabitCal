@@ -3,6 +3,9 @@ import Testing
 
 @testable import HabitCalKit
 
+/// A fixed moment for changes whose time doesn't matter to the test.
+private let t0 = Date(timeIntervalSince1970: 1_793_000_000)
+
 /// Oct 2026: the 1st is a Thursday; the 29th ("today" in these tests) is a Thursday.
 private func oct(_ d: Int) -> Day { Day(year: 2026, month: 10, day: d) }
 private let today = oct(29)
@@ -13,7 +16,7 @@ private let sun = 1
 struct HabitTests {
     private func runHabit(addedOn: Day = oct(1)) -> (Habits, UUID) {
         var habits = Habits()
-        let id = habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: addedOn)
+        let id = habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: addedOn, now: t0)
         return (habits, id)
     }
 
@@ -29,7 +32,8 @@ struct HabitTests {
 
     @Test func scheduleChangeAppliesFromTodayAndKeepsPastDays() throws {
         var (habits, id) = runHabit()
-        habits.update(id, with: HabitDraft(name: "Run", note: "", days: [2, 4, 6]), today: today)  // Mon, Wed, Fri
+        // Mon, Wed, Fri
+        habits.setDetails(id, HabitDraft(name: "Run", note: "", days: [2, 4, 6]), today: today, now: t0)
         let habit = try #require(habits[id])
         #expect(habit.isDue(on: oct(25)))  // a past Sunday keeps the old schedule
         #expect(habit.isDue(on: Day(year: 2026, month: 11, day: 2)))  // Monday, new schedule
@@ -38,8 +42,8 @@ struct HabitTests {
 
     @Test func secondScheduleChangeTheSameDayReplacesTheFirst() throws {
         var (habits, id) = runHabit()
-        habits.update(id, with: HabitDraft(name: "Run", note: "", days: [2]), today: today)
-        habits.update(id, with: HabitDraft(name: "Run", note: "", days: [3]), today: today)
+        habits.setDetails(id, HabitDraft(name: "Run", note: "", days: [2]), today: today, now: t0)
+        habits.setDetails(id, HabitDraft(name: "Run", note: "", days: [3]), today: today, now: t0)
         let habit = try #require(habits[id])
         #expect(habit.schedule.count == 2)
         #expect(habit.days(on: today) == [3])
@@ -48,7 +52,7 @@ struct HabitTests {
 
     @Test func editingAHabitAddedTodayChangesItFromTodayOn() throws {
         var (habits, id) = runHabit(addedOn: today)
-        habits.update(id, with: HabitDraft(name: "Run", note: "", days: [5]), today: today)
+        habits.setDetails(id, HabitDraft(name: "Run", note: "", days: [5]), today: today, now: t0)
         let habit = try #require(habits[id])
         // The old days stay pinned to the past, since past days are due too (T-028).
         #expect(
@@ -58,37 +62,37 @@ struct HabitTests {
 
     @Test func pastDaysBeforeAddedCanBeCheckedOff() throws {
         var (habits, id) = runHabit(addedOn: today)
-        let checked = habits.toggle(id, on: oct(25), today: today)  // a Sunday before it was added (T-028)
+        let checked = habits.toggle(id, on: oct(25), today: today, now: t0)  // a Sunday before it was added (T-028)
         #expect(checked)
         #expect(try #require(habits[id]).isDone(on: oct(25)))
     }
 
     @Test func togglingOnlyWorksOnDueDaysUpToToday() throws {
         var (habits, id) = runHabit()
-        let checked = habits.toggle(id, on: oct(25), today: today)  // past Sunday
+        let checked = habits.toggle(id, on: oct(25), today: today, now: t0)  // past Sunday
         #expect(checked)
         #expect(try #require(habits[id]).isDone(on: oct(25)))
-        let unchecked = habits.toggle(id, on: oct(25), today: today)  // and back
+        let unchecked = habits.toggle(id, on: oct(25), today: today, now: t0)  // and back
         #expect(unchecked)
         #expect(try !#require(habits[id]).isDone(on: oct(25)))
-        let notDue = habits.toggle(id, on: oct(26), today: today)  // Monday: not due
+        let notDue = habits.toggle(id, on: oct(26), today: today, now: t0)  // Monday: not due
         #expect(!notDue)
-        let future = habits.toggle(id, on: oct(30), today: today)  // Friday: future
+        let future = habits.toggle(id, on: oct(30), today: today, now: t0)  // Friday: future
         #expect(!future)
     }
 
     @Test func droppingTodayFromTheScheduleRemovesTodaysCheckOff() throws {
         var habits = Habits()
-        let id = habits.add(HabitDraft(name: "Push-ups", note: "", days: Set(1...7)), today: oct(1))
-        habits.toggle(id, on: today, today: today)
-        habits.update(id, with: HabitDraft(name: "Push-ups", note: "", days: [fri]), today: today)
+        let id = habits.add(HabitDraft(name: "Push-ups", note: "", days: Set(1...7)), today: oct(1), now: t0)
+        habits.toggle(id, on: today, today: today, now: t0)
+        habits.setDetails(id, HabitDraft(name: "Push-ups", note: "", days: [fri]), today: today, now: t0)
         let habit = try #require(habits[id])
         #expect(!habit.isDone(on: today))
     }
 
     @Test func stripShowsDoneMissedNotScheduledAndFutureForTheMonth() throws {
         var (habits, id) = runHabit()
-        habits.toggle(id, on: oct(2), today: today)  // Fri done
+        habits.toggle(id, on: oct(2), today: today, now: t0)  // Fri done
         let strip = try #require(habits[id]).strip(for: Month(year: 2026, month: 10), today: today)
         #expect(strip.count == 31)
         #expect(strip[1] == .done)  // Oct 2, Fri
@@ -104,7 +108,8 @@ struct HabitTests {
 
     @Test func stripShowsDaysBeforeAddedAsMissedOrDone() throws {
         var (habits, id) = runHabit(addedOn: today)
-        habits.toggle(id, on: Day(year: 2026, month: 9, day: 4), today: today)  // Fri Sep 4, before it was added
+        // Fri Sep 4, before it was added
+        habits.toggle(id, on: Day(year: 2026, month: 9, day: 4), today: today, now: t0)
         let september = try #require(habits[id]).strip(for: Month(year: 2026, month: 9), today: today)
         #expect(september[3] == .done)  // Sep 4, Fri
         #expect(september[5] == .missed)  // Sep 6, Sun
@@ -113,8 +118,9 @@ struct HabitTests {
 
     @Test func scheduleEditOnTheDayAddedKeepsPastDaysOnTheOldSchedule() throws {
         var (habits, id) = runHabit(addedOn: today)  // Fri, Sun
-        habits.toggle(id, on: oct(25), today: today)  // Sun, before it was added
-        habits.update(id, with: HabitDraft(name: "Run", note: "", days: [2]), today: today)  // Mondays from today
+        habits.toggle(id, on: oct(25), today: today, now: t0)  // Sun, before it was added
+        // Mondays from today
+        habits.setDetails(id, HabitDraft(name: "Run", note: "", days: [2]), today: today, now: t0)
         let habit = try #require(habits[id])
         #expect(habit.isDue(on: oct(25)))  // a past Sunday keeps the old schedule
         #expect(habit.isDone(on: oct(25)))
@@ -126,7 +132,7 @@ struct HabitTests {
     @Test func checkOffsAfterTodayAreShownAsFuture() throws {
         // The clock moved backward past a check-off (E.7).
         var (habits, id) = runHabit()
-        habits.toggle(id, on: oct(30), today: oct(30))
+        habits.toggle(id, on: oct(30), today: oct(30), now: t0)
         let habit = try #require(habits[id])
         #expect(habit.strip(for: Month(year: 2026, month: 10), today: today)[29] == .future)
     }
@@ -162,17 +168,18 @@ struct HabitTests {
 
     @Test func newHabitsGoToTheBottomAndNamesMayRepeat() {
         var habits = Habits()
-        let a = habits.add(HabitDraft(name: "Run", note: "", days: [1]), today: today)
-        let b = habits.add(HabitDraft(name: "Run", note: "", days: [1]), today: today)
+        let a = habits.add(HabitDraft(name: "Run", note: "", days: [1]), today: today, now: t0)
+        let b = habits.add(HabitDraft(name: "Run", note: "", days: [1]), today: today, now: t0)
         #expect(habits.all.map(\.id) == [a, b])
     }
 
     @Test func deletingAHabitRemovesItAndItsHistory() {
         var (habits, id) = runHabit()
-        habits.toggle(id, on: oct(25), today: today)
-        habits.delete(id)
+        habits.toggle(id, on: oct(25), today: today, now: t0)
+        habits.delete(id, now: t0)
         #expect(habits[id] == nil)
         #expect(habits.all.isEmpty)
+        #expect(habits.records.count == 1)  // kept as a record, so the delete reaches other Macs (T-039)
     }
 
     @Test func beforeTheFirstScheduleEntryTheFirstEntryApplies() {
@@ -202,25 +209,12 @@ struct HabitTests {
         #expect(HabitLabels.editSpoken(name: "Push-ups") == "Edit Push-ups")
     }
 
-    @Test func replacePutsAHabitBackInPlaceAndIgnoresADeletedOne() {
-        var habits = Habits()
-        let run = habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: oct(1))
-        habits.add(HabitDraft(name: "Read", note: "", days: Set(1...7)), today: oct(1))
-        var renamed = habits[run]!
-        renamed.name = "Long run"
-        habits.replace(renamed)
-        #expect(habits.all.map(\.name) == ["Long run", "Read"])
-        habits.delete(run)
-        habits.replace(renamed)
-        #expect(habits.all.map(\.name) == ["Read"])
-    }
-
     @Test func listShowsOnlyHabitsDueThatDayInOrderAdded() {
         var habits = Habits()
-        habits.add(HabitDraft(name: "Push-ups", note: "", days: Set(1...7)), today: oct(1))
-        habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: oct(1))
-        habits.add(HabitDraft(name: "Read", note: "", days: [5]), today: oct(1))  // Thursday
-        habits.add(HabitDraft(name: "Swim", note: "", days: [sun]), today: oct(1))
+        habits.add(HabitDraft(name: "Push-ups", note: "", days: Set(1...7)), today: oct(1), now: t0)
+        habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: oct(1), now: t0)
+        habits.add(HabitDraft(name: "Read", note: "", days: [5]), today: oct(1), now: t0)  // Thursday
+        habits.add(HabitDraft(name: "Swim", note: "", days: [sun]), today: oct(1), now: t0)
         #expect(habits.dueOn(today).map(\.name) == ["Push-ups", "Read"])
         #expect(habits.dueOn(oct(25)).map(\.name) == ["Push-ups", "Run", "Swim"])  // a Sunday
     }

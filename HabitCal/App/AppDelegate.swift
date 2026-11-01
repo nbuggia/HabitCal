@@ -38,7 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             today: options.todaySource.today(in: .autoupdatingCurrent),
             macWeekStart: WeekStart.fromMac(firstWeekday: options.macFirstWeekday()),
             defaults: options.defaults,
-            loginItem: LoginItem())
+            loginItem: LoginItem(),
+            now: Date.init)
         self.model = model
         panel = PanelController(model: model)
         dayWatcher = DayWatcher(source: options.todaySource, macFirstWeekday: options.macFirstWeekday, model: model)

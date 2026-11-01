@@ -87,11 +87,18 @@ final class AppModel {
     @ObservationIgnored var listDidHideRows: () -> Void = {}
 
     @ObservationIgnored private let store: HabitStore
+    /// The current moment, for change times (T-039 B.10). Injected so tests control it; the app reads
+    /// the clock nowhere else.
+    @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let loginItem: LoginItem
 
-    init(store: HabitStore, today: Day, macWeekStart: WeekStart, defaults: UserDefaults, loginItem: LoginItem) {
+    init(
+        store: HabitStore, today: Day, macWeekStart: WeekStart, defaults: UserDefaults, loginItem: LoginItem,
+        now: @escaping () -> Date
+    ) {
         self.store = store
+        self.now = now
         switch store.load() {
         case .loaded(let loaded):
             habits = loaded
@@ -192,7 +199,7 @@ final class AppModel {
 
     /// Toggles a strip day, if it's due and not in the future (B.5, B.6).
     func toggle(_ id: UUID, on day: Day) {
-        guard habits.toggle(id, on: day, today: today) else { return }
+        guard habits.toggle(id, on: day, today: today, now: now()) else { return }
         persist()
     }
 
@@ -223,10 +230,8 @@ final class AppModel {
         screen = .form
     }
 
-    /// The edited habit as it was when the Edit form opened. Every edit is applied to it afresh and
-    /// put back in place of the current one, so undoing a change in the form undoes it in the data
-    /// too: unticking today's day and ticking it back restores today's check-off, which
-    /// `Habits.update` drops when today stops being due. Other habits aren't touched (T-038).
+    /// The edited habit as it was when the Edit form opened: its days, for the "starts today" hint,
+    /// and whether today was done, so ticking today's weekday back on checks today off again (T-038).
     private var formStart: Habit?
 
     /// The form filled with the habit's name, current days, and note (B.9).
@@ -251,13 +256,11 @@ final class AppModel {
         change(&draft)
         form?.draft = draft.clamped
         guard let form, case .edit(let id) = form.mode, form.draft.isValid, let start = formStart,
-            habits[id] != nil
+            let before = habits[id]
         else { return }
-        var scratch = Habits([start])
-        scratch.update(id, with: form.draft, today: today)
-        guard let edited = scratch[id] else { return }
-        habits.replace(edited)
-        persist()
+        habits.applyFormEdit(
+            id, draft: form.draft, todayDoneAtOpen: start.isDone(on: today), today: today, now: now())
+        if habits[id] != before { persist() }
     }
 
     func setConfirmingDelete(_ confirming: Bool) {
@@ -276,7 +279,7 @@ final class AppModel {
         guard let form else { return }
         if form.mode == .add {
             guard form.draft.isValid else { return }
-            habits.add(form.draft, today: today)
+            habits.add(form.draft, today: today, now: now())
             persist()
         }
         closeForm()
@@ -285,7 +288,7 @@ final class AppModel {
     /// Deletes the habit and all its history (B.16).
     func deleteFromForm() {
         guard let form, case .edit(let id) = form.mode else { return }
-        habits.delete(id)
+        habits.delete(id, now: now())
         persist()
         closeForm()
     }

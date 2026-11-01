@@ -3,6 +3,9 @@ import Testing
 
 @testable import HabitCalKit
 
+/// A fixed moment for changes whose time doesn't matter to the test.
+private let t0 = Date(timeIntervalSince1970: 1_793_000_000)
+
 private func oct(_ d: Int) -> Day { Day(year: 2026, month: 10, day: d) }
 
 @Suite("Saving")
@@ -44,12 +47,69 @@ struct HabitStoreTests {
         #expect(habits.all[1].days(on: oct(29)) == Set(1...7))
     }
 
+    @Test func version1MigratesKeepingOrderAndHasNoChangeTimes() throws {
+        try write(
+            #"{ "formatVersion": 1, "habits": [ "#
+                + #"{ "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF", "name": "Push-ups", "note": "", "addedOn": "2026-10-01", "schedule": [ { "from": "2026-10-01", "days": ["fri"] } ], "checkOffs": ["2026-10-02"] }, "#
+                + #"{ "id": "0E984725-C51C-4BF4-9960-E1C80E27ABA0", "name": "Run", "note": "", "addedOn": "2026-09-01", "schedule": [ { "from": "2026-09-01", "days": ["sun"] } ], "checkOffs": [] } ] }"#
+        )
+        guard case .loaded(let habits) = HabitStore(directory: directory).load() else {
+            Issue.record("didn't load")
+            return
+        }
+        #expect(habits.all.map(\.name) == ["Push-ups", "Run"])  // the file's order, not by date added
+        #expect(habits.all[0].details.changedAt == nil)
+        #expect(habits.all[0].checks[oct(2)] == Check(done: true, changedAt: nil))
+        #expect(habits.all[0].isDone(on: oct(2)))
+    }
+
+    @Test func version2FixtureLoads() throws {
+        let fixture = try #require(
+            Bundle.module.url(forResource: "habits-v2", withExtension: "json", subdirectory: "Fixtures"))
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try FileManager.default.copyItem(at: fixture, to: file)
+        guard case .loaded(let habits) = HabitStore(directory: directory).load() else {
+            Issue.record("fixture didn't load")
+            return
+        }
+        #expect(habits.all.map(\.name) == ["Run"])
+        #expect(habits.records.count == 2)  // and one deleted habit
+        let run = habits.all[0]
+        #expect(run.details.changedAt == ISO8601DateFormatter().date(from: "2026-10-20T08:00:00Z"))
+        #expect(run.isDone(on: oct(2)))
+        #expect(run.checks[oct(4)]?.done == false)  // an uncheck is kept
+        #expect(run.schedule.first?.days.isEmpty == true)  // a merged past entry with no days
+        #expect(run.days(on: oct(29)) == [2, 4, 6])
+    }
+
+    @Test func unknownFieldsInAVersion2FileMakeItUnreadable() throws {
+        try write(
+            #"{ "formatVersion": 2, "habits": [ { "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF", "addedOn": "2026-10-01", "createdAt": "2026-10-01T08:00:00.000Z", "details": { "name": "x", "note": "", "schedule": [ { "from": "2026-10-01", "days": ["fri"] } ], "color": "red" }, "checks": [] } ] }"#
+        )
+        guard case .unreadable = HabitStore(directory: directory).load() else {
+            Issue.record("expected unreadable")
+            return
+        }
+    }
+
+    @Test func codecRejectsTruncatedOrNewerPayload() throws {
+        var habits = Habits()
+        let id = habits.add(HabitDraft(name: "Run", note: "", days: [6]), today: oct(1), now: t0)
+        let data = try HabitCodec.encode(try #require(habits[id]))
+        #expect(try HabitCodec.decode(data, formatVersion: 2) == habits[id])
+        #expect(throws: HabitCodec.Error.newerFormat(3)) { try HabitCodec.decode(data, formatVersion: 3) }
+        #expect(throws: (any Error).self) { try HabitCodec.decode(data.prefix(data.count / 2), formatVersion: 2) }
+    }
+
     @Test func savedHabitsLoadBackUnchanged() throws {
         var habits = Habits()
-        let id = habits.add(HabitDraft(name: "Run", note: "5k", days: [6, 1]), today: oct(1))
-        habits.toggle(id, on: oct(2), today: oct(29))
-        habits.update(id, with: HabitDraft(name: "Run", note: "5k", days: [2]), today: oct(20))
-        habits.add(HabitDraft(name: "Read", note: "", days: Set(1...7)), today: oct(3))
+        let id = habits.add(HabitDraft(name: "Run", note: "5k", days: [6, 1]), today: oct(1), now: t0)
+        habits.toggle(id, on: oct(2), today: oct(29), now: t0)
+        habits.setDetails(id, HabitDraft(name: "Run", note: "5k", days: [2]), today: oct(20), now: t0)
+        habits.add(HabitDraft(name: "Read", note: "", days: Set(1...7)), today: oct(3), now: t0)
+        let gone = habits.add(HabitDraft(name: "Swim", note: "", days: [2]), today: oct(3), now: t0)
+        habits.toggle(id, on: oct(2), today: oct(29), now: t0.addingTimeInterval(0.0004))  // an uncheck, sub-ms
+        habits.delete(gone, now: t0)
 
         let store = HabitStore(directory: directory)
         #expect(store.load() == .empty)
@@ -59,16 +119,17 @@ struct HabitStoreTests {
 
     @Test func savedFileIsSortedAndReadable() throws {
         var habits = Habits()
-        let id = habits.add(HabitDraft(name: "Run", note: "", days: [1, 6]), today: oct(1))
-        habits.toggle(id, on: oct(4), today: oct(29))
-        habits.toggle(id, on: oct(2), today: oct(29))
+        let id = habits.add(HabitDraft(name: "Run", note: "", days: [1, 6]), today: oct(1), now: t0)
+        habits.toggle(id, on: oct(4), today: oct(29), now: t0)
+        habits.toggle(id, on: oct(2), today: oct(29), now: t0)
         let store = HabitStore(directory: directory)
         _ = store.load()
         try store.save(habits)
         let text = try String(contentsOf: file, encoding: .utf8)
-        #expect(text.contains("\"formatVersion\" : 1"))
+        #expect(text.contains("\"formatVersion\" : 2"))
         #expect(text.range(of: "\"sun\"[\\s,]+\"fri\"", options: .regularExpression) != nil)  // week order
-        #expect(text.range(of: "\"2026-10-02\"[\\s,]+\"2026-10-04\"", options: .regularExpression) != nil)
+        // oldest first
+        #expect(text.range(of: "\"2026-10-02\"[\\s\\S]*\"2026-10-04\"", options: .regularExpression) != nil)
     }
 
     @Test func missingFileLoadsEmpty() {
@@ -87,7 +148,7 @@ struct HabitStoreTests {
     }
 
     @Test func newerFormatIsNeverOverwritten() throws {
-        let newer = #"{ "formatVersion": 2, "habits": [] }"#
+        let newer = #"{ "formatVersion": 3, "habits": [] }"#
         try write(newer)
         let store = HabitStore(directory: directory)
         guard case .unreadable = store.load() else {
@@ -165,7 +226,8 @@ struct HabitStoreTests {
         let store = HabitStore(directory: directory)
         _ = store.load()
         var habits = Habits()
-        habits.add(HabitDraft(name: String(repeating: "Long name ", count: 4), note: "", days: [1]), today: oct(1))
+        habits.add(
+            HabitDraft(name: String(repeating: "Long name ", count: 4), note: "", days: [1]), today: oct(1), now: t0)
         try store.save(habits)
         try store.save(Habits())
         #expect(HabitStore(directory: directory).load() == .loaded(Habits()))
