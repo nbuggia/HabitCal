@@ -6,7 +6,8 @@ rigor: Complex
 trigger: "not revertible: changes the saved data format (habits.json v2); contract: adds synced records other HabitCal versions read; risky ground: new iCloud entitlements and background concurrency"
 date: 2026-11-01
 review iteration: 2
-status: Draft
+status: Blocked
+Blocked: blocker verification found three BLOCKERs in the createdAt / importedAt / ignore-rule mechanism (§15 rows 18–20); the review budget is spent, so it goes to the customer with a proposal to narrow import (§3)
 ---
 
 # Tech Design: iCloud Sync Across Macs
@@ -33,6 +34,8 @@ Non-Goals:
 
 - **Push delivery (B.2).** `CKSyncEngine` fetches on CloudKit pushes. The spike didn't prove that pushes arrive (one Mac). The design doesn't depend on it: a 60 s fetch backs it up (§6, "Fetch fallback"). Slice 2's manual check (CloudKit Console edit → change shows within a minute) records whether push works; if it does, the fallback stays as a safety net.
 - **Release signing.** Xcode's command line couldn't make a Developer ID profile (spike). The release profile for `com.muchfiner.HabitCal` with iCloud is made at developer.apple.com by the customer, as for the spike. That's a T-005 step, not a blocker here.
+
+- **Rework proposal (for the customer).** Every blocker after pass 1 comes from one field, `createdAt`, doing three jobs: ordering, deletion, and the import epoch, through the ignore rule. Making import create its habits under **new IDs**, after marking every known habit deleted, removes `importedAt`, the ignore rule, and every `createdAt` clamp. Deletion alone then handles a restore. The cost is one conflict-table row: a habit added on another Mac before the import, which the importing Mac didn't know about, survives the restore instead of being removed.
 
 ## 4. Requirements
 
@@ -340,6 +343,10 @@ Direct ship, no flag: v1 isn't released, so no user has v1 data or a v1 build. S
 | 15 | E.10 fallback only on a write failure | MAJOR | Lost change after a quick quit | ACCEPT | | Re-queue at every start against lastSentAt | | Pass 2 |
 | 16 | B.8a can leave no days today | MINOR | Habit hidden; form refuses edits | ACCEPT | | Entry at today with the winner's days | | Pass 2 |
 | 17 | Lasting Changes and changed existing API unstated | MINOR | Merge invariant lost later; bigger slice 1 | ACCEPT | | §6 "Existing API that changes", §16 rows | Yes | Pass 2 |
+| 18 | Ongoing merge (later createdAt) undoes the first-sync earlier createdAt: older check-offs vanish on every Mac | BLOCKER | B.7/B.21 history loss | OPEN | Budget spent | Customer: narrow import (§3) or rework | Yes | Blocker verification |
+| 19 | Raising deletedAt to importedAt at first sync deletes an imported habit everywhere | BLOCKER | Restore undone everywhere | OPEN | | As above | Yes | Blocker verification |
+| 20 | Per-batch first sync: the Library record arriving late lets the importedAt raise revive import-hidden habits | BLOCKER | B.13 broken | OPEN | | As above | | Blocker verification |
+| 21 | Sends held until first sync have no trigger once it finishes | MAJOR | Joining Mac's habits wait for the next change | ACCEPT | | `SyncPolicy` "send now" when the flag is set | | Blocker verification |
 
 ## 16. Lasting Changes
 
