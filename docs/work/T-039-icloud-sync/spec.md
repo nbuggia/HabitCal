@@ -114,7 +114,7 @@ B.10 THE SYSTEM SHALL resolve "later" by when the change was made on its Mac, no
 
 B.11 WHEN a habit open in the Edit form is changed on another Mac THE SYSTEM SHALL keep the field the user is editing as they left it, and apply the other changes. An edit in the form changes only the field the user changed (name, note, or days); changes from other Macs to other fields, to other habits, and check-offs arriving while the form is open are kept and shown. WHEN the habit is deleted on another Mac THE SYSTEM SHALL close the form and show the list.
 
-B.12 THE SYSTEM SHALL keep the list in the order habits were added, the same on every Mac. Merged habits are ordered by date added; on a tie, the habit that was in iCloud first comes first. The order may change once, at the first merge.
+B.12 THE SYSTEM SHALL keep the list in the order habits were added, the same on every Mac. Merged habits are ordered by date added; ties fall in one fixed order, the same on every Mac. The order may change once, at the first merge. (Narrowed in design review: "in iCloud first" isn't known the same way on every Mac.)
 
 ### New: import and delete everywhere
 
