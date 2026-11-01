@@ -51,12 +51,10 @@ HabitCal is a free macOS menu bar app for people building daily habits. The menu
 **For:** someone building a few recurring habits — some daily, some on specific weekdays.
 **Why it matters:** checking off a habit has to be quicker than skipping it, or the tracking stops.
 
-The list shows the habits due today; the others fold into a quiet "N not due today" row that opens to show them, so today's list stays short (T-012).
+The list shows only the habits due on the day shown, so it stays short; a habit not due today is seen and edited by selecting one of its days in the calendar (T-036). Edits save as they're made (T-038).
 
 ### Not Doing
 - Habit categories or journaling — keep the list short and flat. An optional note per habit ("3 sets of 20") is fine (D-003).
-- Hiding not-due habits with no way back — they couldn't be edited that day (T-012).
-- Remembering whether the "N not due today" row is open (T-012).
 
 ## Feature: Streaks
 

@@ -193,35 +193,35 @@ struct HabitTests {
         #expect(HabitLabels.stripTooltip(oct(31), .futureNotScheduled) == "Oct 31 · not scheduled")
         #expect(HabitLabels.stripSpoken(oct(5), .done) == "October 5, done")
         #expect(
-            HabitLabels.doneButtonSpoken(name: "Push-ups", dueToday: true, doneToday: true) == "Push-ups, done today")
+            HabitLabels.doneButtonSpoken(name: "Push-ups", doneToday: true) == "Push-ups, done today")
         #expect(
-            HabitLabels.doneButtonSpoken(name: "Push-ups", dueToday: true, doneToday: false)
+            HabitLabels.doneButtonSpoken(name: "Push-ups", doneToday: false)
                 == "Push-ups, not done today")
-        #expect(
-            HabitLabels.doneButtonSpoken(name: "Push-ups", dueToday: false, doneToday: false)
-                == "Push-ups, not scheduled today")
-        #expect(HabitLabels.doneButtonTooltip(dueToday: true, doneToday: false) == "Mark done today")
-        #expect(HabitLabels.doneButtonTooltip(dueToday: true, doneToday: true) == "Done today — click to undo")
-        #expect(HabitLabels.doneButtonTooltip(dueToday: false, doneToday: false) == "Not scheduled today")
+        #expect(HabitLabels.doneButtonTooltip(doneToday: false) == "Mark done today")
+        #expect(HabitLabels.doneButtonTooltip(doneToday: true) == "Done today — click to undo")
         #expect(HabitLabels.editSpoken(name: "Push-ups") == "Edit Push-ups")
     }
 
-    @Test func dueAndNotDueSplitTheListInOrderAdded() {
+    @Test func replacePutsAHabitBackInPlaceAndIgnoresADeletedOne() {
+        var habits = Habits()
+        let run = habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: oct(1))
+        habits.add(HabitDraft(name: "Read", note: "", days: Set(1...7)), today: oct(1))
+        var renamed = habits[run]!
+        renamed.name = "Long run"
+        habits.replace(renamed)
+        #expect(habits.all.map(\.name) == ["Long run", "Read"])
+        habits.delete(run)
+        habits.replace(renamed)
+        #expect(habits.all.map(\.name) == ["Read"])
+    }
+
+    @Test func listShowsOnlyHabitsDueThatDayInOrderAdded() {
         var habits = Habits()
         habits.add(HabitDraft(name: "Push-ups", note: "", days: Set(1...7)), today: oct(1))
         habits.add(HabitDraft(name: "Run", note: "", days: [fri, sun]), today: oct(1))
         habits.add(HabitDraft(name: "Read", note: "", days: [5]), today: oct(1))  // Thursday
         habits.add(HabitDraft(name: "Swim", note: "", days: [sun]), today: oct(1))
         #expect(habits.dueOn(today).map(\.name) == ["Push-ups", "Read"])
-        #expect(habits.notDueOn(today).map(\.name) == ["Run", "Swim"])
         #expect(habits.dueOn(oct(25)).map(\.name) == ["Push-ups", "Run", "Swim"])  // a Sunday
-        #expect(habits.notDueOn(oct(25)).map(\.name) == ["Read"])
-    }
-
-    @Test func notDueRowLabelsCountHabits() {
-        #expect(HabitLabels.notDueRowTitle(count: 1) == "1 not due today")
-        #expect(HabitLabels.notDueRowTitle(count: 3) == "3 not due today")
-        #expect(HabitLabels.notDueRowSpoken(count: 1) == "1 habit not due today")
-        #expect(HabitLabels.notDueRowSpoken(count: 3) == "3 habits not due today")
     }
 }

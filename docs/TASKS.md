@@ -62,6 +62,12 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-033 Week start is a pop-up menu; no Mac-setting captions or Use Mac setting; no ⌘Q label on Quit · medium · done 2026-10-31
       Once the user picks a day, it no longer follows the Mac. ⌘Q still quits (CONTRACTS.md).
 - [x] T-034 Bug: today's strip ring is clipped on the right on the month's last day · high · done 2026-10-31
+- [x] T-036 The list shows only habits due on the day shown; the "N not due" row is removed · high · done 2026-11-01
+      UI tests written, not yet run.
+- [x] T-037 Bug: screens taller than the list were clipped (the form's delete confirmation) · high · done 2026-11-01
+      Regression from T-032. UI tests written, not yet run.
+- [x] T-038 Edits save as they're made; Save removed, Cancel is Close · high · done 2026-11-01
+      UI tests written, not yet run. T-039 B.11 will narrow each edit to the changed field.
 - [ ] T-035 Export and import habit data from Settings · high
       Customer, 2026-10-31: so people can take their habit data with them. Complex: import replaces saved data, the exported file is a contract, and the sandbox needs user-selected file access (D-007). Spec next.
 - [ ] T-039 Sync habits across Macs with CloudKit · high

@@ -23,9 +23,9 @@ struct PopoverRoot: View {
                     } action: {
                         listHeight = $0
                     }
-            case .settings: SettingsScreen().frame(minHeight: listHeight, alignment: .top)
-            case .form: HabitFormScreen().frame(minHeight: listHeight, alignment: .top)
-            case .leaderboard: LeaderboardScreen().frame(minHeight: listHeight, alignment: .top)
+            case .settings: SettingsScreen().modifier(AtLeastListHeight(height: listHeight))
+            case .form: HabitFormScreen().modifier(AtLeastListHeight(height: listHeight))
+            case .leaderboard: LeaderboardScreen().modifier(AtLeastListHeight(height: listHeight))
             }
         }
         .id(model.openGeneration)
@@ -35,5 +35,18 @@ struct PopoverRoot: View {
         // dropped or passed down to the children.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("habitcalPanel")
+    }
+}
+
+/// At least `height` tall, and taller when the content needs it. `fixedSize` asks the content for its
+/// own height first: the panel proposes its current height, and `frame(minHeight:)` alone would take
+/// that and clip taller content, such as the form's delete confirmation (T-037).
+private struct AtLeastListHeight: ViewModifier {
+    let height: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .frame(minHeight: height, alignment: .top)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

@@ -50,8 +50,9 @@ final class AppModel {
         static let launchAtLoginInitialized = "launchAtLoginInitialized"
     }
 
-    /// Today on the Mac's calendar. Only `DayWatcher` sets it. A new day can fold away the habit
-    /// whose strip has focus, so the popover takes focus back (T-012 B.5, FM-006).
+    /// Today on the Mac's calendar. Only `DayWatcher` sets it. A new day can take the habit whose
+    /// strip has focus out of the list, so the popover takes focus back (T-036, FM-006). Whether the
+    /// hook is still needed under the MenuBarExtra is T-029's open question.
     var today: Day {
         didSet { if today != oldValue { listDidHideRows() } }
     }
@@ -70,8 +71,6 @@ final class AppModel {
     /// The user's habits. Changed only through the methods below, each of which saves (T-003 B.18).
     private(set) var habits: Habits
     private(set) var dataState: DataState
-    /// Whether the habits not due today are shown under the folded row. Closed on every open (T-012 B.2).
-    private(set) var showsNotDue = false
     /// The leaderboard's range; it opens on the past 7 days (T-016 B.6).
     private(set) var leaderboardRange: ConsistencyRange = .past7
     /// The open form, while `screen == .form`.
@@ -133,7 +132,7 @@ final class AppModel {
     func resetForOpen() {
         openGeneration += 1
         form = nil
-        showsNotDue = false
+        formStart = nil
         selectedDay = nil
         screen = .list
         displayedMonth = Month(today)
@@ -175,7 +174,7 @@ final class AppModel {
             closeSettings()
             return .handled
         case .form:
-            cancelForm()
+            closeForm()
             return .handled
         case .leaderboard:
             closeLeaderboard()
@@ -184,13 +183,6 @@ final class AppModel {
     }
 
     // MARK: Habits
-
-    func toggleNotDue() {
-        showsNotDue.toggle()
-        if !showsNotDue {
-            listDidHideRows()
-        }
-    }
 
     /// Toggles the shown day's check-off from the done button (T-003 B.4, T-022 B.4). Future and
     /// not-due days are refused by `Habits.toggle`.
@@ -231,9 +223,16 @@ final class AppModel {
         screen = .form
     }
 
+    /// The edited habit as it was when the Edit form opened. Every edit is applied to it afresh and
+    /// put back in place of the current one, so undoing a change in the form undoes it in the data
+    /// too: unticking today's day and ticking it back restores today's check-off, which
+    /// `Habits.update` drops when today stops being due. Other habits aren't touched (T-038).
+    private var formStart: Habit?
+
     /// The form filled with the habit's name, current days, and note (B.9).
     func openEditForm(_ id: UUID) {
         guard let habit = habits[id] else { return }
+        formStart = habit
         form = HabitForm(
             mode: .edit(id), draft: HabitDraft(name: habit.name, note: habit.note, days: habit.days(today: today)))
         screen = .form
@@ -245,11 +244,20 @@ final class AppModel {
         form?.confirmingDelete = true
     }
 
-    /// Edits the draft, cut to the length limits (E.4).
+    /// Edits the draft, cut to the length limits (E.4). In the Edit form a valid draft is saved at
+    /// once; an invalid one (no name, no days) isn't, and the last valid one stays saved (T-038).
     func updateDraft(_ change: (inout HabitDraft) -> Void) {
         guard var draft = form?.draft else { return }
         change(&draft)
         form?.draft = draft.clamped
+        guard let form, case .edit(let id) = form.mode, form.draft.isValid, let start = formStart,
+            habits[id] != nil
+        else { return }
+        var scratch = Habits([start])
+        scratch.update(id, with: form.draft, today: today)
+        guard let edited = scratch[id] else { return }
+        habits.replace(edited)
+        persist()
     }
 
     func setConfirmingDelete(_ confirming: Bool) {
@@ -258,29 +266,19 @@ final class AppModel {
 
     /// Whether the form's days differ from the habit's current ones, for the "starts today" hint.
     var formChangesSchedule: Bool {
-        guard let form, case .edit(let id) = form.mode, let habit = habits[id] else { return false }
+        guard let form, case .edit = form.mode, let habit = formStart else { return false }
         return form.draft.days != habit.days(today: today)
     }
 
-    /// Add or Save (B.11). Does nothing until the draft is valid (B.10). A habit saved that isn't due
-    /// on the day the list shows opens the folded row, so it doesn't vanish (T-012 B.4, T-022).
+    /// Add, or Return in the name field (B.11). Adding waits for a valid draft (B.10). In the Edit form
+    /// every change is already saved, so this just closes it (T-038).
     func saveForm() {
-        guard let form, form.draft.isValid else { return }
-        let id: UUID
-        switch form.mode {
-        case .add: id = habits.add(form.draft, today: today)
-        case .edit(let edited):
-            id = edited
-            habits.update(edited, with: form.draft, today: today)
+        guard let form else { return }
+        if form.mode == .add {
+            guard form.draft.isValid else { return }
+            habits.add(form.draft, today: today)
+            persist()
         }
-        if habits[id]?.isDue(on: shownDay) == false {
-            showsNotDue = true
-        }
-        persist()
-        closeForm()
-    }
-
-    func cancelForm() {
         closeForm()
     }
 
@@ -292,8 +290,10 @@ final class AppModel {
         closeForm()
     }
 
-    private func closeForm() {
+    /// Close, or Esc: discards a new habit; an edit is already saved (T-038).
+    func closeForm() {
         form = nil
+        formStart = nil
         screen = .list
     }
 

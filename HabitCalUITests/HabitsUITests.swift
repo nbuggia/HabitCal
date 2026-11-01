@@ -52,68 +52,50 @@ final class HabitsUITests: HabitCalUITestCase {
         XCTAssertTrue(element("Push-ups, not done today").waitForExistence(timeout: 5), "second click didn't undo")
     }
 
-    func testHabitsNotDueTodayFoldIntoARow() {
+    func testHabitsNotDueTodayAreNotListed() {
         launch(seed: Self.seed)
         openPopover()
         XCTAssertTrue(element("Push-ups, not done today").exists)
-        XCTAssertFalse(element("Edit Run").exists, "Run isn't due on Thursday, so it starts folded away")
-        XCTAssertEqual(notDueRow.label, "1 habit not due today")
-        XCTAssertEqual(notDueRow.value as? String, "collapsed")
-
-        notDueRow.click()
-        XCTAssertTrue(element("Run, not scheduled today").waitForExistence(timeout: 5), "folded row didn't open")
-        XCTAssertEqual(notDueRow.value as? String, "expanded")
-        clickStripDay("Run", day: 25)  // a Sunday: past days still fix from the strip (B.6)
-        XCTAssertEqual(stripValue("Run"), "October 25, done")
-        notDueRow.click()
-        XCTAssertFalse(element("Edit Run").exists, "folded row didn't close")
-
-        // It starts closed on every open.
-        notDueRow.click()
-        statusItem.click()
-        Thread.sleep(forTimeInterval: 0.5)
-        openPopover()
-        XCTAssertEqual(notDueRow.value as? String, "collapsed")
-        XCTAssertFalse(element("Edit Run").exists)
+        XCTAssertFalse(element("Edit Run").exists, "Run isn't due on Thursday, so it isn't listed")
+        XCTAssertFalse(text("1 not due today").exists, "no folded row")
+        showRunsSunday()
     }
 
-    func testEscStillClosesAfterFoldingAwayTheFocusedStrip() {
+    func testEscStillClosesAfterTheFocusedStripLeavesTheList() {
         launch(seed: Self.seed)
         openPopover()
-        showNotDue()
+        showRunsSunday()
         // Tab until ← moves Run's day: proof Run's strip has keyboard focus.
         var focused = false
         for _ in 0..<8 {
             app.typeKey(.tab, modifierFlags: [])
             app.typeKey(.leftArrow, modifierFlags: [])
-            if stripValue("Run") == "October 28, not scheduled" {
+            if stripValue("Run") == "October 24, not scheduled" {
                 focused = true
                 break
             }
         }
         XCTAssertTrue(focused, "Run's strip never took keyboard focus")
-        notDueRow.click()
-        XCTAssertFalse(element("Edit Run").exists, "folded row didn't close")
+        popover.buttons["Today"].click()  // Run isn't due today, so its row (and focus) leaves the list
+        XCTAssertFalse(element("Edit Run").exists, "Run should leave the list")
         app.typeKey(.escape, modifierFlags: [])
-        XCTAssertTrue(popover.waitForNonExistence(timeout: 5), "Esc didn't close the popover")
+        XCTAssertTrue(popover.waitForNonExistence(timeout: 5), "Esc didn't close the popover (FM-006)")
     }
 
-    func testNothingDueTodayShowsAboveTheFoldedRow() {
+    func testNothingDueTodayWhenNoHabitIsDue() {
         let runOnly = Self.seed.replacingOccurrences(of: "\"Push-ups\"", with: "\"Swim\"")
             .replacingOccurrences(
                 of: "[\"sun\", \"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\"]", with: "[\"sat\"]")
         launch(seed: runOnly)
         openPopover()
         XCTAssertTrue(text("Nothing due today").exists, "no Nothing due today")
-        XCTAssertEqual(notDueRow.label, "2 habits not due today")
-        XCTAssertLessThan(text("Nothing due today").frame.minY, notDueRow.frame.minY, "should sit above the folded row")
         XCTAssertFalse(text("No habits").exists)
     }
 
     func testFixingAMissedDayInTheStrip() {
         launch(seed: Self.seed)
         openPopover()
-        showNotDue()
+        showRunsSunday()
         clickStripDay("Run", day: 25)  // a Sunday
         XCTAssertEqual(stripValue("Run"), "October 25, done")
         clickStripDay("Run", day: 26)  // Monday: not due, nothing happens
@@ -138,8 +120,7 @@ final class HabitsUITests: HabitCalUITestCase {
         launch(dataFolder: folder)
         openPopover()
         XCTAssertTrue(element("Push-ups, done today").exists, "check-off didn't survive a relaunch")
-        showNotDue()
-        XCTAssertTrue(element("Edit Run").waitForExistence(timeout: 5))
+        showRunsSunday()
     }
 
     func testStripIsOneTabStopThatArrowsAndSpaceDrive() {
@@ -181,15 +162,13 @@ final class HabitsUITests: HabitCalUITestCase {
     func testHabitControlsHaveSpokenLabels() {
         launch(seed: Self.seed)
         openPopover()
-        XCTAssertTrue(element("1 habit not due today").exists, "missing the folded row's label")
-        showNotDue()
-        for label in ["Add habit", "Edit Push-ups", "Push-ups, not done today", "Run, not scheduled today"] {
+        for label in ["Add habit", "Edit Push-ups", "Push-ups, not done today"] {
             XCTAssertTrue(element(label).exists, "missing \(label)")
         }
         XCTAssertEqual(strip("Push-ups").label, "Push-ups, October 2026")
 
         popover.buttons["Edit Push-ups"].click()
-        for label in ["Name", "Notes", "Cancel", "Save", "Delete habit"] + ["Sunday", "Monday", "Saturday"] {
+        for label in ["Name", "Notes", "Close", "Delete habit"] + ["Sunday", "Monday", "Saturday"] {
             XCTAssertTrue(element(label).waitForExistence(timeout: 5), "missing \(label)")
         }
         XCTAssertTrue(popover.buttons["Monday"].isSelected, "selected days should say so")
@@ -205,7 +184,7 @@ final class HabitsUITests: HabitCalUITestCase {
         XCTAssertEqual(streaks.label, "Current streak 1 day, best streak 1 day")
         clickStripDay("Push-ups", day: 28)
         XCTAssertEqual(streaks.label, "Current streak 3 days, best streak 3 days")
-        showNotDue()
+        showRunsSunday()
         XCTAssertEqual(
             popover.descendants(matching: .any)["streaks-Run"].label, "Current streak 0 days, best streak 0 days")
     }

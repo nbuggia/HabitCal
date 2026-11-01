@@ -82,25 +82,16 @@ struct HabitListScreen: View {
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    // The shown day's habits; the rest fold into a row under them (T-012, T-022).
-                    let onToday = model.shownDay == model.today
+                    // Only the shown day's habits. The rest show on days they're due: select one in
+                    // the calendar to see or edit them (T-036, T-022).
                     let due = model.habits.dueOn(model.shownDay)
-                    let notDue = model.habits.notDueOn(model.shownDay)
                     ForEach(due) { habit in
                         HabitRow(habit: habit)
                     }
                     if due.isEmpty {
-                        Text(HabitLabels.nothingDue(onToday: onToday))
+                        Text(HabitLabels.nothingDue(onToday: model.shownDay == model.today))
                             .font(.callout)
                             .foregroundStyle(.secondary)
-                    }
-                    if !notDue.isEmpty {
-                        notDueRow(count: notDue.count, onToday: onToday)
-                        if model.showsNotDue {
-                            ForEach(notDue) { habit in
-                                HabitRow(habit: habit)
-                            }
-                        }
                     }
                 }
                 // Room inside the scroll view's clip for what draws past a row's edges: today's
@@ -118,22 +109,5 @@ struct HabitListScreen: View {
             // Gives back the side padding above, so the rows still line up with the calendar (T-024).
             .padding(.horizontal, -3)
         }
-    }
-
-    private func notDueRow(count: Int, onToday: Bool) -> some View {
-        Button {
-            model.toggleNotDue()
-        } label: {
-            HStack(spacing: 4) {
-                Text(HabitLabels.notDueRowTitle(count: count, onToday: onToday))
-                PhosphorIcon(model.showsNotDue ? "caret-down" : "caret-right", size: 11)
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.hover(outset: 3))
-        .accessibilityLabel(HabitLabels.notDueRowSpoken(count: count, onToday: onToday))
-        .accessibilityValue(model.showsNotDue ? "expanded" : "collapsed")
     }
 }

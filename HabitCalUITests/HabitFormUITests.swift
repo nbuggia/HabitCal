@@ -29,11 +29,12 @@ final class HabitFormUITests: HabitCalUITestCase {
         XCTAssertTrue(popover.buttons["Add"].isEnabled)
         popover.buttons["Add"].click()
 
-        // Run isn't due on Thursday: the folded row opens so it stays in view (T-012 B.4).
-        XCTAssertTrue(row("Run").waitForExistence(timeout: 5), "new habit not in the list")
+        // Run isn't due on Thursday, so it isn't listed; it shows on its days (T-036).
+        XCTAssertTrue(popover.staticTexts["calendarTitle"].waitForExistence(timeout: 5), "didn't return to the list")
+        XCTAssertFalse(row("Run").exists, "Run isn't due today")
+        element("Friday, October 30, 2026").click()
+        XCTAssertTrue(row("Run").waitForExistence(timeout: 5), "new habit not on its Friday")
         XCTAssertEqual(row("Run").value as? String, "Fri, Sun", "wrong schedule label")
-        XCTAssertTrue(element("Run, not scheduled today").exists)
-        XCTAssertEqual(notDueRow.value as? String, "expanded")
     }
 
     func testAddIsDisabledWithoutADay() {
@@ -72,7 +73,7 @@ final class HabitFormUITests: HabitCalUITestCase {
     func testEditingAHabitRenamesItAndChangesItsDays() {
         launch(seed: HabitsUITests.seed)
         openPopover()
-        showNotDue()
+        showRunsSunday()
         popover.buttons["Edit Run"].click()
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         XCTAssertEqual(nameField.value as? String, "Run")
@@ -81,31 +82,40 @@ final class HabitFormUITests: HabitCalUITestCase {
         XCTAssertEqual(nameField.value as? String, "Long run")
         popover.buttons["Monday"].click()
         XCTAssertTrue(text("The new schedule starts today. Past days, and your streak, keep the old one.").exists)
-        popover.buttons["Save"].click()
+        XCTAssertFalse(popover.buttons["Save"].exists, "edits save as they're made (T-038)")
+        popover.buttons["Close"].click()
 
         XCTAssertTrue(row("Long run").waitForExistence(timeout: 5))
         XCTAssertEqual(row("Long run").value as? String, "Mon, Fri, Sun")
     }
 
-    func testSavingAHabitNotDueTodayOpensTheFoldedRow() {
+    func testEditsSaveAsTheyAreMadeAndSurviveAClose() {
         launch(seed: HabitsUITests.seed)
         openPopover()
-        XCTAssertEqual(notDueRow.value as? String, "collapsed")
         popover.buttons["Edit Push-ups"].click()
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
-        for day in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] {
-            popover.buttons[day].click()  // leaves Saturday only
-        }
-        popover.buttons["Save"].click()
-        XCTAssertTrue(row("Push-ups").waitForExistence(timeout: 5), "edited habit vanished from the list")
-        XCTAssertEqual(notDueRow.value as? String, "expanded")
-        XCTAssertEqual(notDueRow.label, "2 habits not due today")
+        app.typeText("Squats")
+        app.typeKey(.escape, modifierFlags: [])  // Esc closes like Close; the edit is already saved
+        XCTAssertTrue(row("Squats").waitForExistence(timeout: 5), "the rename wasn't saved")
+    }
+
+    func testUntickingTodayAndTickingItBackKeepsTodaysCheckOff() {
+        launch(seed: HabitsUITests.seed)
+        openPopover()
+        element("Push-ups, not done today").click()
+        XCTAssertTrue(element("Push-ups, done today").waitForExistence(timeout: 5))
+        popover.buttons["Edit Push-ups"].click()
+        XCTAssertTrue(nameField.waitForExistence(timeout: 5))
+        popover.buttons["Thursday"].click()  // today stops being due...
+        popover.buttons["Thursday"].click()  // ...and is due again
+        popover.buttons["Close"].click()
+        XCTAssertTrue(element("Push-ups, done today").waitForExistence(timeout: 5), "today's check-off was lost")
     }
 
     func testDeletingAHabitAsksFirstThenRemovesIt() {
         launch(seed: HabitsUITests.seed)
         openPopover()
-        showNotDue()
+        showRunsSunday()
         row("Run").rightClick()
         let deleteItem = app.menuItems["Delete…"]
         XCTAssertTrue(deleteItem.waitForExistence(timeout: 5), "right-click menu missing Delete…")
@@ -120,15 +130,19 @@ final class HabitFormUITests: HabitCalUITestCase {
     func testCancellingTheDeleteConfirmationKeepsTheHabit() {
         launch(seed: HabitsUITests.seed)
         openPopover()
-        showNotDue()
+        showRunsSunday()
+        let listHeight = popover.frame.height
         popover.buttons["Edit Run"].click()
         popover.buttons["Delete habit"].click()
         XCTAssertTrue(text("Delete “Run”?").waitForExistence(timeout: 5))
+        // The panel grows to fit the confirmation instead of clipping it (T-037).
+        let delete = popover.buttons["Delete"]
+        XCTAssertTrue(popover.frame.contains(delete.frame), "Delete is cut off by the panel")
+        XCTAssertGreaterThanOrEqual(popover.frame.height, listHeight)
         popover.buttons["confirmCancel"].click()
         XCTAssertFalse(text("Delete “Run”?").exists)
-        // Both buttons say "Cancel": wait for the confirmation's to go, or the click can land on it.
         XCTAssertTrue(popover.buttons["confirmCancel"].waitForNonExistence(timeout: 5))
-        popover.buttons["Cancel"].click()
+        popover.buttons["Close"].click()
         XCTAssertTrue(row("Run").waitForExistence(timeout: 5))
     }
 

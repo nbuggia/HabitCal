@@ -73,7 +73,7 @@ B.8 WHEN the import goes ahead THE SYSTEM SHALL replace every habit with the fil
 
 B.9 THE SYSTEM SHALL accept for import exactly the files it would accept as its own saved data: any format version it knows, migrated as on load (CONTRACTS.md, "Saved habit data").
 
-B.10 WHEN an import adds a habit that isn't due on the day shown THE SYSTEM SHALL fold it into the "N not due" row as usual (T-012).
+B.10 WHEN an import adds a habit that isn't due on the day shown THE SYSTEM SHALL leave it out of the list, as for any habit not due that day (T-036).
 
 B.15 THE SYSTEM SHALL read or write only the file the user picks in the dialog, only while carrying out that export or import, and keep no access to it or its folder afterwards.
 Why: the sandbox kept HabitCal to its own container (D-007); this is the smallest widening the feature needs (review finding 2).

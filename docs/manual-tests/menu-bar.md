@@ -44,7 +44,7 @@
 1. Leave it open across midnight.
 2. Press Esc.
 
-**Expect:** within a minute, the filled square moves to the new day and the popover stays open. The displayed month doesn't change, even on the 1st. The first habit moves into the "not due today" row and the second moves up into the list (T-012 B.5). Esc then closes the popover.
+**Expect:** within a minute, the filled square moves to the new day and the popover stays open. The displayed month doesn't change, even on the 1st. The first habit leaves the list and the second appears in it (T-036). Esc then closes the popover.
 
 ## The calendar follows the Mac's first day of the week
 

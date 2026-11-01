@@ -48,44 +48,32 @@ struct HabitRow: View {
     }
 }
 
-/// The round button that checks off the shown day (today, or the day selected in the calendar);
-/// a dashed circle on a day the habit isn't due. Dimmed and inert on a future day (T-022 B.5).
+/// The round button that checks off the shown day (today, or the day selected in the calendar).
+/// Only habits due that day are listed (T-036). Dimmed and inert on a future day (T-022 B.5).
 private struct DoneButton: View {
     @Environment(AppModel.self) private var model
     let habit: Habit
 
     var body: some View {
         let day = model.shownDay
-        let due = habit.isDue(on: day)
         let done = habit.isDone(on: day)
-        let spoken = HabitLabels.doneButtonSpoken(name: habit.name, day: day, today: model.today, due: due, done: done)
-        let tooltip = HabitLabels.doneButtonTooltip(day: day, today: model.today, due: due, done: done)
-        if due {
-            Button {
-                model.toggleShownDay(habit.id)
-            } label: {
-                ZStack {
-                    Circle().strokeBorder(done ? Color.clear : Color.secondary, lineWidth: 1.5)
-                    if done {
-                        Circle().fill(Color.green)
-                        PhosphorIcon("check", size: 13).foregroundStyle(.white)
-                    }
+        Button {
+            model.toggleShownDay(habit.id)
+        } label: {
+            ZStack {
+                Circle().strokeBorder(done ? Color.clear : Color.secondary, lineWidth: 1.5)
+                if done {
+                    Circle().fill(Color.green)
+                    PhosphorIcon("check", size: 13).foregroundStyle(.white)
                 }
-                .frame(width: 24, height: 24)
-                .contentShape(Circle())
             }
-            .buttonStyle(.hover(cornerRadius: 12, overLabel: true))
-            .disabled(day > model.today)
-            .help(tooltip)
-            .accessibilityLabel(spoken)
-        } else {
-            Circle()
-                .strokeBorder(Color.secondary.opacity(0.6), style: StrokeStyle(lineWidth: 1.5, dash: [3, 2.5]))
-                .frame(width: 24, height: 24)
-                .help(tooltip)
-                .accessibilityElement()
-                .accessibilityLabel(spoken)
+            .frame(width: 24, height: 24)
+            .contentShape(Circle())
         }
+        .buttonStyle(.hover(cornerRadius: 12, overLabel: true))
+        .disabled(day > model.today)
+        .help(HabitLabels.doneButtonTooltip(day: day, today: model.today, done: done))
+        .accessibilityLabel(HabitLabels.doneButtonSpoken(name: habit.name, day: day, today: model.today, done: done))
     }
 }
 

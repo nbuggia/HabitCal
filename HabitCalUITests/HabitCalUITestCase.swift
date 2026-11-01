@@ -46,15 +46,11 @@ class HabitCalUITestCase: XCTestCase {
         XCTAssertTrue(popover.waitForExistence(timeout: 5), "popover didn't open")
     }
 
-    /// The row that folds away the habits not due today (T-012), by its spoken label.
-    var notDueRow: XCUIElement {
-        popover.buttons.matching(NSPredicate(format: "label ENDSWITH %@", "not due today")).firstMatch
-    }
-
-    /// Shows the habits not due today, such as Run on the tests' Thursday.
-    func showNotDue() {
-        XCTAssertTrue(notDueRow.exists, "no folded row")
-        notDueRow.click()
+    /// Selects Sunday, October 25 in the calendar, a day Run is due. On the tests' Thursday Run isn't
+    /// due, so it isn't listed (T-036).
+    func showRunsSunday() {
+        element("Sunday, October 25, 2026").click()
+        XCTAssertTrue(element("Edit Run").waitForExistence(timeout: 5), "Run isn't listed on its Sunday")
     }
 
     /// Any element in the popover with this accessibility label.

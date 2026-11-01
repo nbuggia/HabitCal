@@ -7,9 +7,9 @@
 **Setup:** a few habits, some done, some missed, one not due today.
 
 1. Look at the popover in light mode, dark mode, and with Increase Contrast on.
-2. Open the "1 not due today" row at the bottom of the list.
+2. Select a day in the calendar the habit not due today is due on.
 
-**Expect:** done squares and the filled done button are clearly green; missed squares soft red; not-scheduled squares faint grey; future days outlined; today's square ringed in the accent color; the habit not due today is hidden until the row opens, then has a dashed circle; the "not due today" row is readable but quieter than the rows. Nothing is hard to tell apart.
+**Expect:** done squares and the filled done button are clearly green; missed squares soft red; not-scheduled squares faint grey; future days outlined; today's square ringed in the accent color; the habit not due today isn't listed until you select one of its days. Nothing is hard to tell apart.
 
 ## Many habits scroll inside the popover
 
@@ -58,7 +58,7 @@
 
 **Setup:** a habit or two, light mode then dark mode.
 
-1. Hover over, then press and hold, each kind of button: the calendar's arrows and Today; the bottom row's +, trophy, and Settings; a done button; a habit's name; "N not due today"; Back; the form's Cancel, Save, day circles, and Delete habit; Quit; the leaderboard's tabs.
+1. Hover over, then press and hold, each kind of button: the calendar's arrows and Today; the bottom row's +, trophy, and Settings; a done button; a habit's name; Back; the form's Close, Add, day circles, and Delete habit; Quit; the leaderboard's tabs.
 2. Make Add unavailable (an unreadable data file) and hover over it.
 3. Hover a done button, press Esc, then reopen the popover.
 4. Turn on Keyboard navigation (System Settings › Keyboard) and Tab through the list and the form.

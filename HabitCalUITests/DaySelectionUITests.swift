@@ -24,8 +24,8 @@ final class DaySelectionUITests: HabitCalUITestCase {
         popover.buttons["Add habit"].click()
         XCTAssertTrue(popover.textFields["nameField"].waitForExistence(timeout: 5), "form didn't open")
         app.typeText("Swim\r")
-        // Every day, so due on October 23 too (T-028); either way it must be in view (T-012 B.4).
-        XCTAssertTrue(element("Edit Swim").waitForExistence(timeout: 5), "new habit hidden in the folded row")
+        // Every day, so due on October 23 too (T-028), the day still shown.
+        XCTAssertTrue(element("Edit Swim").waitForExistence(timeout: 5), "new habit not listed")
     }
 
     func testFutureDayIsReadOnlyAndTodayButtonReturns() {

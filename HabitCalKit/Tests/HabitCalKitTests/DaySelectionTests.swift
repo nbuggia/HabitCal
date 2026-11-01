@@ -12,45 +12,31 @@ struct DaySelectionTests {
     @Test func doneButtonLabelsNameTheSelectedDay() {
         // Today reads as before.
         #expect(
-            HabitLabels.doneButtonSpoken(name: "Push-ups", day: today, today: today, due: true, done: true)
+            HabitLabels.doneButtonSpoken(name: "Push-ups", day: today, today: today, done: true)
                 == "Push-ups, done today")
-        #expect(HabitLabels.doneButtonTooltip(day: today, today: today, due: true, done: false) == "Mark done today")
+        #expect(HabitLabels.doneButtonTooltip(day: today, today: today, done: false) == "Mark done today")
         // A past day names the day.
         #expect(
-            HabitLabels.doneButtonSpoken(name: "Push-ups", day: oct(23), today: today, due: true, done: true)
+            HabitLabels.doneButtonSpoken(name: "Push-ups", day: oct(23), today: today, done: true)
                 == "Push-ups, done on October 23")
         #expect(
-            HabitLabels.doneButtonSpoken(name: "Push-ups", day: oct(23), today: today, due: true, done: false)
+            HabitLabels.doneButtonSpoken(name: "Push-ups", day: oct(23), today: today, done: false)
                 == "Push-ups, not done on October 23")
         #expect(
-            HabitLabels.doneButtonSpoken(name: "Run", day: oct(22), today: today, due: false, done: false)
-                == "Run, not scheduled on October 22")
+            HabitLabels.doneButtonTooltip(day: oct(23), today: today, done: false) == "Mark done for Oct 23")
         #expect(
-            HabitLabels.doneButtonTooltip(day: oct(23), today: today, due: true, done: false) == "Mark done for Oct 23")
-        #expect(
-            HabitLabels.doneButtonTooltip(day: oct(23), today: today, due: true, done: true)
+            HabitLabels.doneButtonTooltip(day: oct(23), today: today, done: true)
                 == "Done Oct 23 — click to undo")
         // A future day can't be checked off.
         #expect(
-            HabitLabels.doneButtonTooltip(day: oct(30), today: today, due: true, done: false)
+            HabitLabels.doneButtonTooltip(day: oct(30), today: today, done: false)
                 == "Can't check off a future day")
         #expect(
-            HabitLabels.doneButtonSpoken(name: "Push-ups", day: oct(30), today: today, due: true, done: false)
+            HabitLabels.doneButtonSpoken(name: "Push-ups", day: oct(30), today: today, done: false)
                 == "Push-ups, October 30, can't check off a future day")
     }
 
-    @Test func aFutureDayThatIsNotDueSaysNotScheduled() {
-        #expect(
-            HabitLabels.doneButtonSpoken(name: "Run", day: oct(30), today: today, due: false, done: false)
-                == "Run, not scheduled on October 30")
-        #expect(
-            HabitLabels.doneButtonTooltip(day: oct(30), today: today, due: false, done: false) == "Not scheduled Oct 30"
-        )
-    }
-
-    @Test func listLabelsFollowTheSelectedDay() {
-        #expect(HabitLabels.notDueRowTitle(count: 2, onToday: false) == "2 not due that day")
-        #expect(HabitLabels.notDueRowSpoken(count: 1, onToday: false) == "1 habit not due that day")
+    @Test func nothingDueFollowsTheSelectedDay() {
         #expect(HabitLabels.nothingDue(onToday: true) == "Nothing due today")
         #expect(HabitLabels.nothingDue(onToday: false) == "Nothing due that day")
     }

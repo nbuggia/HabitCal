@@ -47,14 +47,17 @@ public struct Habits: Equatable, Sendable {
         all.first { $0.id == id }
     }
 
+    /// Puts `habit` back in place of the habit with its ID, keeping the list order. Does nothing when
+    /// no habit has that ID (it was deleted). The Edit form uses it to apply each edit to the habit as
+    /// it was when the form opened, leaving every other habit as it is now (T-038).
+    public mutating func replace(_ habit: Habit) {
+        guard let index = all.firstIndex(where: { $0.id == habit.id }) else { return }
+        all[index] = habit
+    }
+
     /// The habits due on a day, in the order added: the list's rows (T-012 B.1).
     public func dueOn(_ day: Day) -> [Habit] {
         all.filter { $0.isDue(on: day) }
-    }
-
-    /// The habits not due on a day, in the order added: the folded row's rows (T-012 B.2).
-    public func notDueOn(_ day: Day) -> [Habit] {
-        all.filter { !$0.isDue(on: day) }
     }
 
     /// Adds a habit, added today, at the bottom of the list (B.11, B.14).

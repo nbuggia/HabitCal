@@ -1,7 +1,8 @@
 import HabitCalKit
 import SwiftUI
 
-/// Add or edit a habit (T-003 §5, B.8–B.17). Replaces the list inside the popover.
+/// Add or edit a habit (T-003 §5, B.8–B.17). Replaces the list inside the popover. Edits save as
+/// they're made; a new habit waits for Add (T-038).
 struct HabitFormScreen: View {
     @Environment(AppModel.self) private var model
     @FocusState private var nameFocused: Bool
@@ -56,14 +57,17 @@ struct HabitFormScreen: View {
             Text(adding ? "New habit" : "Edit habit").font(.headline)
             HStack {
                 // The window handles this shortcut before a focused field sees Esc (T-003 B.12).
-                Button("Cancel") { model.cancelForm() }
+                Button("Close") { model.closeForm() }
                     .buttonStyle(.hover(outset: 3))
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button(adding ? "Add" : "Save") { model.saveForm() }
-                    .buttonStyle(.hover(outset: 3))
-                    .fontWeight(.semibold)
-                    .disabled(!form.draft.isValid)
+                // Edits save as they're made; only a new habit waits for Add (T-038).
+                if adding {
+                    Button("Add") { model.saveForm() }
+                        .buttonStyle(.hover(outset: 3))
+                        .fontWeight(.semibold)
+                        .disabled(!form.draft.isValid)
+                }
             }
         }
     }
