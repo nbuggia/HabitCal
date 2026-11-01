@@ -5,9 +5,8 @@ task: T-039
 rigor: Complex
 trigger: "not revertible: changes the saved data format (habits.json v2); contract: adds synced records other HabitCal versions read; risky ground: new iCloud entitlements and background concurrency"
 date: 2026-11-01
-review iteration: 2
-status: Blocked
-Blocked: blocker verification found three BLOCKERs in the createdAt / importedAt / ignore-rule mechanism (§15 rows 18–20); the review budget is spent, so it goes to the customer with a proposal to narrow import (§3)
+review iteration: 3
+status: Approved
 ---
 
 # Tech Design: iCloud Sync Across Macs
@@ -35,7 +34,7 @@ Non-Goals:
 - **Push delivery (B.2).** `CKSyncEngine` fetches on CloudKit pushes. The spike didn't prove that pushes arrive (one Mac). The design doesn't depend on it: a 60 s fetch backs it up (§6, "Fetch fallback"). Slice 2's manual check (CloudKit Console edit → change shows within a minute) records whether push works; if it does, the fallback stays as a safety net.
 - **Release signing.** Xcode's command line couldn't make a Developer ID profile (spike). The release profile for `com.muchfiner.HabitCal` with iCloud is made at developer.apple.com by the customer, as for the spike. That's a T-005 step, not a blocker here.
 
-- **Rework proposal (for the customer).** Every blocker after pass 1 comes from one field, `createdAt`, doing three jobs: ordering, deletion, and the import epoch, through the ignore rule. Making import create its habits under **new IDs**, after marking every known habit deleted, removes `importedAt`, the ignore rule, and every `createdAt` clamp. Deletion alone then handles a restore. The cost is one conflict-table row: a habit added on another Mac before the import, which the importing Mac didn't know about, survives the restore instead of being removed.
+- **Resolved by narrowing (customer, 2026-11-01).** Every blocker after pass 1 came from one field, `createdAt`, doing three jobs: ordering, deletion, and the import epoch, through an "ignore older registers" rule. Import now adds the file's habits under new IDs after deleting the known ones, which removes `importedAt`, the ignore rule, and every `createdAt` adjustment. The customer also chose details (name, note, schedule) as one register.
 
 ## 4. Requirements
 
@@ -102,33 +101,37 @@ HabitSync (app target) ── CKSyncEngine ── iCloud private DB, zone "Habit
 ```
 
 **1. HabitCalKit: a mergeable habit (pure Swift, every rule unit-tested).**
-- Each habit keeps last-writer-wins registers: `name`, `note` (value + `changedAt`), `checks: [Day: Check]` where `Check` is `done: Bool` + `changedAt` (an uncheck is stored, B.10), `schedule: [Day: Entry]` keyed by `from` (days + `changedAt`; may be empty for merged past days, B.8a), `createdAt`, `deletedAt?`. `addedOn` stays a `Day`.
-- The library keeps `importedAt?`.
-- **Existence:** a habit is shown iff `createdAt >= importedAt` and (`deletedAt == nil` or `createdAt > deletedAt`). Delete beats every edit because edits never touch `createdAt`. An import re-creates its habits with `createdAt = importedAt`, which revives a deleted ID (conflict table, import rows).
-- **Registers with a time older than `createdAt` are ignored**, so changes made before an import lose to it, and changes made after it apply on top. A nil time (v1 data) is never ignored by this rule.
-- `Habits.all` holds only the habits shown; every stored record, deleted or hidden by an import included, lives in `Habits.records`, used only by `HabitStore`, the merge, and sync. Every screen (list, leaderboard, streaks) reads `all`, as today.
+- Each habit keeps two kinds of last-writer-wins register:
+  - **`details`**: name, note, and schedule history (entries keyed by `from`, days possibly empty only before today), with one `changedAt`. They sync as one unit (customer, 2026-11-01).
+  - **`checks: [Day: Check]`**: `done: Bool` and `changedAt` per day. An uncheck is stored (B.10).
+- Plus `createdAt` (an instant, used only for ordering), `deletedAt?`, and `addedOn` (a `Day`).
+- **Existence:** a habit is shown iff `deletedAt == nil`. Delete beats every edit; no operation clears `deletedAt`.
+- **Import (`replaceAll(with:now:)`):** sets `deletedAt = now` on every habit shown, and adds the file's habits under **new IDs**, with `createdAt` and every register stamped at `now` (B.13). A restore is then just deletes plus adds: a Mac that joins later keeps its own habits (B.7), and a habit another Mac added that this Mac didn't know survives (spec conflict table).
+- `Habits.all` holds only the habits shown; every stored record, deleted ones included, lives in `Habits.records`, used only by `HabitStore`, the merge, and sync. Every screen (list, leaderboard, streaks) reads `all`, as today.
 - **Due:** `isDue(day)` = the schedule's weekday or a live `done` check (B.21). `strip`, `Streaks`, and `Consistency` already go through `isDue`/`isDone`, so they follow.
-- **Local operations** take `now: Date` and stamp what they change: `toggle`, `add`, `rename`, `setNote`, `setDays` (today's check-off still drops when today stops being due, as an uncheck at `now`), `delete` (sets `deletedAt`), `replaceAll(with:now:)` (import: sets `importedAt = now`, re-creates every file habit with `createdAt = now` and every register stamped at `now`).
-- **Form edits:** `applyFormEdit(id, from: oldDraft, to: newDraft, todayDoneAtOpen:, today:, now:)` applies only the field that differs (B.11), and re-checks today when today's weekday comes back in the same form session (T-038). It lives in the kit so it's unit-tested.
-- **`merge(_ remote: Habit)`, ongoing:** register by register, later `changedAt` wins; `deletedAt` = the later of the two; `createdAt` = the later; `addedOn` = the earlier. A nil time is older than any time. **Ties** (equal times, or nil and nil) break by a fixed rule: `done` beats not done, a non-empty schedule beats an empty one, then the larger encoded value. So merge is commutative, associative, and idempotent, and any order of arrival gives the same result.
-- **`mergeFirstSync(local:remote:today:)`:** pairs habits by ID, then by normalized name (B.9: trimmed, case-folded), keeping the remote ID. Name pairing considers only habits shown on both sides, never a deleted or import-hidden record, so a habit deleted on one Mac can't delete a same-named live one on the other (B.7). For each pair:
-  - check-offs and earlier `addedOn` as in `merge`;
-  - current fields from the side changed last, or by B.8b, the most recent check-off, else remote;
-  - schedule entries before today become the per-interval intersection of both histories (B.8a), and an entry at `today` carries the winner's current days, so the merged habit always has days in force today. Empty entries exist only before today;
-  - the pair takes the **earlier** `createdAt`, and any register of either copy older than it is raised to it, so no check-off is hidden by the ignore rule (B.7, B.21). `merge` (ongoing) keeps "later `createdAt`", which is what makes an import win.
-  - When iCloud holds an `importedAt`, every local habit (paired or not) has its `createdAt`, and any register older than `importedAt`, raised to `importedAt` first. A Mac joining after a restore keeps its own habits (B.7; customer, 2026-11-01). The import still replaces habits on Macs that were already syncing.
+- **Local operations** take `now: Date` and stamp what they change: `toggle` (one check), `add`, `setDetails` (name, note, days; today's check-off still drops when today stops being due, as an uncheck at `now`), `delete`, `replaceAll`.
+- **Form edits:** `applyFormEdit(id, draft:, todayDoneAtOpen:, today:, now:)` writes the form's details whole (B.11), and re-checks today when today's weekday comes back in the same form session (T-038). Check-offs and other habits are untouched, so changes to them from other Macs stay. It lives in the kit so it's unit-tested.
+- **`merge(_ remote: Habit)`, ongoing:**
+  - `details` and each day's check: later `changedAt` wins. A nil time is older than any time.
+  - **Ties** (equal times, or nil and nil) break by a fixed rule: `done` beats not done, then the larger encoded value.
+  - `deletedAt`: either side's (the later if both); `createdAt` and `addedOn`: the earlier.
+  - So merge is commutative, associative, and idempotent, and any order of arrival gives the same result. No register is ever ignored or rewritten, so a merge can't hide a check-off (B.21).
+- **`mergeFirstSync(local:remote:today:)`:** pairs habits by ID, then by normalized name (B.9: trimmed, case-folded), keeping the remote ID. Name pairing considers only habits shown on both sides, never a deleted record, so a habit deleted on one Mac can't delete a same-named live one on the other (B.7). For each pair:
+  - checks, `createdAt`, and `addedOn` as in `merge`;
+  - `details` from the side changed last, or by B.8b, the side with the most recent check-off, else remote;
+  - but the schedule history before today becomes the per-interval intersection of both copies' histories (B.8a), and an entry at `today` carries the winner's days, so the merged habit always has days in force today. The merged `details` gets `changedAt` = the later of the two, so the ongoing merge on any Mac keeps it;
+  - the local ID's record is never sent (no sends until the first sync is done).
   - Unpaired habits are kept as they are.
 - **Order (B.12):** sorted by `addedOn`, then `createdAt`, then ID: a fixed order, the same on every Mac.
-- v1 data migrates with `createdAt` = `distantPast` plus the habit's position in the list in milliseconds, so its order holds and no v1 time can be later than a real one. Every `changedAt` is nil.
+- v1 data migrates with `createdAt` = `distantPast` plus the habit's position in the list in milliseconds, so its order holds. Every `changedAt` is nil.
 
 **2. HabitStore v2.** Same file, same atomic write and `canSave` gate.
-- `formatVersion: 2` with the registers above, plus `importedAt`. Loads v1 (migrating in memory) and v2; anything newer, or keys either version never writes, is unreadable (D-004).
+- `formatVersion: 2` with the registers above. Loads v1 (migrating in memory) and v2; anything newer, or keys either version never writes, is unreadable (D-004).
 - The per-habit JSON is shared: `HabitCodec` encodes one habit, and the file is a list of them. That same encoding is the CloudKit record payload, so there's one format and one codec.
 
 **3. HabitSync (app target), the only code that imports CloudKit.**
 - Owns a `CKSyncEngine` on the private database, zone `Habits`.
 - Record type `Habit`: recordName = habit UUID; fields `formatVersion` (Int) and `payload` (Bytes, the `HabitCodec` JSON).
-- Record type `Library`: one record, `library`, with `formatVersion` and `importedAt`.
 - Deleted habits stay as records with `deletedAt`. CloudKit deletes are never used, so an offline Mac's edit can't bring a habit back.
 - **Start:** built in `AppDelegate` unless `dataState` is unreadable (E.1) or `-HabitCalDataDir` is set (FM-007). It loads `sync-state.json` (engine `State.Serialization`, the first-sync flag, the record system fields cache, the update-needed flag, `lastSynced`, `lastSentAt`), creates the zone on first send, and registers for remote notifications.
 - **Record system fields cache** (`[recordName: encodedSystemFields]`): CKSyncEngine saves with `.ifServerRecordUnchanged`, so every save of an existing record must start from its last known server record. The cache is updated from every fetched and every successfully sent record, taken from `serverRecord` on a conflict, and cleared on a zone reset or account change. A record with no cached fields is built fresh (first send).
@@ -152,6 +155,8 @@ HabitSync (app target) ── CKSyncEngine ── iCloud private DB, zone "Habit
   - `signIn` / `switchAccounts`: reset the engine state and the system fields cache, clear the first-sync flag, and re-queue every habit shown. The old account's deleted records aren't sent to the new account (E.2).
   - `signOut`: reset, status `.off`, and the local habits stay (E.3).
 - **`stateUpdate`:** write `sync-state.json` atomically (E.10).
+- **Sync Now (B.22):** `syncNow()` sets status "Syncing…", then runs `fetchChanges()` and `sendChanges()`; the status shows the result. The button is disabled while syncing or while iCloud is off.
+- **Send after first sync:** when the first-sync flag is set, `SyncPolicy` returns "send now" and HabitSync calls `sendChanges()`, so sends held during the first sync go out at once (§15 row 21).
 - **Fetch fallback:** `DayWatcher`'s wake notification and its 60 s timer also call `sync.fetchSoon()`, which runs `fetchChanges()` at most once every 50 s (B.2, B.3).
 
 **AppModel changes.**
@@ -162,12 +167,11 @@ HabitSync (app target) ── CKSyncEngine ── iCloud private DB, zone "Habit
 
 **Sync decisions in the kit.** `SyncPolicy` in HabitCalKit is a pure function from an engine outcome (record decoded, newer format, `serverRecordChanged`, zone deleted, quota, network unavailable, other error, account signed in / out / switched, fetch finished) to actions (merge, re-queue IDs, reset state, set flags) and a `SyncStatus`. HabitSync maps `CKError` codes and engine events onto its inputs and performs the actions. So the decision rules behind E.2–E.6 are unit-tested, and only the CloudKit translation is left to manual checks.
 
-**Settings.** A `SyncStatusRow` at the top of DATA (`SettingsScreen`). The text and spoken label come from `HabitLabels.syncStatus(_:lastSynced:)` in HabitCalKit.
+**Settings.** A `SyncStatusRow` (the status line and the Sync Now button) at the top of DATA (`SettingsScreen`). The text and spoken label come from `HabitLabels.syncStatus(_:lastSynced:)` in HabitCalKit.
 
 | New state | Owner | Lifetime | Persist? | Why |
 | --------- | ----- | -------- | -------- | --- |
-| Per-field and per-day `changedAt`, unchecks, `createdAt`, `deletedAt` | `Habit` (HabitCalKit) | Forever | habits.json v2 and the iCloud payload | Merge (B.10, B.16) |
-| `importedAt` | `Habits` | Forever | habits.json v2, `Library` record | Import everywhere (B.13) |
+| Details and per-day `changedAt`, unchecks, `createdAt`, `deletedAt` | `Habit` (HabitCalKit) | Forever | habits.json v2 and the iCloud payload | Merge (B.10, B.16) |
 | Engine state, first-sync flag, record system fields cache, update-needed flag, `lastSynced`, `lastSentAt` | `HabitSync` | Until account change (the cache until a zone reset too) | `sync-state.json` in the container | Pending sends survive quit (E.10); conflict-free saves; first-sync rule (B.7); E.6 recovery; Settings line |
 | `syncStatus` | `AppModel` | Process | No | Settings line |
 
@@ -186,7 +190,7 @@ HabitSync (app target) ── CKSyncEngine ── iCloud private DB, zone "Habit
 | --------- | --------- | ----- | ------------------- | ---------------- | ----- |
 | No check-off lost to a merge (B.21) | Per-day registers; merge only compares `changedAt`; due includes live checks | HabitCalKit | `Habits.merge` returning | n/a (pure) | Unit test of every conflict-table row and B.8a |
 | Same result on every Mac | Merge commutative, associative, idempotent | HabitCalKit | | | Property-style unit test: random edits merged in different orders agree |
-| Delete wins; import revives | Existence rule on `createdAt`/`deletedAt`/`importedAt` | HabitCalKit | | | Unit tests of the table's delete and import rows |
+| Delete wins; import replaces | Existence = `deletedAt == nil`; import = deletes + new IDs | HabitCalKit | | | Unit tests of the table's delete and import rows |
 | Nothing overwritten that can't be read | v2 gate; E.6 stop on newer record; no sync while unreadable | HabitStore, HabitSync | `HabitStore.load` / record decode | Status `.updateNeeded` / no sync | Fixture tests (v1, v2, v3-unknown); coordinator test |
 | Pending changes survive quit (E.10) | Engine state persisted on every `stateUpdate`; **and at every start**, re-queue every habit with a register (or `createdAt`/`deletedAt`) newer than the persisted `lastSentAt` | HabitSync, `SyncPolicy` "started" outcome | `lastSentAt` is written when a send batch finishes with nothing pending | A change made just before a quit or crash, before the engine's `stateUpdate`, is re-queued on the next start | `SyncPolicy` test; manual: change, quit at once, relaunch online |
 | Updates to existing records succeed | System fields cache | HabitSync | cache write after each fetch/send | A stale cache gives `serverRecordChanged`, handled by merge with `serverRecord`'s fields, then re-send | Manual: edit the same habit on two Macs |
@@ -218,23 +222,23 @@ HabitSync (app target) ── CKSyncEngine ── iCloud private DB, zone "Habit
 
 | Interface | Inputs | Output | Errors | Async? |
 | --------- | ------ | ------ | ------ | ------ |
-| `Habits.toggle/add/rename/setNote/setDays/delete(…, now:)` | IDs, values, `today`, `now` | mutated `Habits` | none (invalid input ignored, as today) | no; `Sendable` value type |
+| `Habits.toggle/add/setDetails/delete(…, now:)` | IDs, values, `today`, `now` | mutated `Habits` | none (invalid input ignored, as today) | no; `Sendable` value type |
 | `Habits.replaceAll(with:now:)` | habits from a file | | | no |
-| `Habits.applyFormEdit(_:from:to:todayDoneAtOpen:today:now:)` | old and new draft | | | no |
+| `Habits.applyFormEdit(_:draft:todayDoneAtOpen:today:now:)` | the form's draft | | | no |
 | `Habits.all` (shown) / `Habits.records` (stored) | | | | no |
 | `SyncPolicy.decide(_ outcome:, state:) -> SyncDecision` | engine outcome | actions + `SyncStatus` | | no |
-| `Habits.merge(_: [Habit], importedAt:)` | remote habits | changed IDs | | no |
-| `Habits.mergeFirstSync(remote:importedAt:today:)` | | changed IDs, IDs to re-send | | no |
+| `Habits.merge(_: [Habit])` | remote habits | changed IDs | | no |
+| `Habits.mergeFirstSync(remote:today:)` | | changed IDs, IDs to re-send | | no |
 | `HabitCodec.encode(_: Habit) -> Data`, `decode(_: Data, formatVersion:) throws -> Habit` | | | `HabitCodec.Error.newerFormat`, `.invalid` | no |
 | `HabitStore.load/save` | | v2 | as today | no |
 | `HabitLabels.syncStatus(_:lastSynced:now:)` | `SyncStatus` | title, detail, spoken | | no |
 | `AppModel.applyRemote(_:library:)`, `syncStatus` | | | | `@MainActor` |
-| `HabitSync.start()`, `changed(_ ids:)`, `fetchSoon()` | | | | `@MainActor`, delegate methods too |
+| `HabitSync.start()`, `changed(_ ids:)`, `fetchSoon()`, `syncNow()` | | | | `@MainActor`, delegate methods too |
 | `CKSyncEngine` + `CKSyncEngineDelegate` (CloudKit, macOS 14+) | | | `CKError` | delegate methods async, off main |
 | `NSApplication.registerForRemoteNotifications()` | | | | main |
 
 **Existing API that changes** (slice 1):
-- `Habits.update` is replaced by `rename`, `setNote`, `setDays`, and `applyFormEdit`. `Habits.replace` (T-038) is removed, since `applyFormEdit` supersedes it.
+- `Habits.update` is replaced by `setDetails` and `applyFormEdit`. `Habits.replace` (T-038) is removed, since `applyFormEdit` supersedes it.
 - `Habit.checkOffs: Set<Day>` stays, as the computed set of live `done` checks, so `Streaks`, `Consistency`, and `strip` don't change.
 - `Habits.all` keeps its meaning (shown habits).
 - These tests get rewritten onto the new operations, keeping their names and rules: the `update…` schedule tests, `replacePutsAHabitBackInPlaceAndIgnoresADeletedOne`, and `deletingAHabitRemovesItAndItsHistory` (now: gone from `all`, kept as a record).
@@ -242,13 +246,13 @@ HabitSync (app target) ── CKSyncEngine ── iCloud private DB, zone "Habit
 ## 8. Data Model & Persistence
 
 - habits.json `formatVersion` 1 → **2**.
-  - Per habit: `id`, `name {value, changedAt?}`, `note {…}`, `addedOn`, `createdAt`, `deletedAt?`, `schedule [{from, days, changedAt?}]`, `checks [{day, done, changedAt?}]`.
-  - Top level: `formatVersion`, `importedAt?`, `habits`.
+  - Per habit: `id`, `details {name, note, schedule [{from, days}], changedAt?}`, `addedOn`, `createdAt`, `deletedAt?`, `checks [{day, done, changedAt?}]`.
+  - Top level: `formatVersion`, `habits`.
   - Times are ISO 8601 with milliseconds, UTC.
 - **v1 → v2:** loaded in memory. `changedAt` is nil everywhere; `createdAt` = `distantPast` plus the habit's index in milliseconds, so the order holds and is never later than a real time. Fixture tests cover v1 and v2.
 - **One version older (v1 HabitCal) reading v2:** unreadable; shows the T-003 E.5 message and never saves over it. Accepted: there's no released v1 build yet (v1 isn't shipped), so no user can downgrade into this.
 - **iCloud records:**
-  - `Habit {formatVersion: Int, payload: Bytes}` and `Library {formatVersion, importedAt}`.
+  - `Habit {formatVersion: Int, payload: Bytes}`.
   - A record whose `formatVersion` is newer than this build knows stops sync (E.6).
   - The record payload carries no settings and no device data.
 - **`sync-state.json`:** `{engineState: Data, firstSyncDone: Bool, systemFields: {recordName: Data}, updateNeeded: Bool, lastSynced: Date?, lastSentAt: Date?}`, owned by HabitSync, atomic write. If it's unreadable, it's discarded and the next start counts as a first sync. That's safe because merging loses nothing.
@@ -299,17 +303,18 @@ More than two slices, so st-slice writes the slicing plan. Proposed order:
 
 | Test | Kind | Spec rules proved | Regression prevented |
 | ---- | ---- | ----------------- | -------------------- |
-| `checkAndUncheckSameDayLaterWins`, `editsToDifferentDaysBothKept`, `renameAndNoteOnTwoMacsBothSurvive`, `laterScheduleChangeWinsForItsDays`, `deleteBeatsLaterCheckOffOrEdit`, `addsOnBothMacsBothKept`, `checkOffOnDayAnotherMacUnscheduledStaysDueAndDone` | unit | conflict table, B.10, B.21, E.8 | Lost check-offs, resurrected habits |
-| `importReplacesEarlierChangesAndHabits`, `changesAfterImportApplyOnTop`, `importRevivesADeletedHabit` | unit | import rows, B.13, B.15 | A restore undone from another Mac |
+| `checkAndUncheckSameDayLaterWins`, `editsToDifferentDaysBothKept`, `laterDetailsEditWinsAsAWhole`, `deleteBeatsLaterCheckOffOrEdit`, `addsOnBothMacsBothKept`, `checkOffOnDayAnotherMacUnscheduledStaysDueAndDone` | unit | conflict table, B.10, B.21, E.8 | Lost check-offs, resurrected habits |
+| `importDeletesKnownHabitsAndAddsNewOnes`, `editsToAHabitTheImportDeletedAreLost`, `aHabitTheImporterDidntKnowSurvivesImport`, `changesAfterImportApplyToImportedHabits` | unit | import rows, B.13, B.15 | A restore undone from another Mac |
 | `mergeIsOrderIndependent` (random edits merged in every order) | unit | B.1 (same result everywhere) | Macs disagreeing forever |
 | `firstSyncKeepsEveryHabitAndCheckOff`, `firstSyncMergesSameIdAndSameName`, `firstSyncPastDaysDueOnlyIfDueInBoth`, `firstSyncWithoutTimesUsesMostRecentCheckOff`, `mergedHabitKeepsEarlierAddedDate`, `mergedOrderByDateAddedRemoteFirst` | unit | B.7, B.8, B.8a, B.8b, B.9, B.12 | History split or dropped |
 | `version1FixtureLoads` (kept), `version1MigratesKeepingOrder`, `version2FixtureLoads`, `savedV2LoadsBackUnchanged`, `newerFormatIsNeverOverwritten` (kept, with a v3 fixture) | integration (real disk) | B.16, B.18 | Data loss on upgrade/downgrade |
 | `codecRejectsTruncatedOrNewerPayload` | unit | E.6, E.9 | Half-applied habits |
 | `syncStatusLabels` | unit | §5 table, E.11 | |
-| `formEditChangesOnlyTheTouchedField`, `formEditRestoresTodayWhenItsDayComesBack` (kit: a remote rename merged, then a note edit) | unit | B.11, T-038 | The form overwriting remote changes |
+| `formEditKeepsRemoteCheckOffsAndOtherHabits`, `formEditRestoresTodayWhenItsDayComesBack` | unit | B.11, T-038 | The form overwriting remote check-offs |
 | `syncPolicy…` one per outcome: conflict merges and re-queues, zone deleted resets and re-queues all, quota → full, network → waiting, newer format → update needed and flag, sign-in/switch reset and first sync, sign-out → off, fetch finished sets first sync done | unit | E.2–E.6, E.9, B.7 | Wrong reaction to a CloudKit event |
 | `firstSyncNeverPairsWithADeletedHabit`, `tiesBreakTheSameWayEverywhere`, `v1HabitsStayVisibleAndEditableAfterMigration`, `deletedHabitsNeverInAll` | unit | B.7, B.10, B.12, B.18 | Pass 1 findings 2, 3, 7, 10 |
-| `firstSyncAfterARemoteImportKeepsThisMacsHabits`, `firstSyncPairKeepsTimestampedCheckOffsOlderThanTheOtherCopy`, `firstSyncMergedHabitHasDaysToday`, `syncPolicyHoldsSendsUntilFirstSyncDone`, `syncPolicyRequeuesUnsentChangesAtStart` | unit | B.7, B.8a, B.21, E.10 | Pass 2 findings 1, 3, 4, 5 |
+| `firstSyncAfterARemoteImportKeepsThisMacsHabits`, `firstSyncPairKeepsTimestampedCheckOffsOlderThanTheOtherCopy`, `firstSyncResultUnchangedByLaterOngoingMerge` (a third Mac), `firstSyncMergedHabitHasDaysToday`, `syncPolicyHoldsSendsUntilFirstSyncDone`, `syncPolicySendsWhenFirstSyncFinishes`, `syncPolicyRequeuesUnsentChangesAtStart` | unit | B.7, B.8a, B.21, E.10 | Pass 2 and blocker-verification findings |
+| `testSyncNowShowsSyncingThenResult` (UI, with a stand-in status), `syncNowDisabledWhileOffOrSyncing` | UI, unit | B.22 | |
 | Existing habit/form UI tests, plus `testSettingsShowsSyncStatus` with `-HabitCalSyncStatus` | UI | B.6, UI section, E.11 | |
 | Manual, CloudKit Console: edit a record in Development → shows within 1 minute; delete the zone → resent | manual (real boundary; CloudKit can't run under `swift test`, which is unsigned) | B.2, B.3, B.4, E.4 | Push/fallback broken |
 | Manual, two Macs (or two macOS users on one Apple Account): check off, edit the same habit on both (system fields cache), edit offline on both, delete vs edit, first sync with habits on both, quit mid-fetch and relaunch | manual (real boundary) | B.1, B.5, B.7, B.9, conflict table end to end, E.9, E.10 | Engine wiring broken |
@@ -320,7 +325,7 @@ Every spec rule appears above. B.14 (the confirmation wording) is tested with T-
 
 ## 14. Rollout
 
-Direct ship, no flag: v1 isn't released, so no user has v1 data or a v1 build. Signing changes as in §9. For release (T-005): deploy the `Habit` and `Library` record types to production in the CloudKit Console, never the spike's `SpikeHabit`, and sign with the Developer ID profile.
+Direct ship, no flag: v1 isn't released, so no user has v1 data or a v1 build. Signing changes as in §9. For release (T-005): deploy the `Habit` record type to production in the CloudKit Console, never the spike's `SpikeHabit`, and sign with the Developer ID profile.
 
 ## 15. Reviewer Feedback
 
@@ -338,14 +343,14 @@ Direct ship, no flag: v1 isn't released, so no user has v1 data or a v1 build. S
 | 10 | Tombstones would show in the leaderboard and list | MINOR | Deleted habits visible | ACCEPT | | all = shown, records = stored | Yes | Pass 1 |
 | 11 | Lasting Changes missing several items | MINOR | Later changes re-derive or break them | ACCEPT | | Added to §16 | | Pass 1 |
 | 12 | First sync hides check-offs: merged pair took the later createdAt | BLOCKER | Silent history loss at first sync | ACCEPT | | Pair takes the earlier createdAt; older registers raised to it | Yes | Pass 2 |
-| 13 | First sync against a remote import: the import row hides a joining Mac's habits; B.7 keeps them | QUESTION | A Mac joining after a restore shows none of its habits | ACCEPT | Customer chose keep (2026-11-01) | Local createdAt and older registers raised to importedAt at first sync; spec import row clarified | Spec | Pass 2 |
+| 13 | First sync against a remote import: the import row hides a joining Mac's habits; B.7 keeps them | QUESTION | A Mac joining after a restore shows none of its habits | ACCEPT | Customer chose keep (2026-11-01) | Now follows from import = deletes + new IDs; spec import rows rewritten | Spec | Pass 2 |
 | 14 | A local habit name-paired after being sent leaves a duplicate record | MAJOR | Duplicates on other Macs | ACCEPT | | No sends until first sync done | | Pass 2 |
 | 15 | E.10 fallback only on a write failure | MAJOR | Lost change after a quick quit | ACCEPT | | Re-queue at every start against lastSentAt | | Pass 2 |
 | 16 | B.8a can leave no days today | MINOR | Habit hidden; form refuses edits | ACCEPT | | Entry at today with the winner's days | | Pass 2 |
 | 17 | Lasting Changes and changed existing API unstated | MINOR | Merge invariant lost later; bigger slice 1 | ACCEPT | | §6 "Existing API that changes", §16 rows | Yes | Pass 2 |
-| 18 | Ongoing merge (later createdAt) undoes the first-sync earlier createdAt: older check-offs vanish on every Mac | BLOCKER | B.7/B.21 history loss | OPEN | Budget spent | Customer: narrow import (§3) or rework | Yes | Blocker verification |
-| 19 | Raising deletedAt to importedAt at first sync deletes an imported habit everywhere | BLOCKER | Restore undone everywhere | OPEN | | As above | Yes | Blocker verification |
-| 20 | Per-batch first sync: the Library record arriving late lets the importedAt raise revive import-hidden habits | BLOCKER | B.13 broken | OPEN | | As above | | Blocker verification |
+| 18 | Ongoing merge (later createdAt) undoes the first-sync earlier createdAt: older check-offs vanish on every Mac | BLOCKER | B.7/B.21 history loss | RESOLVED BY NARROWING | Customer, 2026-11-01: import adds new IDs; no ignore rule remains, `createdAt` only orders | §6 rewritten; test `firstSyncResultUnchangedByLaterOngoingMerge` | Yes | Blocker verification |
+| 19 | Raising deletedAt to importedAt at first sync deletes an imported habit everywhere | BLOCKER | Restore undone everywhere | RESOLVED BY NARROWING | No `importedAt` or raise exists | §6 | Yes | Blocker verification |
+| 20 | Per-batch first sync: the Library record arriving late lets the importedAt raise revive import-hidden habits | BLOCKER | B.13 broken | RESOLVED BY NARROWING | No `Library` record or raise exists | §6 | | Blocker verification |
 | 21 | Sends held until first sync have no trigger once it finishes | MAJOR | Joining Mac's habits wait for the next change | ACCEPT | | `SyncPolicy` "send now" when the flag is set | | Blocker verification |
 
 ## 16. Lasting Changes
@@ -369,5 +374,7 @@ Direct ship, no flag: v1 isn't released, so no user has v1 data or a v1 build. S
 | Rejected: hybrid logical clocks (clock skew accepted), hand-rolled CloudKit operations | DECISIONS.md (with the entry above) |
 | Form edits are field-level through `Habits.applyFormEdit`, replacing T-038's whole-habit snapshot (ARCHITECTURE.md line on schedules and the form) | ARCHITECTURE.md |
 | Sync decisions live in `SyncPolicy` (HabitCalKit); HabitSync only translates CloudKit | ARCHITECTURE.md, CONVENTIONS.md |
-| Practice: every synced field is a register with a change time and a tie-break; adding or changing one bumps the record and file `formatVersion` | CONVENTIONS.md |
+| Practice: every synced value belongs to a register (`details` or a day's check) with a change time and a tie-break; adding a field bumps the record and file `formatVersion` | CONVENTIONS.md |
+| Import adds new IDs after deleting the known habits; nothing is ever un-deleted | ARCHITECTURE.md; DECISIONS.md (with the entry above) |
+| Rejected: per-field registers (customer chose details as one unit), an import epoch with an "ignore older registers" rule (couldn't be made consistent across first and ongoing merges) | DECISIONS.md |
 | No sends until the first sync finishes; unsent changes re-queued at every start | ARCHITECTURE.md |

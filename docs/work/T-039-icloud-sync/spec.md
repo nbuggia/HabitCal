@@ -49,6 +49,7 @@ HabitCal keeps a person's habits the same on every Mac signed into their iCloud,
 | Another Mac's HabitCal is newer (E.6) | Update HabitCal to sync | Another Mac has a newer version. Habits on this Mac still work. |
 | Any other error | Can't sync with iCloud | macOS's reason, in plain words |
 
+- A **Sync Now** button (link style) at the end of the status line. Shown whenever iCloud is available, and disabled while syncing (B.22).
 - The line updates while Settings is open. It's text, not a control, read by VoiceOver as one element: "iCloud: Synced with iCloud, last synced 9:41 AM".
 - The import confirmation (T-035) says "…on all your Macs" when sync is on (B.14).
 
@@ -99,30 +100,31 @@ Rules are checked per habit and per day, not per file, so unrelated changes on t
 | Checked off day D | Checked off day D | Done |
 | Checked off day D | Unchecked day D | Whichever was later wins |
 | Checked off day D | Any change to day E, or to another habit | Both kept |
-| Renamed, or note changed | Renamed, or note changed | The later change wins, per field: a name change on A and a note change on B both survive |
-| Schedule changed | Schedule changed | The later change wins for the days it covers; past days keep the schedule in force then (CONTEXT, "Schedule") |
+| Changed the name, note, or schedule | Changed the name, note, or schedule | The later edit wins for all three together: a rename on A and a note change on B, made before they synced, keep only the later one (customer, 2026-11-01: details sync as one unit) |
 | Deleted the habit | Checked off, or edited it | Deleted. Why: deleting asks first and says it can't be undone (T-003 B.15); a check-off on another Mac shouldn't bring back a habit someone chose to delete |
 | Added a habit | Added a habit | Both kept (B.9 doesn't apply after the first sync) |
 | Changed the schedule so day D isn't due | Checked off day D | The check-off stays and day D counts as due and done for that habit (B.21) |
-| Imported a file (B.13) | Any change made before the import, or a habit added before it, on a Mac that was already syncing | Replaced by the import: the habit added before it is removed. A Mac that hadn't synced yet keeps its own habits at its first sync, by B.7 (customer, 2026-11-01) |
-| Imported a file (B.13) | A check-off or edit made after the import, to a habit the import kept | Applied on top of the imported habits |
-| Imported a file (B.13) | Deleted a habit, before the import | The import brings it back if the file has it |
+| Imported a file (B.13) | A check-off or edit to a habit the importing Mac knew, made before they synced | Lost: the import deleted that habit, and delete wins |
+| Imported a file (B.13) | Added a habit the importing Mac didn't know yet | Kept: the import replaces only the habits the importing Mac had (customer, 2026-11-01) |
+| Imported a file (B.13) | A check-off or edit to an imported habit, after receiving the import | Applied as usual |
 
 B.21 THE SYSTEM SHALL never delete a check-off when merging or resolving a conflict. A check-off on a day the merged schedule doesn't include makes that day due and done for that habit; only an uncheck (the later change on that day), a delete, or an import removes one. Why: a check-off records something the person did (review finding 1).
 
 B.10 THE SYSTEM SHALL resolve "later" by when the change was made on its Mac, not when it reached iCloud. Why: a change made offline in the morning shouldn't beat one made online in the afternoon just because it synced last.
 
-B.11 WHEN a habit open in the Edit form is changed on another Mac THE SYSTEM SHALL keep the field the user is editing as they left it, and apply the other changes. An edit in the form changes only the field the user changed (name, note, or days); changes from other Macs to other fields, to other habits, and check-offs arriving while the form is open are kept and shown. WHEN the habit is deleted on another Mac THE SYSTEM SHALL close the form and show the list.
+B.11 WHEN changes from another Mac arrive while the Edit form is open THE SYSTEM SHALL keep the form as the user left it, and keep and show changes to check-offs and to other habits. The form's next edit saves the habit's name, note, and days as the form shows them, and wins as the later edit (conflict table). WHEN the habit is deleted on another Mac THE SYSTEM SHALL close the form and show the list.
 
 B.12 THE SYSTEM SHALL keep the list in the order habits were added, the same on every Mac. Merged habits are ordered by date added; ties fall in one fixed order, the same on every Mac. The order may change once, at the first merge. (Narrowed in design review: "in iCloud first" isn't known the same way on every Mac.)
 
 ### New: import and delete everywhere
 
-B.13 WHEN an import (T-035) goes ahead THE SYSTEM SHALL replace the habits on every Mac syncing with this one, not just this Mac. Why: the customer chose this (2026-11-01); a restore that came back undone from another Mac would look broken.
+B.13 WHEN an import (T-035) goes ahead THE SYSTEM SHALL replace the habits on every Mac syncing with this one, not just this Mac: the habits this Mac had are deleted everywhere, and the file's habits are added as new habits. Why: the customer chose this (2026-11-01); a restore that came back undone from another Mac would look broken. Adding them as new habits keeps a restore to the ordinary delete rule (customer, 2026-11-01).
 
 B.14 WHILE sync is on THE SYSTEM SHALL say so in the import confirmation: "Your N habits on all your Macs (last checked off …) will be replaced by …". Changes T-035's wording.
 
 B.15 WHEN a habit is deleted THE SYSTEM SHALL delete it, with its history, on every Mac.
+
+B.22 WHEN the user clicks Sync Now THE SYSTEM SHALL fetch changes from iCloud and send this Mac's at once, show "Syncing with iCloud…", then the result. Why: the customer asked for it (2026-11-01); it reassures, and helps right after a Mac wakes or comes online.
 
 ### Changed
 
@@ -194,6 +196,8 @@ E.11 THE SYSTEM SHALL read the Settings status with VoiceOver, and update it wit
 - No-account behavior wasn't observed in the spike (no per-app iCloud switch appeared); it's tested with a stand-in for iCloud and checked manually before release.
 
 ## Review
+
+Design review, 2026-11-01: the customer simplified sync. Name, note, and schedule sync as one unit (was: per field). An import adds the file's habits as new habits, so a habit added on another Mac that the importing Mac didn't know survives it (was: removed). A Sync Now button was added (B.22).
 
 st-crit, 2026-11-01, BLOCK, then revised. All six findings accepted:
 1. Merging could delete real check-offs (E.8, B.8). Now B.21 says a check-off is never dropped by a merge, and B.8a merges past schedules.
