@@ -25,7 +25,10 @@ Build: `CloudSpike.xcodeproj` (one target, bundle ID `com.muchfiner.HabitCal.clo
   - saving a record failed only with CKError 12, "Cannot create new type SpikeHabit in production schema", as expected.
   - Record types have to be deployed from development to production in the CloudKit Console before release. HabitCal's real types get deployed in T-005. The spike's type is never deployed, so no junk type ends up in production.
   - Xcode's command-line export couldn't create the Developer ID profile ("No Accounts"), so for now the release build is signed by hand with a downloaded profile. NETORION LLC has two Developer ID Application certificates; only the one expiring 2027-02-01 has its private key on this Mac, so profiles must name that one.
-- **Q3: only "available" seen.** Signed-out and iCloud-switch-off behavior still needs a run with HabitCal's iCloud switch turned off in System Settings.
+- **Q3: only "available" seen; the rest is an accepted risk.**
+  - CloudSpike doesn't appear in System Settings' list of apps using iCloud (customer, 2026-11-01), even after its records were saved. So there was no per-app switch to turn off.
+  - Signing out of iCloud on the customer's Mac wasn't worth the disruption.
+  - The design treats every status but `available` the same way: keep working locally, sync later. That's covered by tests against a stand-in for CloudKit, plus a manual check on a spare Mac or test account before release.
 
 
 Log excerpt (development build, second attempt):
