@@ -12,10 +12,7 @@ struct SyncStatusRow: View {
         VStack(alignment: .leading, spacing: 4) {
             line(label)
             if showsSyncNow {
-                Button("Sync Now") { model.syncNow() }
-                    .buttonStyle(.link)
-                    .font(.caption)
-                    .disabled(!model.syncStatus.allowsSyncNow)
+                syncNowButton
                     .padding(.leading, 24)
             }
         }
@@ -38,6 +35,28 @@ struct SyncStatusRow: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(label.spoken)
         .accessibilityIdentifier("syncStatus")
+    }
+
+    /// Hover and pressed states like every popover button (T-021); while syncing, a spinner and
+    /// "Syncing…" in place of its title, for at least a second (B.22).
+    private var syncNowButton: some View {
+        let syncing = model.syncStatus == .syncing
+        return Button {
+            model.syncNow()
+        } label: {
+            HStack(spacing: 4) {
+                if syncing {
+                    ProgressView().controlSize(.mini)
+                }
+                Text(syncing ? "Syncing…" : "Sync Now")
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(syncing ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.accentColor))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.hover(outset: 3))
+        .disabled(!model.syncStatus.allowsSyncNow)
+        .accessibilityLabel("Sync Now")
     }
 
     /// Shown whenever iCloud can be used; disabled while syncing.

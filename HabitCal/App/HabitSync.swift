@@ -132,18 +132,38 @@ final class HabitSync: CKSyncEngineDelegate {
     }
 
     /// Sync Now (B.22): fetch, then send, showing "Syncing…" and then the result.
+    /// Sync Now (B.22): fetch, then send. "Syncing…" shows for at least `syncNowMinimum`, so a fast
+    /// sync still reads as something happening (customer, 2026-11-01); the result follows.
     func syncNow() {
         guard let engine, model.syncStatus.allowsSyncNow else { return }
         model.setSyncStatus(.syncing)
-        lastFetch = Date()
+        let started = Date()
+        syncNowUntil = started.addingTimeInterval(Self.syncNowMinimum)
+        lastFetch = started
         let send = SyncPolicy.answersSendBatch(firstSyncDone: state.firstSyncDone, updateNeeded: state.updateNeeded)
-        detached(
-            engine, then: { $0.markSynced() },
-            { engine in
+        let minimum = Self.syncNowMinimum
+        Task.detached { [weak self] in
+            var failure: Error?
+            do {
                 try await engine.fetchChanges()
                 if send { try await engine.sendChanges() }
-            })
+            } catch {
+                failure = error
+            }
+            let wait = minimum - Date().timeIntervalSince(started)
+            if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
+            await MainActor.run {
+                guard let self else { return }
+                self.syncNowUntil = nil
+                if let failure { self.report(failure) } else { self.markSynced() }
+            }
+        }
     }
+
+    /// The shortest time Sync Now shows "Syncing…".
+    private static let syncNowMinimum: TimeInterval = 1
+    /// While Sync Now's minimum time runs, the engine's own events don't replace "Syncing…".
+    private var syncNowUntil: Date?
 
     // MARK: CKSyncEngineDelegate
 
@@ -337,6 +357,7 @@ final class HabitSync: CKSyncEngineDelegate {
     /// "Synced" only when nothing is waiting on a failed save; until then the failure's status stays
     /// (B.5, E.5).
     private func markSynced() {
+        if let syncNowUntil, syncNowUntil > Date() { return }
         guard !state.updateNeeded else {
             model.setSyncStatus(.updateNeeded)
             return
