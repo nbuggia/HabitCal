@@ -83,8 +83,7 @@ Also rejected: a kit-only slice for `SyncPolicy`. It has no demo of its own, and
 
 | Field | Value |
 | --- | --- |
-| Status | Blocked |
-| Blocked | Waits for T-035's import code, which doesn't exist yet. |
+| Status | In Progress: built inside T-035 slice 2 (f7c0573), which called `replaceAll` from the start; the confirmation tests and the two-Mac check outstanding |
 | Scope | T-035's import calls `Habits.replaceAll(with:now:)` (slice 1) instead of its own replace. When sync is on, the confirmation says "on all your Macs" (B.14). |
 | Demo criterion | Import on Mac A; Mac B shows exactly the file's habits. A habit added on B while offline before the import survives it (spec conflict table). T-035's confirmation tests check both wordings. |
 | Dependencies | Slice 1's `replaceAll`; slices 3 and 4's sync; T-035's import UI. |
@@ -149,6 +148,14 @@ Slices 1 and 2 are independent of each other; slice 3 needs both; slice 4 needs 
 - Changed: none.
 - Unchanged and why: slice 5 needs only T-035's import UI and the confirmation wording.
 - New conflicts: adding a field to `SyncState` makes an older `sync-state.json` undecodable; it's dropped and the next start re-runs a first sync, which loses nothing (seen here). Accepted; noted for ARCHITECTURE at close.
+
+### After Slice 5 (code; checks outstanding)
+
+- Commit: f7c0573 (T-035 slice 2)
+- Affected remaining slices reviewed: none remain.
+- Changed: as the plan foresaw (slice 5's invalidation risk), T-035 was built after slice 4 and called `replaceAll` from the start, so this slice shrank to the wording and the IDs passed to sync.
+- Unchanged and why: n/a.
+- New conflicts: none.
 
 ## 6. Design Drift
 
