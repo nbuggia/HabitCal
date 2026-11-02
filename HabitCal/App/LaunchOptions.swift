@@ -22,7 +22,9 @@ struct LaunchOptions {
     /// Under `-HabitCalSyncStatus name`, a fixed status for Settings instead of asking iCloud.
     let syncStatusOverride: SyncStatus?
     /// Answers for the file dialogs, only with `-HabitCalDataDir` (FM-007): `-HabitCalExportTo name`
-    /// saves to `name` in the test data folder, or `cancel` (T-035).
+    /// saves to `name` in the test data folder; `-HabitCalImportFrom name` opens it; either can be
+    /// `cancel`. `-HabitCalImportFile base64` writes those bytes to `import.json` there and opens it.
+    /// `-HabitCalConfirmImport yes|no` answers the confirmation (T-035).
     let dialogAnswers: FileDialogs.TestAnswers?
 
     init(arguments: [String]) {
@@ -51,8 +53,18 @@ struct LaunchOptions {
                 dataDirectory = applicationSupport.appendingPathComponent("HabitCal-tests", isDirectory: true)
                     .appendingPathComponent(folder, isDirectory: true)
                 syncAllowed = false
+                var importFrom = Self.value(after: "-HabitCalImportFrom", in: arguments)
+                if let base64 = Self.value(after: "-HabitCalImportFile", in: arguments),
+                    let bytes = Data(base64Encoded: base64)
+                {
+                    try? FileManager.default.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
+                    try? bytes.write(to: dataDirectory.appendingPathComponent("import.json"))
+                    importFrom = "import.json"
+                }
                 dialogAnswers = FileDialogs.TestAnswers(
-                    exportTo: Self.value(after: "-HabitCalExportTo", in: arguments), folder: dataDirectory)
+                    exportTo: Self.value(after: "-HabitCalExportTo", in: arguments), importFrom: importFrom,
+                    confirm: Self.value(after: "-HabitCalConfirmImport", in: arguments).map { $0 == "yes" },
+                    folder: dataDirectory)
             }
             if let base64 = Self.value(after: "-HabitCalSeedData", in: arguments) {
                 seedData = Data(base64Encoded: base64)

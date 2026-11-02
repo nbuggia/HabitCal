@@ -11,6 +11,10 @@ final class FileDialogs {
     /// name inside the test data folder, or nil for Cancel (TESTING.md, FM-007).
     struct TestAnswers {
         var exportTo: String?
+        /// A file in the test data folder to import, or `cancel`.
+        var importFrom: String?
+        /// The confirmation's answer: true for Replace.
+        var confirm: Bool?
         var folder: URL
     }
 
@@ -31,6 +35,37 @@ final class FileDialogs {
         panel.allowedContentTypes = [.json]
         panel.level = .modalPanel
         return panel.runModal() == .OK ? panel.url : nil
+    }
+
+    /// The open dialog, for JSON files. Nil if cancelled (E.1).
+    func chooseImportURL() -> URL? {
+        if let testAnswers, let importFrom = testAnswers.importFrom {
+            return importFrom == "cancel" ? nil : testAnswers.folder.appendingPathComponent(importFrom)
+        }
+        NSApp.activate()
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.level = .modalPanel
+        return panel.runModal() == .OK ? panel.url : nil
+    }
+
+    /// Replace or Cancel. Cancel is the default button, so Return doesn't replace (T-035 §5).
+    func confirmReplace(title: String, message: String) -> Bool {
+        if let testAnswers { return testAnswers.confirm ?? false }
+        NSApp.activate()
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = title
+        alert.informativeText = message
+        let replace = alert.addButton(withTitle: "Replace")
+        replace.hasDestructiveAction = true
+        replace.keyEquivalent = ""
+        let cancel = alert.addButton(withTitle: "Cancel")
+        cancel.keyEquivalent = "\r"
+        alert.window.level = .modalPanel
+        return alert.runModal() == .alertFirstButtonReturn
     }
 
     /// An alert with the reason macOS gave (E.2, E.3, E.4, E.5).

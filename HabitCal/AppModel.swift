@@ -381,6 +381,47 @@ final class AppModel {
         }
     }
 
+    /// Import Habits…: closes the panel, asks for a file, reads it whole, asks before replacing any
+    /// habits, then replaces them, on every Mac when sync is on (B.5–B.10, T-039 B.13). Any error or
+    /// Cancel changes nothing (E.1, E.3–E.5).
+    func importHabits() {
+        guard canAddHabits, let dialogs else { return }
+        closePopoverThen { [weak self] in
+            guard let self, let url = dialogs.chooseImportURL() else { return }
+            let incoming: Habits
+            do {
+                incoming = try HabitStore.importHabits(from: url)
+            } catch HabitStore.ImportError.newerFormat {
+                dialogs.showError(
+                    title: "This file is from a newer version of HabitCal.", reason: "Update HabitCal to import it.")
+                return
+            } catch HabitStore.ImportError.cantOpen(let reason) {
+                dialogs.showError(title: "Couldn't open this file", reason: reason)
+                return
+            } catch {
+                Self.log.error("Import refused: \(String(describing: error), privacy: .public)")
+                dialogs.showError(
+                    title: "This isn't a HabitCal habits file", reason: "HabitCal can only import its own exports.")
+                return
+            }
+            if !self.habits.all.isEmpty {
+                let label = HabitLabels.importConfirmation(
+                    current: self.habits, incoming: incoming, fileName: url.lastPathComponent,
+                    syncOn: self.syncStatus != .off, today: self.today)
+                guard dialogs.confirmReplace(title: label.title, message: label.message) else { return }
+            }
+            self.applyImport(incoming)
+        }
+    }
+
+    /// Replaces every habit with the file's, as new habits, and saves; sync sends the deletes and adds.
+    /// The list then shows today (B.8).
+    func applyImport(_ incoming: Habits) {
+        let changed = habits.replaceAll(with: incoming.all, now: now())
+        selectedDay = nil
+        persist(changed)
+    }
+
     // MARK: Leaderboard
 
     func openLeaderboard() {

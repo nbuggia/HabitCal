@@ -145,15 +145,21 @@ public struct Habits: Equatable, Sendable {
     /// An import (T-035, T-039 B.13): deletes every habit shown and adds the file's habits as new
     /// habits, with new IDs, in the file's order. A restore is then ordinary deletes and adds on every
     /// Mac, so a habit another Mac added that this one didn't know survives it.
-    public mutating func replaceAll(with habits: [Habit], now: Date) {
+    /// Returns the habits it deleted and added, for sync to send (T-039 B.13).
+    @discardableResult
+    public mutating func replaceAll(with habits: [Habit], now: Date) -> Set<UUID> {
         let stamp = Self.stamp(now)
+        var changed: Set<UUID> = []
         for index in records.indices where !records[index].isDeleted {
             records[index].deletedAt = stamp
+            changed.insert(records[index].id)
         }
         for (offset, habit) in habits.enumerated() {
+            let id = UUID()
+            changed.insert(id)
             records.append(
                 Habit(
-                    id: UUID(),
+                    id: id,
                     details: HabitDetails(
                         name: habit.name, note: habit.note, schedule: habit.schedule, changedAt: stamp),
                     addedOn: habit.addedOn, createdAt: Self.stamp(stamp.addingTimeInterval(Double(offset) * 0.001)),
@@ -161,6 +167,7 @@ public struct Habits: Equatable, Sendable {
                     checks: habit.checks.filter(\.value.done).mapValues { _ in Check(done: true, changedAt: stamp) }))
         }
         records = Self.ordered(records)
+        return changed
     }
 
     // MARK: Merging (T-039)

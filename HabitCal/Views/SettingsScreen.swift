@@ -33,6 +33,8 @@ struct SettingsScreen: View {
                 SyncStatusRow()
                 Divider().padding(.vertical, 8)
                 dataButton("export", "Export Habits…", spoken: "Export habits") { model.exportHabits() }
+                dataButton("download-simple", "Import Habits…", spoken: "Import habits") { model.importHabits() }
+                    .padding(.top, 6)
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)

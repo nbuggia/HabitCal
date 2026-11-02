@@ -92,6 +92,48 @@ public final class HabitStore {
         try HabitCodec.encoder.encode(FileV2(formatVersion: formatVersion, habits: habits.all.map(HabitV2.init)))
     }
 
+    /// Why a file can't be imported (T-035 E.3–E.5).
+    public enum ImportError: Error, Equatable {
+        /// The file couldn't be opened; macOS's reason.
+        case cantOpen(String)
+        /// Not JSON, other fields, invalid values, no format version, or over `importLimit`.
+        case notHabitCal(String)
+        /// Written by a newer HabitCal.
+        case newerFormat(Int)
+    }
+
+    /// The largest file accepted for import. Years of daily check-offs for dozens of habits stay well
+    /// under 1 MB, so anything bigger isn't a HabitCal export (T-035 Limits).
+    public static let importLimit = 10 * 1024 * 1024
+
+    /// Reads a habits file to import: any format HabitCal loads as its own data, through the same
+    /// decoder (B.9). The size is checked before the file is read.
+    public static func importHabits(from url: URL) throws -> Habits {
+        let size: Int
+        do {
+            size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+        } catch {
+            throw ImportError.cantOpen(error.localizedDescription)
+        }
+        guard size <= importLimit else { throw ImportError.notHabitCal("larger than \(importLimit) bytes") }
+        let data: Data
+        do {
+            data = try Data(contentsOf: url)
+        } catch {
+            throw ImportError.cantOpen(error.localizedDescription)
+        }
+        if let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let version = root["formatVersion"] as? Int, version > formatVersion
+        {
+            throw ImportError.newerFormat(version)
+        }
+        do {
+            return try decodeFile(data)
+        } catch {
+            throw ImportError.notHabitCal(String(describing: error))
+        }
+    }
+
     /// Writes the whole file atomically: a temporary file, then a rename, so a crash leaves the old
     /// file intact.
     public func save(_ habits: Habits) throws {
