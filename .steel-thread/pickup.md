@@ -25,7 +25,7 @@ T-029 slice 2 is paused: the full UI suite still needs a complete run on the cus
 
 ## Suggested Start
 
-T-035's tech design, starting with a spike of the file dialogs from the MenuBarExtra panel. Or, with the customer's screen, the T-029 UI test rerun.
+The customer's testing pass, which unblocks six closes: run the full UI suite (`./run.py uitest`, about 20 minutes of their screen; covers T-029's open questions too), then a look at the app (strips, Settings Data section, Quit at the bottom), then docs/manual-tests/data.md (export and import with the real dialogs), then the T-039 iCloud checks (CloudKit Console edits, zone delete, Wi-Fi off, Wi-Fi drop mid first sync, change-then-quit, second Mac or macOS user). Fix what fails, then st-close T-036/T-037/T-038 (no work entries: just mark), T-041, T-035, T-039. Without the screen: T-030 (retro).
 
 ## Proposed Updates
 
