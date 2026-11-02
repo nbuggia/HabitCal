@@ -90,32 +90,6 @@ struct HabitTests {
         #expect(!habit.isDone(on: today))
     }
 
-    @Test func stripShowsDoneMissedNotScheduledAndFutureForTheMonth() throws {
-        var (habits, id) = runHabit()
-        habits.toggle(id, on: oct(2), today: today, now: t0)  // Fri done
-        let strip = try #require(habits[id]).strip(for: Month(year: 2026, month: 10), today: today)
-        #expect(strip.count == 31)
-        #expect(strip[1] == .done)  // Oct 2, Fri
-        #expect(strip[3] == .missed)  // Oct 4, Sun
-        #expect(strip[0] == .notScheduled)  // Oct 1, Thu
-        #expect(strip[28] == .notScheduled)  // Oct 29, today, Thu
-        #expect(strip[29] == .future)  // Oct 30, Fri
-        #expect(strip[30] == .futureNotScheduled)  // Oct 31, Sat
-
-        let november = try #require(habits[id]).strip(for: Month(year: 2026, month: 11), today: today)
-        #expect(november[30] == .blank)  // November has 30 days
-    }
-
-    @Test func stripShowsDaysBeforeAddedAsMissedOrDone() throws {
-        var (habits, id) = runHabit(addedOn: today)
-        // Fri Sep 4, before it was added
-        habits.toggle(id, on: Day(year: 2026, month: 9, day: 4), today: today, now: t0)
-        let september = try #require(habits[id]).strip(for: Month(year: 2026, month: 9), today: today)
-        #expect(september[3] == .done)  // Sep 4, Fri
-        #expect(september[5] == .missed)  // Sep 6, Sun
-        #expect(september[4] == .notScheduled)  // Sep 5, Sat
-    }
-
     @Test func scheduleEditOnTheDayAddedKeepsPastDaysOnTheOldSchedule() throws {
         var (habits, id) = runHabit(addedOn: today)  // Fri, Sun
         habits.toggle(id, on: oct(25), today: today, now: t0)  // Sun, before it was added
@@ -127,14 +101,6 @@ struct HabitTests {
         #expect(!habit.isDue(on: oct(26)))  // a past Monday wasn't on the old schedule
         #expect(habit.isDue(on: Day(year: 2026, month: 11, day: 2)))  // Monday, new schedule
         #expect(Streaks.current(habit, today: today) == 1)
-    }
-
-    @Test func checkOffsAfterTodayAreShownAsFuture() throws {
-        // The clock moved backward past a check-off (E.7).
-        var (habits, id) = runHabit()
-        habits.toggle(id, on: oct(30), today: oct(30), now: t0)
-        let habit = try #require(habits[id])
-        #expect(habit.strip(for: Month(year: 2026, month: 10), today: today)[29] == .future)
     }
 
     @Test func draftNeedsANameAndADay() {
@@ -193,12 +159,6 @@ struct HabitTests {
     }
 
     @Test func labelsDescribeEachDayAndButton() {
-        #expect(HabitLabels.stripTooltip(oct(5), .done) == "Oct 5 · done")
-        #expect(HabitLabels.stripTooltip(oct(5), .missed) == "Oct 5 · missed")
-        #expect(HabitLabels.stripTooltip(oct(4), .notScheduled) == "Oct 4 · not scheduled")
-        #expect(HabitLabels.stripTooltip(oct(30), .future) == "Oct 30")
-        #expect(HabitLabels.stripTooltip(oct(31), .futureNotScheduled) == "Oct 31 · not scheduled")
-        #expect(HabitLabels.stripSpoken(oct(5), .done) == "October 5, done")
         #expect(
             HabitLabels.doneButtonSpoken(name: "Push-ups", doneToday: true) == "Push-ups, done today")
         #expect(

@@ -1,6 +1,6 @@
 # Manual Tests: Habits
 
-**Why manual:** how the strip and rows look, VoiceOver's adjust gestures, a save failure (it needs a folder made read-only by hand), and many habits on a real screen are beyond what UI tests can see or set up.
+**Why manual:** how the strip and rows look, a save failure (it needs a folder made read-only by hand), and many habits on a real screen are beyond what UI tests can see or set up.
 
 ## Habit rows look right in every appearance
 
@@ -9,7 +9,7 @@
 1. Look at the popover in light mode, dark mode, and with Increase Contrast on.
 2. Select a day in the calendar the habit not due today is due on.
 
-**Expect:** done squares and the filled done button are clearly green; missed squares soft red; not-scheduled squares faint grey; future days outlined; today's square ringed in the accent color; the habit not due today isn't listed until you select one of its days. Nothing is hard to tell apart.
+**Expect:** each strip shows only the habit's due days, 30 squares, oldest on the left; done squares and the filled done button are clearly green; missed squares soft red; squares before the habit was added faint grey; future days outlined; the newest square (the day shown) ringed in the accent color; clicking a square does nothing, and VoiceOver skips the strip; the habit not due today isn't listed until you select one of its days. Nothing is hard to tell apart.
 
 ## Many habits scroll inside the popover
 
@@ -18,16 +18,6 @@
 1. Open the popover.
 
 **Expect:** the calendar and the bottom row stay in place, the habit list scrolls, and the popover never runs off the bottom of the screen.
-
-## VoiceOver adjusts the strip day by day
-
-**Setup:** VoiceOver on (⌘F5), a habit with some missed days.
-
-1. Move VoiceOver to a habit's strip. It reads "Push-ups, October 2026", then today's state.
-2. Swipe up and down (or VO-↑/↓) to move between days.
-3. Press VO-Space on a missed past day.
-
-**Expect:** each day is read with its state ("October 28, missed"); VO-Space marks it done and VoiceOver reads "October 28, done".
 
 ## A failed save says so
 

@@ -19,35 +19,19 @@ final class HabitsUITests: HabitCalUITestCase {
         }
         """
 
-    private func strip(_ name: String) -> XCUIElement {
-        popover.descendants(matching: .any)["strip-\(name)"]
-    }
-
-    private func stripValue(_ name: String) -> String {
-        strip(name).value as? String ?? ""
-    }
-
-    /// Clicks the strip square for `day` of the displayed month.
-    private func clickStripDay(_ name: String, day: Int) {
-        let offset = (Double(day) - 0.5) / 31
-        strip(name).coordinate(withNormalizedOffset: CGVector(dx: offset, dy: 0.5)).click()
-    }
-
     func testEmptyListShowsPrompt() {
         launch()
         openPopover()
         XCTAssertTrue(text("No habits").exists)
     }
 
-    func testCheckingOffTodayFillsTheButtonAndTodaysSquare() {
+    func testCheckingOffTodayFillsTheButton() {
         launch(seed: Self.seed)
         openPopover()
         let button = element("Push-ups, not done today")
         XCTAssertTrue(button.exists, "done button missing")
-        XCTAssertEqual(stripValue("Push-ups"), "October 29, missed")
         button.click()
         XCTAssertTrue(element("Push-ups, done today").waitForExistence(timeout: 5))
-        XCTAssertEqual(stripValue("Push-ups"), "October 29, done")
         element("Push-ups, done today").click()
         XCTAssertTrue(element("Push-ups, not done today").waitForExistence(timeout: 5), "second click didn't undo")
     }
@@ -61,27 +45,6 @@ final class HabitsUITests: HabitCalUITestCase {
         showRunsSunday()
     }
 
-    func testEscStillClosesAfterTheFocusedStripLeavesTheList() {
-        launch(seed: Self.seed)
-        openPopover()
-        showRunsSunday()
-        // Tab until ← moves Run's day: proof Run's strip has keyboard focus.
-        var focused = false
-        for _ in 0..<8 {
-            app.typeKey(.tab, modifierFlags: [])
-            app.typeKey(.leftArrow, modifierFlags: [])
-            if stripValue("Run") == "October 24, not scheduled" {
-                focused = true
-                break
-            }
-        }
-        XCTAssertTrue(focused, "Run's strip never took keyboard focus")
-        popover.buttons["Today"].click()  // Run isn't due today, so its row (and focus) leaves the list
-        XCTAssertFalse(element("Edit Run").exists, "Run should leave the list")
-        app.typeKey(.escape, modifierFlags: [])
-        XCTAssertTrue(popover.waitForNonExistence(timeout: 5), "Esc didn't close the popover (FM-006)")
-    }
-
     func testNothingDueTodayWhenNoHabitIsDue() {
         let runOnly = Self.seed.replacingOccurrences(of: "\"Push-ups\"", with: "\"Swim\"")
             .replacingOccurrences(
@@ -90,23 +53,6 @@ final class HabitsUITests: HabitCalUITestCase {
         openPopover()
         XCTAssertTrue(text("Nothing due today").exists, "no Nothing due today")
         XCTAssertFalse(text("No habits").exists)
-    }
-
-    func testFixingAMissedDayInTheStrip() {
-        launch(seed: Self.seed)
-        openPopover()
-        showRunsSunday()
-        clickStripDay("Run", day: 25)  // a Sunday
-        XCTAssertEqual(stripValue("Run"), "October 25, done")
-        clickStripDay("Run", day: 26)  // Monday: not due, nothing happens
-        XCTAssertEqual(stripValue("Run"), "October 26, not scheduled")
-        clickStripDay("Run", day: 30)  // Friday, future: nothing happens
-        XCTAssertEqual(stripValue("Run"), "October 30")
-
-        // Fix a day in an earlier month (UC-3).
-        popover.buttons["Previous month"].click()
-        clickStripDay("Run", day: 27)  // Sunday, September 27
-        XCTAssertEqual(stripValue("Run"), "September 27, done")
     }
 
     func testHabitsSurviveRelaunch() {
@@ -121,28 +67,6 @@ final class HabitsUITests: HabitCalUITestCase {
         openPopover()
         XCTAssertTrue(element("Push-ups, done today").exists, "check-off didn't survive a relaunch")
         showRunsSunday()
-    }
-
-    func testStripIsOneTabStopThatArrowsAndSpaceDrive() {
-        launch(seed: Self.seed)
-        openPopover()
-        XCTAssertEqual(stripValue("Push-ups"), "October 29, missed")
-        // Tab until ← moves the strip's day: proof the strip has keyboard focus. It's one Tab stop,
-        // so a few presses at most.
-        var focused = false
-        for _ in 0..<6 {
-            app.typeKey(.tab, modifierFlags: [])
-            app.typeKey(.leftArrow, modifierFlags: [])
-            if stripValue("Push-ups") == "October 28, missed" {
-                focused = true
-                break
-            }
-        }
-        XCTAssertTrue(focused, "the strip never took keyboard focus")
-        app.typeKey(.space, modifierFlags: [])
-        XCTAssertEqual(stripValue("Push-ups"), "October 28, done")
-        app.typeKey(.rightArrow, modifierFlags: [])
-        XCTAssertEqual(stripValue("Push-ups"), "October 29, missed")
     }
 
     func testUnreadableDataShowsMessageAndDisablesAdd() {
@@ -165,7 +89,7 @@ final class HabitsUITests: HabitCalUITestCase {
         for label in ["Add habit", "Edit Push-ups", "Push-ups, not done today"] {
             XCTAssertTrue(element(label).exists, "missing \(label)")
         }
-        XCTAssertEqual(strip("Push-ups").label, "Push-ups, October 2026")
+        XCTAssertFalse(popover.descendants(matching: .any)["strip-Push-ups"].exists, "the strip is hidden (T-041)")
 
         popover.buttons["Edit Push-ups"].click()
         for label in ["Name", "Notes", "Close", "Delete habit"] + ["Sunday", "Monday", "Saturday"] {
@@ -182,7 +106,9 @@ final class HabitsUITests: HabitCalUITestCase {
         XCTAssertEqual(streaks.label, "Current streak 0 days, best streak 1 day")
         element("Push-ups, not done today").click()
         XCTAssertEqual(streaks.label, "Current streak 1 day, best streak 1 day")
-        clickStripDay("Push-ups", day: 28)
+        // Fix the 28th from the calendar (T-022): the strip isn't clickable (T-041).
+        element("Wednesday, October 28, 2026").click()
+        element("Push-ups, not done on October 28").click()
         XCTAssertEqual(streaks.label, "Current streak 3 days, best streak 3 days")
         showRunsSunday()
         XCTAssertEqual(

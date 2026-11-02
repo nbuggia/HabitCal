@@ -121,27 +121,56 @@ public struct Habit: Identifiable, Hashable, Sendable {
         checks[day]?.done == true
     }
 
-    /// The displayed month's 31 strip squares (T-003 §5). A check-off after today shows as future,
-    /// so moving the clock backward hides it until that day comes again (E.7).
-    public func strip(for month: Month, today: Day) -> [StripDay] {
-        (1...31).map { number in
-            let day = Day(year: month.year, month: month.month, day: number)
-            guard let valid = Day(iso: day.iso) else { return .blank }
-            let due = isDue(on: valid)
-            if valid > today { return due ? .future : .futureNotScheduled }
-            if !due { return .notScheduled }
-            return isDone(on: valid) ? .done : .missed
+    /// The strip (T-041): the habit's last `stripLength` due days up to and including `shownDay`,
+    /// oldest first, so a Monday/Wednesday/Friday habit shows only those days. Due means `isDue`, so a
+    /// check-off on a day the schedule leaves out counts (T-039 B.21). The search stops three years
+    /// back; slots with no due day in that time are nil, on the left (E.5).
+    public func dueStrip(endingAt shownDay: Day, today: Day) -> [DueSquare?] {
+        var found: [DueSquare] = []
+        var day = shownDay
+        var looked = 0
+        while found.count < Self.stripLength && looked < Self.stripSearchDays {
+            if isDue(on: day) {
+                found.append(DueSquare(day: day, state: stripState(day, today: today), isShown: day == shownDay))
+            }
+            day = day.adding(days: -1)
+            looked += 1
         }
+        return Array(repeating: nil, count: Self.stripLength - found.count) + found.reversed()
+    }
+
+    /// Squares in the strip: always 30, so every row is the same width (T-041, customer 2026-11-01).
+    public static let stripLength = 30
+    /// How far back the strip looks for due days: three years, far past what 30 squares show for any
+    /// weekly schedule (T-041 E.5).
+    public static let stripSearchDays = 1_096
+
+    private func stripState(_ day: Day, today: Day) -> DueSquare.State {
+        if day > today { return .future }
+        if isDone(on: day) { return .done }
+        return day < addedOn ? .beforeAdded : .missed
     }
 }
 
-/// One square in a habit's strip.
-public enum StripDay: Sendable, Equatable {
-    case done
-    case missed
-    case notScheduled
-    case future
-    case futureNotScheduled
-    /// Past the end of a month shorter than 31 days.
-    case blank
+/// One square in a habit's strip (T-041).
+public struct DueSquare: Equatable, Sendable {
+    public enum State: Equatable, Sendable {
+        case done
+        case missed
+        /// Not done, before the habit was added: shown faint, not as a failure (B.5a).
+        case beforeAdded
+        /// After today, when a future day is shown.
+        case future
+    }
+
+    public let day: Day
+    public let state: State
+    /// The shown day, which carries the ring.
+    public let isShown: Bool
+
+    public init(day: Day, state: State, isShown: Bool) {
+        self.day = day
+        self.state = state
+        self.isShown = isShown
+    }
 }
