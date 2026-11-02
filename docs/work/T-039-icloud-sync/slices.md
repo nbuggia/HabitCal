@@ -44,7 +44,7 @@ Also rejected: a kit-only slice for `SyncPolicy`. It has no demo of its own, and
 
 | Field | Value |
 | --- | --- |
-| Status | Pending |
+| Status | Done (see Checkpoint Log); UI tests and a look at the status line outstanding |
 | Scope | An entitlements file (iCloud container, CloudKit, `aps-environment`). Debug signs automatically with team LZ2695932J. Release keeps ad-hoc signing **without** the iCloud entitlements until T-005's Developer ID profile exists (design §16). `run.py build`/`run`/`uitest` pass `-allowProvisioningUpdates`. A minimal `HabitSync` that, when not disabled (`-HabitCalDataDir`, unreadable data), asks CloudKit for the account status at launch and on `.CKAccountChanged`, and sets `AppModel.syncStatus` to off / available ("Not synced yet") / error. **Sync is also off in any build without the CloudKit entitlement** (Release until T-005): such a process traps on touching `CKContainer`, so HabitSync checks the entitlement first and never creates a container without it (status "iCloud is off"). `HabitLabels.syncStatus` covers every state in the spec's table. `SyncStatusRow` sits at the top of Settings' DATA section (T-035's DATA section if present, otherwise a DATA heading with just this row). There's a Debug-only `-HabitCalSyncStatus <state>` to show any state. |
 | Demo criterion | `./run.py run` builds team-signed, and the app launches. Settings shows the real iCloud status for the customer's account. **A Release build (no iCloud entitlement) launches and shows "iCloud is off".** The full UI suite still passes (tests never sync). `testSettingsShowsSyncStatus` passes for each state. VoiceOver reads the line as one element. |
 | Dependencies | Slice 1 isn't consumed: this slice is independent of the model and could run first. It goes second so slice 3 starts from a v2 model and a signed app. |
@@ -125,6 +125,14 @@ Slices 1 and 2 are independent of each other; slice 3 needs both; slice 4 needs 
 - Changed: none.
 - Unchanged and why: the kit API matches design §7 except the order key (Design Drift); slice 3's inputs exist as specified.
 - New conflicts: none. Outstanding from slice 1's demo: the habits, form, and day-selection UI tests, and a look at the customer's real data after the v1 → v2 change.
+
+### After Slice 2
+
+- Commit: the slice 2 commit after b6302be ("T-039 slice 2: signed with iCloud…")
+- Affected remaining slices reviewed: 3 (consumes the HabitSync shell, `SyncStatus`, `SyncStatusRow`, entitlements: as planned; `allowsSyncNow` already exists and is tested, so slice 3's `syncNowDisabledWhileOffOrSyncing` is covered by `syncNowOnlyWhenICloudIsAvailableAndIdle`), 4 and 5 unchanged.
+- Changed: none.
+- Unchanged and why: the shell's account-status mapping is the "off/waiting" part of slice 4's statuses; slice 4 still owns sign-in/switch handling of engine state.
+- New conflicts: the Xcode account sign-in lapsed once during this slice ("No Accounts"); signing in again fixed it. Building now depends on it. Outstanding: the UI tests and a look at the line.
 
 ## 6. Design Drift
 
