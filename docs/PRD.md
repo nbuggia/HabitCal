@@ -2,7 +2,7 @@
 
 ## Outcome
 
-HabitCal is a free macOS menu bar app for people building daily habits. The menu bar always shows today's date; one click opens a month calendar you can page through, with your habits right under it: check off today's from the popover, and see at a glance, in each habit's strip for the month on show, which days you kept up. Each habit has its own schedule (push-ups every day, a run on Fridays and Sundays), and its streak counts only the days it was due, so a day off never breaks it. It matters because today this takes two apps — a menu bar calendar and a habit tracker — and the good habit trackers are paid, capped, or want an account. HabitCal does both jobs in one glance, privately, for free. See the Appendix.
+HabitCal is a free macOS menu bar app for people building daily habits. The menu bar always shows today's date; one click opens a month calendar you can page through, with your habits right under it: check off today's from the popover, and see at a glance, in each habit's strip of its recent due days, which days you kept up. Each habit has its own schedule (push-ups every day, a run on Fridays and Sundays), and its streak counts only the days it was due, so a day off never breaks it. It matters because today this takes two apps — a menu bar calendar and a habit tracker — and the good habit trackers are paid, capped, or want an account. HabitCal does both jobs in one glance, privately, for free. See the Appendix.
 
 ## Done Means
 
@@ -10,9 +10,9 @@ HabitCal is a free macOS menu bar app for people building daily habits. The menu
 - One click opens the current month; any other month is one click per month away, and one click returns to today.
 - A new habit with a schedule (every day, or chosen weekdays) can be added in under 30 seconds.
 - Checking off today's habit is one click from the popover; its streak updates immediately and survives quitting and relaunching.
-- Each habit shows a strip for the month on show in the calendar, marking each day as done, missed, or not scheduled.
+- Each habit shows a strip of its last 30 due days, ending at the day shown, marked done, missed, or future (T-041).
 - Each habit shows its current streak and its best streak, and a day the habit wasn't scheduled never breaks a streak.
-- A missed check-off can be fixed by marking a past day done.
+- A missed check-off can be fixed by selecting the past day in the calendar and marking it done (T-022).
 - The app works fully offline and needs no account; habit data leaves the Mac only for the person's own iCloud, to sync their Macs (D-010).
 
 ## Not Doing
@@ -44,7 +44,7 @@ HabitCal is a free macOS menu bar app for people building daily habits. The menu
 - Checking off future days. A selected future day shows its habits, read-only (T-022).
 
 ### Flows
-- Spans Habits: selecting a day shows that day's habits and whether each was done; on a past day you can fix them there, without hunting for its square in the strip (T-022). Today keeps a light marker so it's always easy to find.
+- Spans Habits: selecting a day shows that day's habits and whether each was done; on a past day you can fix them there (T-022). Today keeps a light marker so it's always easy to find.
 
 ## Feature: Habits
 
