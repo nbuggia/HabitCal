@@ -57,7 +57,7 @@ Also rejected: a kit-only slice for `SyncPolicy`. It has no demo of its own, and
 
 | Field | Value |
 | --- | --- |
-| Status | Pending |
+| Status | In Progress: code committed (10b3025) and the upload/download round trip verified on the customer's account; demo checks (2)–(5) and UI tests outstanding, so not Done (finding 2) |
 | Scope | **`SyncPolicy` in HabitCalKit, for the outcomes this slice handles:** fetched records, conflict, fetch finished, first sync, sends held then sent, local change. **HabitSync:** `CKSyncEngine` on the private database with zone `Habits`; the `Habit` record (`formatVersion`, `payload` = `HabitCodec`); the system fields cache; `sync-state.json` (engine state, first-sync flag, cache, `lastSynced`, `lastSentAt`); sends held until the first sync finishes, then sent at once; merge and save per batch inside the handler; conflict merge and re-send; `fetchSoon()` from DayWatcher's wake and 60 s timer; `registerForRemoteNotifications`. **Sync Now (B.22):** the button added to slice 2's `SyncStatusRow`. **App:** `AppModel.applyRemote`; `persist()` → `sync.changed(ids)`; a form on a habit deleted remotely closes. |
 | Demo criterion | Manual, against CloudKit's Development environment: (1) a check-off appears in the CloudKit Console; (2) editing a record in the Console shows in HabitCal within a minute, recording whether push or the fallback delivered it; (3) **stale system fields:** edit a habit in the Console, then edit the same habit in HabitCal before it fetches. The change still lands, merged, proving the conflict path; (4) Sync Now shows "Syncing…" then "Synced"; (5) on a second Mac, or a second macOS user signed into the same Apple Account: first sync with habits on both, same-name merge, edits on both, delete vs edit. The `SyncPolicy` tests for these outcomes, `syncNowDisabledWhileOffOrSyncing`, and `testSyncNowShowsSyncingThenResult` pass. |
 | Dependencies | Slice 1's `merge`, `mergeFirstSync`, `HabitCodec`, and stamping (consumed directly). Slice 2's signed app, entitlements, entitlement check, `HabitSync` shell, status plumbing, and `SyncStatusRow`. |
@@ -134,10 +134,20 @@ Slices 1 and 2 are independent of each other; slice 3 needs both; slice 4 needs 
 - Unchanged and why: the shell's account-status mapping is the "off/waiting" part of slice 4's statuses; slice 4 still owns sign-in/switch handling of engine state.
 - New conflicts: the Xcode account sign-in lapsed once during this slice ("No Accounts"); signing in again fixed it. Building now depends on it. Outstanding: the UI tests and a look at the line.
 
+### After Slice 3 (code; demo outstanding)
+
+- Commit: 10b3025
+- Affected remaining slices reviewed: 4 (recovery builds on HabitSync's event handling, `SyncState`, and `handleFailedSaves`: as planned; `zoneNotFound` and `unknownItem` are already handled in slice 3 because the first run needs them), 5 unchanged.
+- Changed: slice 4 no longer needs to add basic zone-not-found handling, only the user-deleted-zone path and account/newer-format/quota/network handling.
+- Unchanged and why: the engine's event shape matched the design.
+- New conflicts: CKSyncEngine's background task scheduling fails in the sandbox ("BUG IN CLOUDKIT"), so automatic syncing relies on the 60 s fetch and pushes. Engine calls must start detached from callbacks (recorded for COMMON-FAILURE-MODES at close).
+
 ## 6. Design Drift
 
 | Change | Affected slices | Reevaluation |
 | --- | --- | --- |
 | §12 slice 1 says "field-level form edits"; §6 (customer, 2026-11-01) writes details whole via `applyFormEdit` | 1 | Plan follows §6; §12 wording to be corrected at close |
+| Design §6 puts the fetch fallback on `DayWatcher`'s wake and timer; HabitSync has its own wake observer and 60 s timer | 3 | Keeps sync triggers inside HabitSync; DayWatcher stays the owner of "today" only |
+| First sync with an empty iCloud: §6 queued local habits only through fetched batches; nothing arrives, so the first-sync merge runs once more at `didFetchChanges` | 3 | Found running it; covered by the round-trip check |
 | §3 calls the push check "slice 2's manual check"; §13 tests B.14 "in slice 3". The plan has five slices: push is slice 3, B.14 slice 5 | 3, 5 | Plan numbering governs |
 | Design §6 orders by `addedOn`, then `createdAt`, then ID. Implementation orders by `createdAt`, then ID: v1 lists aren't sorted by `addedOn` (the UI tests' seed lists Push-ups, added Oct 1, before Run, added Sep 1), so `addedOn` first would reorder them. `add` keeps a new habit last by stamping `createdAt` just after the latest | 1 | Same guarantee (one fixed order on every Mac, v1 order kept); found during slice 1 |
