@@ -44,12 +44,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.model = model
         panel = PanelController(model: model)
         dayWatcher = DayWatcher(source: options.todaySource, macFirstWeekday: options.macFirstWeekday, model: model)
-        sync = HabitSync(model: model, allowed: options.syncAllowed, statusOverride: options.syncStatusOverride)
+        sync = HabitSync(
+            model: model, allowed: options.syncAllowed, statusOverride: options.syncStatusOverride,
+            directory: options.dataDirectory)
         super.init()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         MainMenu.install()
+        sync.didFinishLaunching()
         model.applyFirstLaunchLoginItemDefault()
     }
 }

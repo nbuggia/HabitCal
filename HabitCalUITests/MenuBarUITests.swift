@@ -156,6 +156,24 @@ final class MenuBarUITests: HabitCalUITestCase {
         }
     }
 
+    func testSyncNowShowsWhenICloudIsOnAndWaitsWhileSyncing() {
+        launch(["-HabitCalSyncStatus", "synced"])
+        openSettings()
+        XCTAssertTrue(element("Sync Now").waitForExistence(timeout: 5), "no Sync Now")
+        XCTAssertTrue(element("Sync Now").isEnabled)
+        app.terminate()
+
+        launch(["-HabitCalSyncStatus", "syncing"])
+        openSettings()
+        XCTAssertTrue(element("Sync Now").waitForExistence(timeout: 5))
+        XCTAssertFalse(element("Sync Now").isEnabled, "Sync Now while syncing")
+        app.terminate()
+
+        launch(["-HabitCalSyncStatus", "off"])
+        openSettings()
+        XCTAssertFalse(element("Sync Now").exists, "Sync Now with iCloud off")
+    }
+
     func testTestsNeverSync() {
         // UI tests always pass -HabitCalDataDir, which turns sync off (FM-007, T-039).
         launch()

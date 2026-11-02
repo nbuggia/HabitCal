@@ -87,6 +87,10 @@ final class AppModel {
     @ObservationIgnored var screenDidChange: () -> Void = {}
     /// Called when rows leave the habit list, which can remove the focused strip.
     @ObservationIgnored var listDidHideRows: () -> Void = {}
+    /// Called after habits change here and are saved, with their IDs, so `HabitSync` sends them (T-039).
+    @ObservationIgnored var habitsDidChange: (Set<UUID>) -> Void = { _ in }
+    /// Sync Now (B.22). Set by `HabitSync`.
+    @ObservationIgnored var syncNow: () -> Void = {}
 
     @ObservationIgnored private let store: HabitStore
     /// The current moment, for change times (T-039 B.10). Injected so tests control it; the app reads
@@ -202,19 +206,63 @@ final class AppModel {
     /// Toggles a strip day, if it's due and not in the future (B.5, B.6).
     func toggle(_ id: UUID, on day: Day) {
         guard habits.toggle(id, on: day, today: today, now: now()) else { return }
-        persist()
+        persist([id])
     }
 
     /// Saves after every change. While the data is unreadable the store refuses, which is what
     /// keeps the user's file intact (D-004).
-    private func persist() {
-        guard dataState != .unreadable(store.fileURL.path) else { return }
+    /// Saves, then tells sync which habits changed here (T-039).
+    private func persist(_ ids: Set<UUID>) {
+        guard save() else { return }
+        habitsDidChange(ids)
+    }
+
+    @discardableResult
+    private func save() -> Bool {
+        guard dataState != .unreadable(store.fileURL.path) else { return false }
         do {
             try store.save(habits)
             dataState = .ok
+            return true
         } catch {
             Self.log.error("Saving habits failed: \(error.localizedDescription, privacy: .public)")
             dataState = .saveFailed
+            return false
+        }
+    }
+
+    // MARK: Changes from iCloud (T-039)
+
+    /// Every stored habit, deleted ones included, for sending to iCloud.
+    func record(_ id: UUID) -> Habit? {
+        habits.records.first { $0.id == id }
+    }
+
+    /// Merges habits fetched from iCloud and saves them before returning: the sync engine records that
+    /// they were fetched right after this, so unsaved ones would never come again. Changes in place,
+    /// without resetting the popover (B.4); an open form on a habit that's gone closes (B.11). Returns
+    /// the habits iCloud should get back. Nothing is merged while the habits here can't be read (E.1).
+    func applyRemote(_ remote: [Habit], firstSyncDone: Bool) -> Set<UUID> {
+        guard dataState != .unreadable(store.fileURL.path) else { return [] }
+        let result = SyncPolicy.apply(
+            fetched: remote, to: &habits, firstSyncDone: firstSyncDone, today: today, now: now())
+        if !result.changed.isEmpty { save() }
+        closeFormIfItsHabitIsGone()
+        return result.toSend
+    }
+
+    /// A save iCloud refused because its copy changed: merge it in, save, and return the ID to re-send.
+    func resolveConflict(server: Habit) -> UUID? {
+        guard dataState != .unreadable(store.fileURL.path) else { return nil }
+        let id = SyncPolicy.resolveConflict(server: server, into: &habits)
+        save()
+        closeFormIfItsHabitIsGone()
+        return id
+    }
+
+    private func closeFormIfItsHabitIsGone() {
+        if let form, case .edit(let id) = form.mode, habits[id] == nil {
+            closeForm()
         }
     }
 
@@ -262,7 +310,7 @@ final class AppModel {
         else { return }
         habits.applyFormEdit(
             id, draft: form.draft, todayDoneAtOpen: start.isDone(on: today), today: today, now: now())
-        if habits[id] != before { persist() }
+        if habits[id] != before { persist([id]) }
     }
 
     func setConfirmingDelete(_ confirming: Bool) {
@@ -281,8 +329,8 @@ final class AppModel {
         guard let form else { return }
         if form.mode == .add {
             guard form.draft.isValid else { return }
-            habits.add(form.draft, today: today, now: now())
-            persist()
+            let id = habits.add(form.draft, today: today, now: now())
+            persist([id])
         }
         closeForm()
     }
@@ -291,7 +339,7 @@ final class AppModel {
     func deleteFromForm() {
         guard let form, case .edit(let id) = form.mode else { return }
         habits.delete(id, now: now())
-        persist()
+        persist([id])
         closeForm()
     }
 
