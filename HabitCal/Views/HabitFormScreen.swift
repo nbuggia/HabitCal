@@ -106,7 +106,7 @@ struct HabitFormScreen: View {
             .font(.callout)
             .scrollContentBackground(.hidden)
             .padding(4)
-            .frame(height: 54)
+            .frame(height: 108)
             .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
             .overlay(alignment: .topLeading) {
                 if note.isEmpty {
