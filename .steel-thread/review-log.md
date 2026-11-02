@@ -71,3 +71,5 @@
 2026-11-01 · T-039 · MINOR · didFetchChanges after a partial fetch could finish the first sync early · accepted risk
 2026-11-01 · T-039 · MINOR · SyncPolicy tests checked constants, not the event sequence · fixed
 2026-11-01 · T-039 · QUESTION · B.8b with one copy timestamped and one not · fixed
+2026-11-01 · T-039 · MAJOR · Verification: failed sends still hidden by Sync Now, the fetch, and later sends · fixed
+2026-11-01 · T-039 · MAJOR · Verification: sign-out then sign-in without relaunch skipped the first sync · fixed

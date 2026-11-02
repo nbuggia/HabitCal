@@ -27,8 +27,6 @@ final class HabitSync: CKSyncEngineDelegate {
     private var wakeObserver: NSObjectProtocol?
     private var timer: Timer?
     private var lastFetch: Date = .distantPast
-    /// A save failed in the current send cycle (reset when the engine starts sending).
-    private var sendFailed = false
 
     /// Sync is off when tests run (`allowed` false), when the habits on this Mac can't be read (E.1),
     /// and in any build without the CloudKit entitlement: such a process traps when it touches
@@ -75,7 +73,10 @@ final class HabitSync: CKSyncEngineDelegate {
             engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
         }
         if state.firstSyncDone {
-            changed(SyncPolicy.unsent(in: model.habits, since: state.lastSentAt))
+            // Unsent changes, and saves that failed: CKSyncEngine doesn't retry every failed save itself.
+            changed(
+                SyncPolicy.unsent(in: model.habits, since: state.lastSentAt)
+                    .union(state.failedSends.compactMap(UUID.init(uuidString:))))
         } else {
             beginFirstSync()
         }
@@ -159,12 +160,13 @@ final class HabitSync: CKSyncEngineDelegate {
         case .fetchedRecordZoneChanges(let changes):
             receive(changes.modifications.map(\.record))
         case .sentRecordZoneChanges(let sent):
-            for record in sent.savedRecords { cacheSystemFields(record) }
+            for record in sent.savedRecords {
+                cacheSystemFields(record)
+                state.failedSends.remove(record.recordID.recordName)
+            }
             handleFailedSaves(sent.failedRecordSaves)
         case .willFetchChanges:
             if !state.firstSyncDone { model.setSyncStatus(.syncing) }
-        case .willSendChanges:
-            sendFailed = false
         case .didFetchChanges:
             let next = SyncPolicy.afterFetchFinished(firstSyncDone: state.firstSyncDone)
             if next.markFirstSyncDone {
@@ -186,7 +188,7 @@ final class HabitSync: CKSyncEngineDelegate {
         case .didSendChanges:
             // A failed save keeps its status (full, offline, error) and doesn't count as sent, so it's
             // queued again at the next start (B.5, E.5, E.10).
-            guard !sendFailed else { break }
+            guard state.failedSends.isEmpty else { break }
             if syncEngine.state.pendingRecordZoneChanges.isEmpty {
                 state.lastSentAt = Date()
                 saveState()
@@ -304,7 +306,7 @@ final class HabitSync: CKSyncEngineDelegate {
                     if let habit = decode(server), let id = model.resolveConflict(server: habit) {
                         changed([id])
                     } else {
-                        sendFailed = true
+                        state.failedSends.insert(recordID.recordName)
                     }
                 }
             case .zoneNotFound, .userDeletedZone:
@@ -314,7 +316,7 @@ final class HabitSync: CKSyncEngineDelegate {
                 state.systemFields[recordID.recordName] = nil
                 engine.state.add(pendingRecordZoneChanges: [.saveRecord(recordID)])
             default:
-                sendFailed = true
+                state.failedSends.insert(recordID.recordName)
                 report(failure.error)
             }
         }
@@ -332,11 +334,14 @@ final class HabitSync: CKSyncEngineDelegate {
 
     // MARK: Status
 
+    /// "Synced" only when nothing is waiting on a failed save; until then the failure's status stays
+    /// (B.5, E.5).
     private func markSynced() {
         guard !state.updateNeeded else {
             model.setSyncStatus(.updateNeeded)
             return
         }
+        guard state.failedSends.isEmpty else { return }
         state.lastSynced = Date()
         saveState()
         model.setSyncStatus(.synced(state.lastSynced ?? Date()))
@@ -382,6 +387,7 @@ final class HabitSync: CKSyncEngineDelegate {
             // but the zone may not exist in this account yet.
             guard state.firstSyncDone else {
                 engine?.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+                beginFirstSync()
                 refreshAccountStatus()
                 return
             }
@@ -410,7 +416,9 @@ final class HabitSync: CKSyncEngineDelegate {
             do {
                 switch try await container.accountStatus() {
                 case .available:
-                    if let lastSynced = self.state.lastSynced {
+                    if !self.state.failedSends.isEmpty {
+                        self.model.setSyncStatus(.error("Some changes haven't reached iCloud yet."))
+                    } else if let lastSynced = self.state.lastSynced {
                         self.model.setSyncStatus(.synced(lastSynced))
                     } else {
                         self.model.setSyncStatus(.notSyncedYet)
@@ -470,6 +478,8 @@ private struct SyncState: Codable {
     var firstSyncLocalIDs: [UUID]?
     /// During the first sync: the habits fetched so far.
     var seenInICloud: [UUID] = []
+    /// Records whose last save failed, by record name; sent again at every start until one succeeds.
+    var failedSends: Set<String> = []
 
     init() {}
 
@@ -485,5 +495,6 @@ private struct SyncState: Codable {
         updateNeeded = try c.decodeIfPresent(Bool.self, forKey: .updateNeeded) ?? false
         firstSyncLocalIDs = try c.decodeIfPresent([UUID].self, forKey: .firstSyncLocalIDs)
         seenInICloud = try c.decodeIfPresent([UUID].self, forKey: .seenInICloud) ?? []
+        failedSends = try c.decodeIfPresent(Set<String>.self, forKey: .failedSends) ?? []
     }
 }
