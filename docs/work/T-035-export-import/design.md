@@ -160,7 +160,7 @@ SettingsScreen (Data) ── Export / Import buttons ──▶ AppModel.exportHa
 
 | Boundary | Concurrent event | Invariant | Linearization point | Recovery |
 | -------- | ---------------- | --------- | ------------------- | -------- |
-| Dialog open (modal) | iCloud changes arrive (HabitSync on the main actor) | Merges run while the modal run loop runs; the import replaces whatever is current at `applyImport` | `applyImport` | The confirmation counts may be a moment old. Accepted: counts are informative, and replace is the chosen behavior |
+| Dialog open (modal) | iCloud changes arrive (HabitSync on the main actor) | The modal runs inside a main-queue block, so main-actor work, HabitSync's included, waits until the dialog closes; the import then applies to the current habits | `applyImport` | Sync pauses while a dialog is open (diff review). Harmless: it resumes after, and the import replaces whatever is current |
 | Dialog open | Day changes | Import uses `today` at `applyImport`; the export name keeps the day the dialog opened (E.11) | | |
 | Dialog open | User clicks the menu bar icon | The app-modal panel takes the clicks; the panel opens after the dialog closes | | |
 

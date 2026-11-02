@@ -116,12 +116,17 @@ public final class HabitStore {
             throw ImportError.cantOpen(error.localizedDescription)
         }
         guard size <= importLimit else { throw ImportError.notHabitCal("larger than \(importLimit) bytes") }
+        // Read at most one byte past the limit: the size above can be unknown (a pipe, a device), and
+        // an unbounded read could hang.
         let data: Data
         do {
-            data = try Data(contentsOf: url)
+            let handle = try FileHandle(forReadingFrom: url)
+            defer { try? handle.close() }
+            data = try handle.read(upToCount: importLimit + 1) ?? Data()
         } catch {
             throw ImportError.cantOpen(error.localizedDescription)
         }
+        guard data.count <= importLimit else { throw ImportError.notHabitCal("larger than \(importLimit) bytes") }
         if let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let version = root["formatVersion"] as? Int, version > formatVersion
         {

@@ -30,6 +30,12 @@ final class DataUITests: HabitCalUITestCase {
         Thread.sleep(forTimeInterval: 0.5)  // the reopen guard
     }
 
+    /// The title of the last error alert the app would have shown (Debug only).
+    private var lastError: String? {
+        let element = popover.descendants(matching: .any)["debugLastError"]
+        return element.waitForExistence(timeout: 5) ? element.value as? String : nil
+    }
+
     private func row(_ name: String) -> XCUIElement {
         element("Edit \(name)")
     }
@@ -100,7 +106,8 @@ final class DataUITests: HabitCalUITestCase {
         clickData("Export habits")
         clickData("Import habits")
         openPopover()
-        XCTAssertTrue(row("Push-ups").waitForExistence(timeout: 5), "list unchanged: no file was written")
+        XCTAssertEqual(lastError, "Couldn't open this file", "the cancelled export wrote no file")
+        XCTAssertTrue(row("Push-ups").exists, "list unchanged")
     }
 
     func testImportWithNoHabitsDoesNotAsk() {
@@ -118,6 +125,16 @@ final class DataUITests: HabitCalUITestCase {
         clickData("Import habits")
         openPopover()
         XCTAssertTrue(row("Push-ups").waitForExistence(timeout: 5), "a newer file changes nothing (E.4)")
+        XCTAssertEqual(lastError, "This file is from a newer version of HabitCal.")
+    }
+
+    func testImportRefusesAFileThatIsntHabitCals() {
+        launch(
+            seed: HabitsUITests.seed, ["-HabitCalImportFile", base64("{ not json"), "-HabitCalConfirmImport", "yes"])
+        clickData("Import habits")
+        openPopover()
+        XCTAssertTrue(row("Push-ups").waitForExistence(timeout: 5), "changes nothing (E.3)")
+        XCTAssertEqual(lastError, "This isn't a HabitCal habits file")
     }
 
     func testExportAndImportDisabledWhileUnreadable() {

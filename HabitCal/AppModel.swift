@@ -84,7 +84,9 @@ final class AppModel {
     /// Closes the popover. Set by `PanelController`.
     @ObservationIgnored var closePopover: () -> Void = {}
     /// Closes the popover, then runs the action once it's gone (T-035). Set by `PanelController`.
-    @ObservationIgnored var closePopoverThen: (@escaping () -> Void) -> Void = { $0() }
+    @ObservationIgnored var closePopoverThen: (@escaping @MainActor () -> Void) -> Void = { $0() }
+    /// Debug only: the last error alert's title, which UI tests read since they can't see alerts.
+    private(set) var debugLastError: String?
     /// The file dialogs and alerts. Set by `AppDelegate`.
     @ObservationIgnored var dialogs: FileDialogs?
     /// Called after the screen changes. Set by `PopoverController` to keep Esc working (FM-006).
@@ -400,8 +402,7 @@ final class AppModel {
                 return
             } catch {
                 Self.log.error("Import refused: \(String(describing: error), privacy: .public)")
-                dialogs.showError(
-                    title: "This isn't a HabitCal habits file", reason: "HabitCal can only import its own exports.")
+                dialogs.showError(title: "This isn't a HabitCal habits file", reason: "")
                 return
             }
             if !self.habits.all.isEmpty {
@@ -416,6 +417,10 @@ final class AppModel {
 
     /// Replaces every habit with the file's, as new habits, and saves; sync sends the deletes and adds.
     /// The list then shows today (B.8).
+    func setDebugLastError(_ title: String) {
+        debugLastError = title
+    }
+
     func applyImport(_ incoming: Habits) {
         let changed = habits.replaceAll(with: incoming.all, now: now())
         selectedDay = nil

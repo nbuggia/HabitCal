@@ -41,7 +41,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             defaults: options.defaults,
             loginItem: LoginItem(),
             now: Date.init)
-        model.dialogs = FileDialogs(testAnswers: options.dialogAnswers)
+        let dialogs = FileDialogs(testAnswers: options.dialogAnswers)
+        dialogs.onTestError = { [weak model] in model?.setDebugLastError($0) }
+        model.dialogs = dialogs
         self.model = model
         panel = PanelController(model: model)
         dayWatcher = DayWatcher(source: options.todaySource, macFirstWeekday: options.macFirstWeekday, model: model)

@@ -19,6 +19,8 @@ final class FileDialogs {
     }
 
     private let testAnswers: TestAnswers?
+    /// Debug answers only: where an error's title goes instead of an alert, for UI tests to read.
+    var onTestError: (String) -> Void = { _ in }
 
     init(testAnswers: TestAnswers?) {
         self.testAnswers = testAnswers
@@ -70,7 +72,10 @@ final class FileDialogs {
 
     /// An alert with the reason macOS gave (E.2, E.3, E.4, E.5).
     func showError(title: String, reason: String) {
-        guard testAnswers == nil else { return }
+        guard testAnswers == nil else {
+            onTestError(title)
+            return
+        }
         NSApp.activate()
         let alert = NSAlert()
         alert.alertStyle = .warning

@@ -14,7 +14,10 @@ final class PanelController {
     private var closedSinceReset = true
     /// What to run once the panel is really gone (`closeThen`). One at a time: a newer request
     /// replaces it, and reopening the panel drops it, so a stale dialog never appears (T-035).
-    private var pendingAfterClose: (() -> Void)?
+    private var pendingAfterClose: (@MainActor () -> Void)?
+    /// A pending action that hasn't run this long after its close was asked for is dropped, so a close
+    /// that never happened can't fire it on some later, unrelated close.
+    private static let pendingLifetime: TimeInterval = 2
 
     init(model: AppModel) {
         self.model = model
@@ -59,14 +62,24 @@ final class PanelController {
     /// sits above modal panels and would cover it (T-035 spike). The action starts on the next turn of
     /// the main queue, not inside the occlusion notification, so the close finishes first and the
     /// icon's highlight clears (T-029).
-    func closeThen(_ action: @escaping () -> Void) {
+    func closeThen(_ action: @escaping @MainActor () -> Void) {
         guard let window, window.isVisible else {
             action()
             return
         }
+        let token = UUID()
+        pendingToken = token
         pendingAfterClose = action
         close()
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.pendingLifetime) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.pendingToken == token else { return }
+                self.pendingAfterClose = nil
+            }
+        }
     }
+
+    private var pendingToken: UUID?
 
     private func occlusionChanged() {
         guard let window else { return }
@@ -77,7 +90,8 @@ final class PanelController {
             closedSinceReset = true
             if let action = pendingAfterClose {
                 pendingAfterClose = nil
-                DispatchQueue.main.async(execute: action)
+                pendingToken = nil
+                DispatchQueue.main.async { MainActor.assumeIsolated { action() } }
             }
         }
     }

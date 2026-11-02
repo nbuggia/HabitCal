@@ -25,6 +25,13 @@ struct HabitListScreen: View {
             }
             habitList
             bottomRow
+            #if DEBUG
+                // The last error alert's title, for UI tests, which can't see alerts (T-035).
+                if let error = model.debugLastError {
+                    Text(error).font(.system(size: 1)).opacity(0.01).frame(height: 1)
+                        .accessibilityIdentifier("debugLastError")
+                }
+            #endif
         }
         .padding(.horizontal, PopoverRoot.margin)
         .padding(.vertical, 12)

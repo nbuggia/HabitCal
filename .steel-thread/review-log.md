@@ -56,3 +56,10 @@
 2026-11-01 · T-041 · MINOR · A UI assertion couldn't fail (the identifier was gone) · fixed
 2026-11-01 · T-041 · MINOR · Spec E.3 said "missed" where B.5a says faint · spec changed
 2026-11-01 · T-041 · MINOR · Rewritten streak test clicked before the list updated · fixed
+2026-11-01 · T-035 · MAJOR · Error-path UI tests couldn't fail (alerts silenced in tests) · fixed
+2026-11-01 · T-035 · MINOR · Swift 6 Sendable warning on closePopoverThen · fixed
+2026-11-01 · T-035 · MINOR · Design claimed sync runs during a modal dialog · spec changed
+2026-11-01 · T-035 · QUESTION · Does Esc cancel the confirmation? · accepted risk
+2026-11-01 · T-035 · MINOR · E.3 alert had text the spec doesn't · fixed
+2026-11-01 · T-035 · MINOR · Size limit bypassed when the size is unknown · fixed
+2026-11-01 · T-035 · MINOR · A stale pending dialog could fire on a later close · fixed
