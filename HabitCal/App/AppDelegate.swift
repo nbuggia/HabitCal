@@ -41,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             defaults: options.defaults,
             loginItem: LoginItem(),
             now: Date.init)
+        model.dialogs = FileDialogs(testAnswers: options.dialogAnswers)
         self.model = model
         panel = PanelController(model: model)
         dayWatcher = DayWatcher(source: options.todaySource, macFirstWeekday: options.macFirstWeekday, model: model)

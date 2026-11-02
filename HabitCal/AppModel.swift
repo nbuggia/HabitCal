@@ -81,8 +81,12 @@ final class AppModel {
     /// equal to what it was: AppKit has already flipped the switch on the click (T-002 E.4).
     private(set) var loginItemRevision = 0
 
-    /// Closes the popover. Set by `PopoverController`.
+    /// Closes the popover. Set by `PanelController`.
     @ObservationIgnored var closePopover: () -> Void = {}
+    /// Closes the popover, then runs the action once it's gone (T-035). Set by `PanelController`.
+    @ObservationIgnored var closePopoverThen: (@escaping () -> Void) -> Void = { $0() }
+    /// The file dialogs and alerts. Set by `AppDelegate`.
+    @ObservationIgnored var dialogs: FileDialogs?
     /// Called after the screen changes. Set by `PopoverController` to keep Esc working (FM-006).
     @ObservationIgnored var screenDidChange: () -> Void = {}
     /// Called when rows leave the habit list, which can remove the focused strip.
@@ -358,6 +362,24 @@ final class AppModel {
 
     /// The current moment, for the status line's "Last synced".
     var currentMoment: Date { now() }
+
+    // MARK: Export and import (T-035)
+
+    /// Export Habits…: closes the panel, asks where to save, and writes the shown habits there in the
+    /// saved-data format (B.1–B.4). Nothing changes in the app; a failure says why (E.2).
+    func exportHabits() {
+        guard canAddHabits, let dialogs else { return }
+        let name = HabitLabels.exportFileName(today: today)
+        closePopoverThen { [weak self] in
+            guard let self, let url = dialogs.chooseExportURL(name: name) else { return }
+            do {
+                try HabitStore.exportData(self.habits).write(to: url, options: .atomic)
+            } catch {
+                Self.log.error("Export failed: \(error.localizedDescription, privacy: .public)")
+                dialogs.showError(title: "Couldn't export your habits", reason: error.localizedDescription)
+            }
+        }
+    }
 
     // MARK: Leaderboard
 

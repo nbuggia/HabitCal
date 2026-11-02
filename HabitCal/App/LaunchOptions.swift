@@ -21,6 +21,9 @@ struct LaunchOptions {
     let syncAllowed: Bool
     /// Under `-HabitCalSyncStatus name`, a fixed status for Settings instead of asking iCloud.
     let syncStatusOverride: SyncStatus?
+    /// Answers for the file dialogs, only with `-HabitCalDataDir` (FM-007): `-HabitCalExportTo name`
+    /// saves to `name` in the test data folder, or `cancel` (T-035).
+    let dialogAnswers: FileDialogs.TestAnswers?
 
     init(arguments: [String]) {
         var defaults = UserDefaults.standard
@@ -31,6 +34,7 @@ struct LaunchOptions {
         var seedData: Data?
         var syncAllowed = true
         var syncStatusOverride: SyncStatus?
+        var dialogAnswers: FileDialogs.TestAnswers?
         #if DEBUG
             if let suite = Self.value(after: "-HabitCalDefaultsSuite", in: arguments),
                 let suiteDefaults = UserDefaults(suiteName: suite)
@@ -47,6 +51,8 @@ struct LaunchOptions {
                 dataDirectory = applicationSupport.appendingPathComponent("HabitCal-tests", isDirectory: true)
                     .appendingPathComponent(folder, isDirectory: true)
                 syncAllowed = false
+                dialogAnswers = FileDialogs.TestAnswers(
+                    exportTo: Self.value(after: "-HabitCalExportTo", in: arguments), folder: dataDirectory)
             }
             if let base64 = Self.value(after: "-HabitCalSeedData", in: arguments) {
                 seedData = Data(base64Encoded: base64)
@@ -62,6 +68,7 @@ struct LaunchOptions {
         self.seedData = seedData
         self.syncAllowed = syncAllowed
         self.syncStatusOverride = syncStatusOverride
+        self.dialogAnswers = dialogAnswers
     }
 
     private static func value(after flag: String, in arguments: [String]) -> String? {

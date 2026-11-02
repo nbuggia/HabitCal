@@ -29,10 +29,14 @@ struct SettingsScreen: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-            SyncStatusRow()
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+            VStack(alignment: .leading, spacing: 0) {
+                SyncStatusRow()
+                Divider().padding(.vertical, 8)
+                dataButton("export", "Export Habits…", spoken: "Export habits") { model.exportHabits() }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
             Divider()
             quitButton
         }
@@ -143,6 +147,24 @@ struct SettingsScreen: View {
             .controlSize(.small)
             .fixedSize()
         }
+    }
+
+    /// A full-width row in the Data group, like Quit. Disabled while the habits can't be read, so an
+    /// import can never write over them (T-035 E.6).
+    private func dataButton(_ icon: String, _ title: String, spoken: String, action: @escaping () -> Void)
+        -> some View
+    {
+        Button(action: action) {
+            HStack {
+                PhosphorIcon(icon, size: 15)
+                Text(title)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.hover(outset: 4))
+        .disabled(!model.canAddHabits)
+        .accessibilityLabel(spoken)
     }
 
     private var quitButton: some View {

@@ -86,6 +86,12 @@ public final class HabitStore {
         return Habits(list)
     }
 
+    /// An export (T-035): the shown habits in the saved-data format, so any HabitCal that reads its own
+    /// file reads an export too. Deleted habits are left out: an import adds new habits anyway (T-039).
+    public static func exportData(_ habits: Habits) throws -> Data {
+        try HabitCodec.encoder.encode(FileV2(formatVersion: formatVersion, habits: habits.all.map(HabitV2.init)))
+    }
+
     /// Writes the whole file atomically: a temporary file, then a rename, so a crash leaves the old
     /// file intact.
     public func save(_ habits: Habits) throws {

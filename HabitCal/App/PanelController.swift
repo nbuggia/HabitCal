@@ -12,10 +12,14 @@ final class PanelController {
     /// True until the first reset, and again after each real close. A display wake also makes the
     /// window visible again, but it was never closed, so a half-typed form survives it.
     private var closedSinceReset = true
+    /// What to run once the panel is really gone (`closeThen`). One at a time: a newer request
+    /// replaces it, and reopening the panel drops it, so a stale dialog never appears (T-035).
+    private var pendingAfterClose: (() -> Void)?
 
     init(model: AppModel) {
         self.model = model
         model.closePopover = { [weak self] in self?.close() }
+        model.closePopoverThen = { [weak self] action in self?.closeThen(action) }
         // A MenuBarExtra only resigns key when another app activates (the T-029 spike), so switching
         // apps and opening the website link would leave it open.
         resignObserver = NotificationCenter.default.addObserver(
@@ -51,12 +55,30 @@ final class PanelController {
         window.firstResponder?.tryToPerform(#selector(NSResponder.cancelOperation(_:)), with: nil)
     }
 
+    /// Closes the panel, then runs `action` once it's gone. A dialog must wait for that: the panel
+    /// sits above modal panels and would cover it (T-035 spike). The action starts on the next turn of
+    /// the main queue, not inside the occlusion notification, so the close finishes first and the
+    /// icon's highlight clears (T-029).
+    func closeThen(_ action: @escaping () -> Void) {
+        guard let window, window.isVisible else {
+            action()
+            return
+        }
+        pendingAfterClose = action
+        close()
+    }
+
     private func occlusionChanged() {
         guard let window else { return }
         if window.occlusionState.contains(.visible) {
+            pendingAfterClose = nil
             resetIfReopened()
         } else if !window.isVisible {
             closedSinceReset = true
+            if let action = pendingAfterClose {
+                pendingAfterClose = nil
+                DispatchQueue.main.async(execute: action)
+            }
         }
     }
 
