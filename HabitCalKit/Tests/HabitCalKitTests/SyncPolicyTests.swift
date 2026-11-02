@@ -49,3 +49,50 @@ struct SyncPolicyTests {
         #expect(merged.isDone(on: oct(23)) && merged.isDone(on: oct(25)))
     }
 }
+
+@Suite("Sync recovery")
+struct SyncRecoveryTests {
+    @Test func syncPolicyStopsSendingWhileAnUpdateIsNeeded() {
+        #expect(!SyncPolicy.answersSendBatch(firstSyncDone: true, updateNeeded: true))
+        #expect(SyncPolicy.answersSendBatch(firstSyncDone: true, updateNeeded: false))
+    }
+
+    @Test func errorsMapToTheStatusLine() {
+        #expect(SyncPolicy.status(for: .network) == .waiting)
+        #expect(SyncPolicy.status(for: .quota) == .full)
+        #expect(SyncPolicy.status(for: .notSignedIn) == .off)
+        #expect(SyncPolicy.status(for: .other("Bad request")) == .error("Bad request"))
+    }
+
+    @Test func signInOrSwitchStartsAFirstSyncAndSignOutTurnsSyncOff() {
+        #expect(SyncPolicy.accountChanged(.signIn) == .init(resetState: true, status: .notSyncedYet))
+        #expect(SyncPolicy.accountChanged(.switchAccounts) == .init(resetState: true, status: .notSyncedYet))
+        #expect(SyncPolicy.accountChanged(.signOut) == .init(resetState: true, status: .off))
+    }
+
+    @Test func aStartAfterAnUpdateNeededFetchesEverythingAgain() {
+        #expect(SyncPolicy.atStart(updateNeeded: true) == .refetchEverything)
+        #expect(SyncPolicy.atStart(updateNeeded: false) == .resume)
+    }
+
+    @Test func syncPolicyRequeuesUnsentChangesAtStart() {
+        var habits = Habits()
+        let old = habits.add(HabitDraft(name: "Run", note: "", days: [6]), today: oct(1), now: t(0))
+        let newer = habits.add(HabitDraft(name: "Read", note: "", days: [6]), today: oct(1), now: t(0))
+        let gone = habits.add(HabitDraft(name: "Swim", note: "", days: [6]), today: oct(1), now: t(0))
+        habits.toggle(newer, on: oct(23), today: today, now: t(20))
+        habits.delete(gone, now: t(30))
+        let requeue = SyncPolicy.unsent(in: habits, since: t(10))
+        #expect(requeue == [newer, gone])
+        #expect(!requeue.contains(old))
+        #expect(SyncPolicy.unsent(in: habits, since: nil) == [old, newer, gone])
+    }
+
+    @Test func aDeletedZoneResendsEveryRecord() {
+        var habits = Habits()
+        let a = habits.add(HabitDraft(name: "Run", note: "", days: [6]), today: oct(1), now: t(0))
+        let b = habits.add(HabitDraft(name: "Swim", note: "", days: [6]), today: oct(1), now: t(0))
+        habits.delete(b, now: t(1))
+        #expect(SyncPolicy.afterZoneReset(habits) == [a, b])  // deleted ones too, so deletes still win
+    }
+}

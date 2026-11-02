@@ -59,12 +59,21 @@ final class HabitSync: CKSyncEngineDelegate {
         let container = CKContainer(identifier: Self.containerID)
         self.container = container
         state = loadState()
+        if SyncPolicy.atStart(updateNeeded: state.updateNeeded) == .refetchEverything {
+            state.engineState = nil
+            state.systemFields = [:]
+            state.updateNeeded = false
+            saveState()
+        }
         let engine = CKSyncEngine(
             CKSyncEngine.Configuration(
                 database: container.privateCloudDatabase, stateSerialization: state.engineState, delegate: self))
         self.engine = engine
         if state.engineState == nil {
             engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+        }
+        if state.firstSyncDone {
+            changed(SyncPolicy.unsent(in: model.habits, since: state.lastSentAt))
         }
         model.habitsDidChange = { [weak self] ids in self?.changed(ids) }
         model.syncNow = { [weak self] in self?.syncNow() }
@@ -122,7 +131,7 @@ final class HabitSync: CKSyncEngineDelegate {
         guard let engine, model.syncStatus.allowsSyncNow else { return }
         model.setSyncStatus(.syncing)
         lastFetch = Date()
-        let send = SyncPolicy.answersSendBatch(firstSyncDone: state.firstSyncDone)
+        let send = SyncPolicy.answersSendBatch(firstSyncDone: state.firstSyncDone, updateNeeded: state.updateNeeded)
         detached(
             engine, then: { $0.markSynced() },
             { engine in
@@ -140,7 +149,9 @@ final class HabitSync: CKSyncEngineDelegate {
             saveState()
         case .accountChange(let change):
             Self.log.info("account change: \(String(describing: change.changeType), privacy: .public)")
-            refreshAccountStatus()
+            accountChanged(change.changeType)
+        case .fetchedDatabaseChanges(let changes):
+            if changes.deletions.contains(where: { $0.zoneID == Self.zoneID }) { zoneReset() }
         case .fetchedRecordZoneChanges(let changes):
             receive(changes.modifications.map(\.record))
         case .sentRecordZoneChanges(let sent):
@@ -175,7 +186,9 @@ final class HabitSync: CKSyncEngineDelegate {
     func nextRecordZoneChangeBatch(_ context: CKSyncEngine.SendChangesContext, syncEngine: CKSyncEngine) async
         -> CKSyncEngine.RecordZoneChangeBatch?
     {
-        guard SyncPolicy.answersSendBatch(firstSyncDone: state.firstSyncDone) else { return nil }
+        guard SyncPolicy.answersSendBatch(firstSyncDone: state.firstSyncDone, updateNeeded: state.updateNeeded) else {
+            return nil
+        }
         let pending = syncEngine.state.pendingRecordZoneChanges.filter { context.options.scope.contains($0) }
         var records: [CKRecord.ID: CKRecord] = [:]
         var gone: [CKSyncEngine.PendingRecordZoneChange] = []
@@ -236,8 +249,15 @@ final class HabitSync: CKSyncEngineDelegate {
         else { return nil }
         do {
             return try HabitCodec.decode(payload, formatVersion: version)
+        } catch HabitCodec.Error.newerFormat {
+            // Another Mac runs a newer HabitCal: stop sending, say so, and fetch everything again once
+            // this Mac is updated (E.6).
+            state.updateNeeded = true
+            saveState()
+            model.setSyncStatus(.updateNeeded)
+            return nil
         } catch {
-            // A newer format is handled in slice 4; anything else is skipped whole, never half-applied (E.9).
+            // Skipped whole, never half-applied (E.9).
             Self.log.error(
                 "skipped record \(record.recordID.recordName, privacy: .public): \(String(describing: error), privacy: .public)"
             )
@@ -267,9 +287,8 @@ final class HabitSync: CKSyncEngineDelegate {
                         changed([id])
                     }
                 }
-            case .zoneNotFound:
-                engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
-                engine.state.add(pendingRecordZoneChanges: [.saveRecord(recordID)])
+            case .zoneNotFound, .userDeletedZone:
+                zoneReset()
             case .unknownItem:
                 // The cached system fields name a record iCloud no longer has: send it as new.
                 state.systemFields[recordID.recordName] = nil
@@ -284,6 +303,10 @@ final class HabitSync: CKSyncEngineDelegate {
     // MARK: Status
 
     private func markSynced() {
+        guard !state.updateNeeded else {
+            model.setSyncStatus(.updateNeeded)
+            return
+        }
         state.lastSynced = Date()
         saveState()
         model.setSyncStatus(.synced(state.lastSynced ?? Date()))
@@ -291,7 +314,61 @@ final class HabitSync: CKSyncEngineDelegate {
 
     private func report(_ error: Error) {
         Self.log.error("sync error: \(String(describing: error), privacy: .public)")
-        model.setSyncStatus(.error(error.localizedDescription))
+        model.setSyncStatus(SyncPolicy.status(for: Self.failure(error)))
+    }
+
+    private static func failure(_ error: Error) -> SyncPolicy.Failure {
+        guard let error = error as? CKError else { return .other(error.localizedDescription) }
+        switch error.code {
+        case .networkUnavailable, .networkFailure, .serviceUnavailable, .requestRateLimited, .zoneBusy:
+            return .network
+        case .quotaExceeded: return .quota
+        case .notAuthenticated: return .notSignedIn
+        default: return .other(error.localizedDescription)
+        }
+    }
+
+    // MARK: Recovery
+
+    /// The zone is gone from iCloud (the user deleted HabitCal's data, or it was reset): recreate it and
+    /// send every record again, deleted habits included (E.4).
+    private func zoneReset() {
+        guard let engine else { return }
+        state.systemFields = [:]
+        saveState()
+        engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+        changed(SyncPolicy.afterZoneReset(model.habits))
+    }
+
+    /// The engine resets its own state on an account change; this resets HabitSync's. Signing in or
+    /// switching starts a first sync into that account, merging this Mac's habits in; the old account's
+    /// deleted habits aren't sent there (the first-sync merge drops them). Signing out keeps every habit
+    /// here (E.2, E.3).
+    private func accountChanged(_ change: CKSyncEngine.Event.AccountChange.ChangeType) {
+        let kind: SyncPolicy.AccountChange
+        switch change {
+        case .signIn:
+            // The first launch reports a sign-in too; with no first sync yet there's nothing to reset.
+            guard state.firstSyncDone else {
+                refreshAccountStatus()
+                return
+            }
+            kind = .signIn
+        case .switchAccounts: kind = .switchAccounts
+        case .signOut: kind = .signOut
+        @unknown default: return
+        }
+        let decision = SyncPolicy.accountChanged(kind)
+        if decision.resetState {
+            let engineState = state.engineState
+            state = SyncState()
+            state.engineState = engineState
+            saveState()
+            if kind != .signOut {
+                engine?.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+            }
+        }
+        model.setSyncStatus(decision.status)
     }
 
     private func refreshAccountStatus() {
@@ -355,4 +432,6 @@ private struct SyncState: Codable {
     var systemFields: [String: Data] = [:]
     var lastSynced: Date?
     var lastSentAt: Date?
+    /// A record was skipped as written by a newer HabitCal (E.6).
+    var updateNeeded = false
 }
