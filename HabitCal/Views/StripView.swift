@@ -5,6 +5,9 @@ import SwiftUI
 /// ring (T-041). Display only: no tap, no keyboard focus, and hidden from VoiceOver, since past days
 /// are fixed from the calendar and the done button (T-022) and the row already speaks for the habit.
 struct StripView: View {
+    /// How far the shown day's ring draws outside its square: its 1.5 pt inset plus half its stroke.
+    static let ringOverflow: CGFloat = 2
+
     @Environment(AppModel.self) private var model
     let habit: Habit
 

@@ -41,8 +41,12 @@ struct HabitRow: View {
                     .font(.caption)
                 }
             }
+            // Starts under the name: the done button (20) plus the row's spacing (8). Ends short of the
+            // edge by the shown day's ring (it draws 2 pt outside its square), so the ring lines up with
+            // the calendar's last column and the streaks.
             StripView(habit: habit)
-                .padding(.leading, 32)
+                .padding(.leading, 28)
+                .padding(.trailing, StripView.ringOverflow)
         }
         .contentShape(Rectangle())
         .contextMenu {
@@ -69,13 +73,13 @@ private struct DoneButton: View {
                 Circle().strokeBorder(done ? Color.clear : Color.secondary, lineWidth: 1.5)
                 if done {
                     Circle().fill(Color.green)
-                    PhosphorIcon("check", size: 13).foregroundStyle(.white)
+                    PhosphorIcon("check", size: 11).foregroundStyle(.white)
                 }
             }
-            .frame(width: 24, height: 24)
+            .frame(width: 20, height: 20)
             .contentShape(Circle())
         }
-        .buttonStyle(.hover(cornerRadius: 12, overLabel: true))
+        .buttonStyle(.hover(cornerRadius: 10, overLabel: true))
         .disabled(day > model.today)
         .help(HabitLabels.doneButtonTooltip(day: day, today: model.today, done: done))
         .accessibilityLabel(HabitLabels.doneButtonSpoken(name: habit.name, day: day, today: model.today, done: done))
