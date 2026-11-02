@@ -69,7 +69,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [x] T-038 Edits save as they're made; Save removed, Cancel is Close · high · done 2026-11-01
       UI tests written, not yet run. T-039 B.11 will narrow each edit to the changed field.
 - [ ] T-035 Export and import habit data from Settings · high
-      Customer, 2026-10-31: so people can take their habit data with them. Complex: import replaces saved data, the exported file is a contract, and the sandbox needs user-selected file access (D-007). Spec next.
+      Spec and design approved; slice 1 of 2 (export) next. Slice 2 (import) also closes T-039's slice 5.
 - [ ] T-039 Sync habits across Macs with CloudKit · high
       Slices 1–4 coded (slices.md); slice 5 waits for T-035. Outstanding: UI tests, CloudKit Console and second-Mac checks, then the diff review and close.
 - [ ] T-041 Habit strip: only due days, oldest left to newest right, not clickable, marker on the selected day · high
