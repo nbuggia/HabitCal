@@ -5,7 +5,7 @@ task: T-035
 rigor: Complex
 trigger: "not revertible: import replaces saved data; contract: the exported file is a format later versions must read; risky ground: a new sandbox entitlement (user-selected files)"
 date: 2026-11-01
-review iteration: 0
+review iteration: 1
 status: Draft
 ---
 
@@ -99,14 +99,14 @@ SettingsScreen (Data) ── Export / Import buttons ──▶ AppModel.exportHa
 
 **HabitCalKit**
 - `HabitStore.exportData(_ habits: Habits) throws -> Data`: the v2 file bytes of `habits.all` (shown only), through the same `FileV2` encoder `save` uses. One format.
-- `HabitStore.importHabits(from data: Data) throws -> Habits`, via `ImportError`:
-  - `.tooLarge` over `importLimit` (10 MB, named constant);
-  - `.newerFormat` for a `formatVersion` above 2;
-  - `.notHabitCal` for anything else `decodeFile` refuses.
-  - It's the same decoder as load, so it accepts exactly what load accepts (B.9).
+- `HabitStore.importHabits(from url: URL) throws -> Habits`, the one import call. It checks the file's size (`fileSizeKey`) **before reading**, then reads and decodes with the same decoder as load, so it accepts exactly what load accepts (B.9). `ImportError`:
+  - `.cantOpen(String)`, with macOS's reason (E.5);
+  - `.notHabitCal`: over `importLimit` (10 MB, named constant), not JSON, other fields, invalid values, or **no `formatVersion`** (E.3). `decodeFile` today calls a missing version "newer", so the split treats missing as invalid;
+  - `.newerFormat(Int)`, for a `formatVersion` above 2 (E.4).
 - `HabitLabels.exportFileName(today:)` gives "HabitCal Habits 2026-11-01.json".
 - `HabitLabels.importConfirmation(current:incoming:fileName:syncOn:today:)` gives the title and message (spec §5; T-039 B.14).
-- `HabitLabels.lastCheckOff(_ habits:today:)` gives "last checked off Oct 31", with the year when it isn't this year, or "no check-offs". Counts use "1 habit".
+- `HabitLabels.lastCheckOff(_ habits:today:)` gives "last checked off Oct 31", with the year when it isn't this year, or "no check-offs". It counts only shown habits and only `done` checks (v2 keeps unchecks and deleted records). Counts use "1 habit".
+- `Habits.replaceAll(with:now:)` returns the IDs it deleted and added (`@discardableResult Set<UUID>`), so `applyImport` passes exactly those to sync.
 
 **App target**
 - `FileDialogs` (`App/FileDialogs.swift`, `@MainActor`), the only code that shows file panels or alerts:
@@ -115,25 +115,31 @@ SettingsScreen (Data) ── Export / Import buttons ──▶ AppModel.exportHa
   - `confirmReplace(title:message:) -> Bool` (Replace with `hasDestructiveAction`, Cancel as the default button, so Return doesn't replace)
   - `showError(title:reason:)`
   - Each one first calls `NSApp.activate()` and uses the modal-panel level (spike). They run app-modal with `runModal()`, which blocks only the main run loop, as macOS's own dialogs do.
+- **Closing the panel first.** `closePopover` takes a continuation: `closePopover(then:)`. `PanelController` sends `cancelOperation` as today, and runs the continuation from its existing occlusion observer once `!window.isVisible`, or at once if the panel is already closed. Dialogs start from that callback, a plain main-actor call from a main-queue observer, outside SwiftUI's button action. The panel can't linger over the dialog (spike: it sits above modal panels).
 - `AppModel.exportHabits()`:
   - guards `canAddHabits`;
-  - calls `closePopover()`, then on the next main-actor turn (so the panel is gone, spike): `dialogs.chooseExportURL(name:)`;
+  - calls `closePopover(then:)`, and in the continuation: `dialogs.chooseExportURL(name:)`;
   - writes `HabitStore.exportData` with `.atomic`;
   - on failure, `showError("Couldn't export your habits", error.localizedDescription)` (E.2).
 - `AppModel.importHabits()`:
   - guards `canAddHabits` and closes the panel as above;
-  - `dialogs.chooseImportURL()` → reads the file (size check first, then `Data(contentsOf:)`);
-  - `HabitStore.importHabits` → errors map to E.3, E.4, and E.5 messages;
+  - `dialogs.chooseImportURL()` → `HabitStore.importHabits(from:)` → its three errors map to the E.3, E.4, and E.5 messages;
   - if `habits.all` isn't empty → `confirmReplace`;
   - then `applyImport(incoming)`.
 - `AppModel.applyImport(_ incoming: Habits)`:
   - `habits.replaceAll(with: incoming.all, now: now())`;
-  - `persist(changed IDs: every deleted and every added)`, so HabitSync sends them (T-039 B.13);
+  - `persist(` the IDs `replaceAll` returned `)`, so HabitSync sends them (T-039 B.13);
   - `selectedDay = nil`, so the list shows today.
 - `syncOn` for the wording is `syncStatus != .off`.
-- **Test seams (Debug only, like FM-007's):** `-HabitCalExportTo name` and `-HabitCalImportFrom name` make `FileDialogs` return a URL inside the test data folder instead of showing a panel, and `-HabitCalConfirmImport yes|no` answers the confirmation. UI tests then drive the whole app path, and only the panels themselves are left to manual checks.
+- **Test seams (Debug only, and only under `-HabitCalDataDir`, FM-007).** The sandboxed app and the test runner can't read each other's folders (TESTING.md), so:
+  - `-HabitCalExportTo name` makes the save dialog return `name` inside the test data folder;
+  - `-HabitCalImportFile base64` makes the app write those bytes to a file in the test data folder, and the open dialog returns it, like `-HabitCalSeedData`;
+  - `-HabitCalImportFrom name` returns an earlier export from the same folder;
+  - the value `cancel` for any of them makes the dialog return nil (E.1);
+  - `-HabitCalConfirmImport yes|no` answers the confirmation.
+  - Export is proved inside the app: export, change the list, import the export, and see it restored.
 - **Settings:** two rows under the status row in the Data group, "Export Habits…" and "Import Habits…". They're full-width `.hover` buttons with Phosphor `export` / `download-simple` icons, disabled when `!canAddHabits`, with spoken labels "Export habits" / "Import habits" (E.10).
-- **Entitlement:** `com.apple.security.files.user-selected.read-write`. It goes in `HabitCal.entitlements` (Debug) and in Release as `ENABLE_USER_SELECTED_FILES = readwrite`. No security-scoped bookmarks are kept (B.15).
+- **Entitlement:** `com.apple.security.files.user-selected.read-write`, set one way in both configurations: the build setting `ENABLE_USER_SELECTED_FILES = readwrite`, which Xcode merges into the signed entitlements (as it does `ENABLE_APP_SANDBOX` today). `HabitCal.entitlements` isn't edited. No security-scoped bookmarks are kept (B.15).
 
 | New state | Owner | Lifetime | Persist? | Why |
 | --------- | ----- | -------- | -------- | --- |
@@ -143,7 +149,7 @@ SettingsScreen (Data) ── Export / Import buttons ──▶ AppModel.exportHa
 | --------- | -------- | ------ | -------- | ------------- | ------------ | -------------- | --------------- | ---- | -------- |
 | Export | Export Habits… | `SettingsScreen` → `AppModel.exportHabits` | app → file system (user-selected) | `FileDialogs.chooseExportURL`, `HabitStore.exportData`, `Data.write` | button in Settings | the picked file | none | Kit: `exportWritesShownHabitsInTheSavedFormat`; UI: `testExportWritesAFile` (seam); manual: real dialog, Save, Replace prompt | `HabitStore.save` already encodes `FileV2` |
 | Import | Import Habits… | `SettingsScreen` → `AppModel.importHabits` | file system → app → HabitSync | `chooseImportURL`, `HabitStore.importHabits`, `confirmReplace`, `applyImport` | button | `habits`, habits.json, iCloud | panel reopens on the list | Kit: decode and label tests; UI: `testImportReplacesAfterConfirming`, `testImportCancelledChangesNothing`, `testImportWithNoHabitsDoesNotAsk`, `testImportRefusesANewerFile` (seams); manual: real dialog | `replaceAll` exists (T-039) |
-| Close panel first | either button | `AppModel` | | `closePopover` | `PanelController` | | | Manual (spike) | T-029 `cancelOperation` |
+| Close panel first | either button | `AppModel` | | `closePopover(then:)`, continuation run from the occlusion observer | `PanelController` | | the continuation runs at once when the panel is already closed | Manual: the panel is gone before the dialog appears, opened from Settings | T-029 `cancelOperation`, occlusion observer |
 
 | Guarantee | Mechanism | Owner | Linearization point | Failure behavior | Proof |
 | --------- | --------- | ----- | ------------------- | ---------------- | ----- |
@@ -187,6 +193,7 @@ SettingsScreen (Data) ── Export / Import buttons ──▶ AppModel.exportHa
 - The exported file is the v2 saved-data format, holding shown habits only. It's a new contract, "Exported habits file", that follows "Saved habit data" versioning: any later version imports every earlier export, and an older version refuses a newer export (E.4).
 - Import accepts v1 and v2 files (B.9). A v1 export from an earlier build loads through the v1 migration.
 - No fixture is needed beyond the existing v1 and v2 fixtures, since import uses the same decoder. A test imports both.
+- A round trip isn't byte-identical: an import adds new habits with new IDs and change times (T-039). What survives is names, notes, schedules, added dates, and check-offs (spec Limits, revised).
 
 ## 9. Capabilities & Security
 
@@ -226,14 +233,15 @@ Two slices, so no slicing plan.
 
 | Test | Kind | Spec rules proved | Regression prevented |
 | ---- | ---- | ----------------- | -------------------- |
-| `exportWritesShownHabitsInTheSavedFormat`, `exportWithNoHabitsWritesAnEmptyList`, `exportThenImportGivesTheSameHabits` | unit | B.3, B.4, Limits (round trip) | Two formats drifting |
-| `importAcceptsVersion1And2`, `importRefusesNewerFormat`, `importRefusesNonHabitCalFiles`, `importRefusesFilesOverTenMegabytes` | unit (fixtures) | B.9, E.3, E.4, Limits | Half-read or misread files |
+| `exportWritesShownHabitsInTheSavedFormat`, `exportWithNoHabitsWritesAnEmptyList`, `exportThenImportKeepsNamesSchedulesAndCheckOffs` (through `replaceAll`) | unit | B.3, B.4, Limits (round trip, revised) | Two formats drifting |
+| `importAcceptsVersion1And2`, `importRefusesNewerFormat`, `importRefusesNonHabitCalFilesAndMissingVersion`, `importRefusesFilesOverTenMegabytesWithoutReadingThem`, `importReportsAFileItCantOpen` | unit (temp files) | B.9, E.3, E.4, E.5, Limits | Half-read or misread files |
+| `replaceAllReturnsDeletedAndAddedIDs`, `lastCheckOffSkipsUnchecksAndDeletedHabits` | unit | T-039 B.13, B.6 | IDs missing from sync; wrong date in the confirmation |
 | `exportFileNameUsesToday`, `importConfirmationNamesCountsAndLastCheckOffs`, `importConfirmationSaysAllYourMacsWhenSyncing`, `lastCheckOffAddsTheYearWhenNotThisYear` | unit | B.2, B.6, §5, T-039 B.14 | Wrong wording |
-| `testExportWritesAFile` (seam) | UI | B.1, B.3 | Wiring |
-| `testImportReplacesAfterConfirming`, `testImportCancelledChangesNothing`, `testImportWithNoHabitsDoesNotAsk`, `testImportRefusesANewerFile` (seams) | UI | B.5–B.8, B.10, E.1, E.4 | Wiring, confirmation skipped |
+| `testExportThenImportRestoresTheList` (seams) | UI | B.1, B.3, B.8 | Wiring |
+| `testImportReplacesAfterConfirming` (also asserts week start is unchanged, B.14), `testImportCancelledChangesNothing` (confirmation and dialog cancel), `testExportCancelledWritesNothing`, `testImportWithNoHabitsDoesNotAsk`, `testImportRefusesANewerFile` (seams) | UI | B.5–B.8, B.10, B.14, E.1, E.4 | Wiring, confirmation skipped |
 | `testExportAndImportDisabledWhileUnreadable` | UI | E.6 | Overwriting unreadable data |
 | `testDataButtonsHaveSpokenLabels` | UI | E.10 | |
-| Manual: real save dialog (front, Save, the overwrite prompt, a read-only folder error), real open dialog (a non-JSON file, an iCloud Drive file not downloaded and offline), confirmation with Return (cancels), VoiceOver | manual (real boundary; system panels run out of process and UI tests can't drive them) | E.2, E.5, E.8, E.9, E.10, B.15 | Panel behavior |
+| Manual: the panel is gone before the dialog appears; real save dialog (front, Save, the overwrite prompt, a read-only folder error); real open dialog (a non-JSON file, an iCloud Drive file not downloaded and offline); confirmation with Return (cancels); VoiceOver; `codesign -d --entitlements -` on a Release build shows user-selected read-write | manual (real boundary; system panels run out of process and UI tests can't drive them) | E.2, E.5, E.8, E.9, E.10, B.15 | Panel behavior |
 | Manual with sync on: import on Mac A, Mac B shows the file's habits | manual | T-039 B.13 | |
 
 E.7 (a failed save after import) is the existing save-failed path, covered by `manual-tests/habits.md` "A failed save". E.11 is covered by the design (today read at apply time) and isn't separately tested.
@@ -246,6 +254,14 @@ Direct ship, no flag. Signing impact: one entitlement added to both configuratio
 
 | \#  | Finding | Severity | Cost to accept | Decision | Rationale | Next step | Arch? | Source |
 | --- | ------- | -------- | -------------- | -------- | --------- | --------- | ----- | ------ |
+| 1 | "Next main-actor turn" doesn't wait for the panel to close; untested claim | MAJOR | Dialog hidden under the panel | ACCEPT | | `closePopover(then:)` from the occlusion observer; manual check | Yes | Pass 1 |
+| 2 | UI tests can't read the export or seed an import file across the sandbox | MAJOR | Tests check nothing | ACCEPT | | Base64 import seam; prove export by importing it back; seams only under -HabitCalDataDir | | Pass 1 |
+| 3 | Spec's "identical file" round trip can't hold after T-039 | MAJOR | Unmet rule | ACCEPT | | Spec Limits revised to content; test through replaceAll | Spec | Pass 1 |
+| 4 | replaceAll returns nothing | MINOR | IDs missed by sync | ACCEPT | | Return Set<UUID>; test | | Pass 1 |
+| 5 | Size checked twice and after reading; E.5 untested; missing version labelled newer | MINOR | Duplicate rule | ACCEPT | | One importHabits(from url:) | | Pass 1 |
+| 6 | Entitlement set two ways | MINOR | Release drift | ACCEPT | | ENABLE_USER_SELECTED_FILES in both; codesign check | Yes | Pass 1 |
+| 7 | B.14, dialog cancel, lastCheckOff on unchecks missing from §13 | MINOR | Untested rules | ACCEPT | | Added | | Pass 1 |
+| 8 | Lasting Changes missing items | MINOR | Rules lost later | ACCEPT | | Added | | Pass 1 |
 
 ## 16. Lasting Changes
 
@@ -255,7 +271,11 @@ Direct ship, no flag. Signing impact: one entitlement added to both configuratio
 | Exported habits file: v2 saved-data format, shown habits only, `.json`; versioning follows saved data | CONTRACTS.md (new "Exported habits file") |
 | Import limit 10 MB (`HabitStore.importLimit`) | code constant with comment; ARCHITECTURE.md |
 | User-selected read-write files, no bookmarks | DECISIONS.md (refines D-007); ARCHITECTURE.md Boundaries |
-| Debug seams `-HabitCalExportTo`, `-HabitCalImportFrom`, `-HabitCalConfirmImport` | TESTING.md |
+| Debug seams `-HabitCalExportTo`, `-HabitCalImportFile` (base64), `-HabitCalImportFrom`, `cancel`, `-HabitCalConfirmImport`, only under `-HabitCalDataDir`; export proved by importing it back in the app (the sandbox walls off the runner) | TESTING.md |
+| `closePopover(then:)`: the continuation runs once the panel is really gone; dialogs start from it | ARCHITECTURE.md (The Popover), CONVENTIONS.md |
+| Import errors: can't open / not a HabitCal file (incl. no version, over 10 MB, checked before reading) / newer format | CONTRACTS.md "Exported habits file" |
+| Exports are v2 since T-039; a round trip keeps content, not IDs or bytes | CONTRACTS.md "Exported habits file" |
+| The entitlement is a build setting in both configurations (`ENABLE_USER_SELECTED_FILES`) | ARCHITECTURE.md (Stack) |
 | Trap: HabitCal's MenuBarExtra panel sits above modal panels (layer 101 vs 8); close it before any dialog | COMMON-FAILURE-MODES.md |
 | Rejected: SwiftUI `.fileExporter`/`.fileImporter` from the panel | DECISIONS.md (with the D-007 refinement) or ARCHITECTURE.md |
 | Manual tests for the real dialogs | docs/manual-tests/data.md (new) |

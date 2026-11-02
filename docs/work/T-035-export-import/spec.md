@@ -80,7 +80,7 @@ Why: the sandbox kept HabitCal to its own container (D-007); this is the smalles
 
 ### Unchanged
 
-B.11 THE SYSTEM SHALL CONTINUE TO save habits only in its own container, in format version 1, unchanged by this task. Covered by: `savedFileIsSortedAndReadable`, `version1FixtureLoads`.
+B.11 THE SYSTEM SHALL CONTINUE TO save habits only in its own container, in the current saved format (version 2 since T-039), unchanged by this task. Covered by: `savedFileIsSortedAndReadable`, `version1FixtureLoads`.
 
 B.12 THE SYSTEM SHALL CONTINUE TO never write over a saved file it can't read. Covered by: `newerFormatIsNeverOverwritten`, `unreadableFileIsNeverOverwritten`.
 
@@ -91,7 +91,7 @@ B.14 THE SYSTEM SHALL CONTINUE TO keep week start and launch at login as they ar
 ## 8. Limits
 
 - Largest file accepted for import: 10 MB. Years of daily check-offs for dozens of habits stay well under 1 MB (ARCHITECTURE.md, "Saving"); anything bigger isn't a HabitCal export.
-- The exported file and the saved file have the same content for the same habits: export, then import, then export again gives an identical file.
+- The exported file and the saved file have the same content for the same habits: export, then import, then export again gives the same names, notes, schedules, added dates, and check-offs. (Changed in design review: since T-039, an import adds the habits as new habits, with new IDs and change times, so the file isn't byte-identical.)
 
 ## 9. Edge Cases and Errors
 
@@ -121,7 +121,7 @@ E.11 WHEN the day changes while a dialog is open THE SYSTEM SHALL use the new da
 
 ## 10. Contracts
 
-- **Exported habits file:** the same JSON as the saved-habit-data contract (format version 1 today, same fields and rules), UTF-8, extension `.json`. Relied on by: users' copies of their history, and every later HabitCal, which must import exports from every earlier version. Versioning: follows the saved-data contract; a newer export is refused by an older HabitCal (E.4), never misread.
+- **Exported habits file:** the same JSON as the saved-habit-data contract (format version 2 since T-039, same fields and rules), UTF-8, extension `.json`. Relied on by: users' copies of their history, and every later HabitCal, which must import exports from every earlier version. Versioning: follows the saved-data contract; a newer export is refused by an older HabitCal (E.4), never misread.
 
 ## 11. Success Criteria
 
