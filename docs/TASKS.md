@@ -71,6 +71,6 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [ ] T-035 Export and import habit data from Settings · high
       Customer, 2026-10-31: so people can take their habit data with them. Complex: import replaces saved data, the exported file is a contract, and the sandbox needs user-selected file access (D-007). Spec next.
 - [ ] T-039 Sync habits across Macs with CloudKit · high
-      Slice 4 of 5 in docs/work/T-039-icloud-sync/slices.md. Slice 3 demo (CloudKit Console, second Mac) and slices 1–3 UI tests outstanding.
+      Slices 1–4 coded (slices.md); slice 5 waits for T-035. Outstanding: UI tests, CloudKit Console and second-Mac checks, then the diff review and close.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       App icon chosen 2026-10-31: fire with a black outline, in AppIcon.appiconset and Settings' About. A Developer ID Application certificate (NETORION LLC) is in the keychain; notarytool credentials not checked. Left: signing, notarization, the GitHub download and README, the manual test of a downloaded build.

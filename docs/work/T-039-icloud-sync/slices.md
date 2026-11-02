@@ -70,7 +70,7 @@ Also rejected: a kit-only slice for `SyncPolicy`. It has no demo of its own, and
 
 | Field | Value |
 | --- | --- |
-| Status | Pending |
+| Status | In Progress: code committed and checked against the customer's account; the manual checks (Console zone delete, change-then-quit, Wi-Fi off) outstanding |
 | Scope | `SyncPolicy` outcomes and HabitSync handling for: zone deleted or user data reset → recreate and re-send all (E.4); account sign-in, switch, and sign-out → reset state and cache, first sync again, no old-account deleted records sent (E.2, E.3); a newer-format record → status "Update HabitCal to sync", stop sending, persisted update-needed flag, then a full refetch once updated (E.6); quota and network → "iCloud is full" and "Waiting for iCloud" (E.5, B.5); re-queue of unsent changes at every start against `lastSentAt` (E.10). |
 | Demo criterion | The `SyncPolicy` tests for each outcome above pass. Manual: delete the zone in the CloudKit Console, and everything is re-sent; make a change, quit at once, relaunch online, and it reaches the Console; turn Wi-Fi off, and Settings says "Waiting for iCloud", then "Synced" after it's back. Sign-out and iCloud full aren't run (spike Q3, accepted risk) and are covered by `SyncPolicy` tests. |
 | Dependencies | Slice 3's working engine, state file, and `SyncPolicy`. |
@@ -141,6 +141,14 @@ Slices 1 and 2 are independent of each other; slice 3 needs both; slice 4 needs 
 - Changed: slice 4 no longer needs to add basic zone-not-found handling, only the user-deleted-zone path and account/newer-format/quota/network handling.
 - Unchanged and why: the engine's event shape matched the design.
 - New conflicts: CKSyncEngine's background task scheduling fails in the sandbox ("BUG IN CLOUDKIT"), so automatic syncing relies on the 60 s fetch and pushes. Engine calls must start detached from callbacks (recorded for COMMON-FAILURE-MODES at close).
+
+### After Slice 4 (code; manual checks outstanding)
+
+- Commit: the slice 4 commit after e6506ef ("T-039 slice 4: sync recovers…")
+- Affected remaining slices reviewed: 5 (still blocked on T-035; `replaceAll` and sync are in place).
+- Changed: none.
+- Unchanged and why: slice 5 needs only T-035's import UI and the confirmation wording.
+- New conflicts: adding a field to `SyncState` makes an older `sync-state.json` undecodable; it's dropped and the next start re-runs a first sync, which loses nothing (seen here). Accepted; noted for ARCHITECTURE at close.
 
 ## 6. Design Drift
 
