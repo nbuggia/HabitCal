@@ -53,7 +53,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
     LaunchAtLoginPolicy  /Applications check; first-launch default
     Habit, Habits        a habit, its schedule history and check-offs; due days; add/update/delete/toggle rules
     HabitDraft           the form's draft: validity, trim, 40/280 limits
-    ScheduleLabel, HabitLabels, StripDay   labels, tooltips, spoken text, strip states
+    ScheduleLabel, HabitLabels, DueSquare   labels, tooltips, spoken text, strip squares (Habit.dueStrip, T-041)
     HabitStore           the only reader/writer of habits.json (format v1; CONTRACTS.md)
     Streaks              current and best streak
     Consistency          leaderboard: share of due days done per range, ranked (T-016)
@@ -90,7 +90,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 ## The Popover
 
 - The popover is `PopoverRoot.width` (232 pt) wide: one 200 pt column with `PopoverRoot.margin` (16 pt) each side, shared by every screen. The calendar (fixed 28 pt columns, 208 pt) hangs 4 pt into the margins, so its first and last date squares sit on the column's edges; its header is inset 4 pt to match (T-020, T-023, T-024).
-- The habit list shows `AppModel.shownDay`: the day selected in the calendar (`selectedDay`), or today when it is nil, so the selection follows today across midnight. Streaks, strips, and the leaderboard always count up to `today` (T-022).
+- The habit list shows `AppModel.shownDay`: the day selected in the calendar (`selectedDay`), or today when it is nil, so the selection follows today across midnight. Streaks and the leaderboard always count up to `today`; each strip shows the habit's last 30 due days ending at `shownDay` (T-022, T-041).
 - `AppModel.screen` (`Screen`) picks the screen; `PopoverRoot` switches on it. Every open calls `resetForOpen()`: back to the list and the current month.
 - Esc: `AppModel.escape()` backs out one level and returns `.closePopover` from the list. It's reached through `PopoverHostingController.cancelOperation`, and the hosting view is made first responder after each open and screen change, so it works whether or not a control has focus.
 - The habit form's contents are in `AppModel.form`, never inside `Screen`: changing `screen` resets first responder, so a draft inside it would pull focus out of the name field on every keystroke.

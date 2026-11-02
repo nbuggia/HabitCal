@@ -23,7 +23,7 @@ UI tests launch the app with Debug-only launch arguments, so they never depend o
 
 The UI-test app runs from DerivedData, never /Applications, so it never registers a login item.
 
-The UI tests assume the Mac's Keyboard navigation setting is off: the Tab loops in `HabitsUITests` press Tab a few times to reach a strip, and with the setting on every button (the 42 calendar days included, T-022) is a Tab stop before it.
+The UI tests assume the Mac's Keyboard navigation setting is off: with it on, every button (the 42 calendar days included, T-022) becomes a Tab stop, which changes where focus lands.
 
 XCUITest on macOS: a SwiftUI `Text`'s string is its accessibility **value**, not its label; link-style buttons are links, not buttons, so find them by label; text inside a button merges into the button's label (find habit rows by "Edit <name>", whose value is the schedule label); keyboard focus isn't exposed for SwiftUI focusable views, so prove focus by behavior (Tab, then a key that changes something). To look at a screen, attach `popover.screenshot()` as an `XCTAttachment` (keepAlways), run with `-resultBundlePath`, and `xcrun xcresulttool export attachments`. Mark test classes `@MainActor` with async `setUp`/`tearDown` under Swift 6. A test that reopens the popover right after closing it waits 0.5 s first (the reopen guard).
 
@@ -62,6 +62,6 @@ These live in `docs/manual-tests/<area>.md` (`menu-bar.md`, `habits.md`):
 - **Menu bar icon:** how it looks at actual size in light, dark, and tinted menu bars, and with Increase Contrast.
 - **Day rollover:** across real midnight, sleep through midnight, and manual clock and time zone changes.
 - **Launch at login:** a real logout and login, approval in System Settings › Login Items, and running from Downloads versus /Applications.
-- **VoiceOver:** spoken labels, the order things are read in, and adjusting the strip.
+- **VoiceOver:** spoken labels, the order things are read in, and that it skips the strip (T-041).
 - **Habits:** colors in every appearance, scrolling with many habits, a failed save (read-only folder), copy and paste.
 - **Distribution:** a notarized build opening cleanly from a GitHub download.

@@ -50,8 +50,8 @@ final class AppModel {
         static let launchAtLoginInitialized = "launchAtLoginInitialized"
     }
 
-    /// Today on the Mac's calendar. Only `DayWatcher` sets it. A new day can take the habit whose
-    /// strip has focus out of the list, so the popover takes focus back (T-036, FM-006). Whether the
+    /// Today on the Mac's calendar. Only `DayWatcher` sets it. A new day can take a habit whose done
+    /// button has focus out of the list, so the popover takes focus back (T-036, FM-006). Whether the
     /// hook is still needed under the MenuBarExtra is T-029's open question.
     var today: Day {
         didSet { if today != oldValue { listDidHideRows() } }
@@ -89,7 +89,7 @@ final class AppModel {
     @ObservationIgnored var dialogs: FileDialogs?
     /// Called after the screen changes. Set by `PopoverController` to keep Esc working (FM-006).
     @ObservationIgnored var screenDidChange: () -> Void = {}
-    /// Called when rows leave the habit list, which can remove the focused strip.
+    /// Called when rows leave the habit list, which can remove the focused done button.
     @ObservationIgnored var listDidHideRows: () -> Void = {}
     /// Called after habits change here and are saved, with their IDs, so `HabitSync` sends them (T-039).
     @ObservationIgnored var habitsDidChange: (Set<UUID>) -> Void = { _ in }
@@ -207,7 +207,7 @@ final class AppModel {
         toggle(id, on: shownDay)
     }
 
-    /// Toggles a strip day, if it's due and not in the future (B.5, B.6).
+    /// Toggles `day`, if it's due and not in the future (T-003 B.5, T-022).
     func toggle(_ id: UUID, on day: Day) {
         guard habits.toggle(id, on: day, today: today, now: now()) else { return }
         persist([id])

@@ -51,3 +51,8 @@
 2026-10-30 · T-029 design · MINOR · First open could miss its reset · fixed
 2026-10-30 · T-029 design · MINOR · Single-instance check order undocumented · fixed
 2026-10-30 · T-029 design · MINOR · Stale design spots · fixed
+2026-11-01 · T-041 · MINOR · Comments still described the month strip and its focus · fixed
+2026-11-01 · T-041 · MINOR · TESTING.md and ARCHITECTURE.md described the old strip · fixed
+2026-11-01 · T-041 · MINOR · A UI assertion couldn't fail (the identifier was gone) · fixed
+2026-11-01 · T-041 · MINOR · Spec E.3 said "missed" where B.5a says faint · spec changed
+2026-11-01 · T-041 · MINOR · Rewritten streak test clicked before the list updated · fixed

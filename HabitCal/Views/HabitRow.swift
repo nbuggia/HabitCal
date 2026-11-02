@@ -1,7 +1,8 @@
 import HabitCalKit
 import SwiftUI
 
-/// One habit: its done button for today, name and schedule, and its month strip (T-003 §5).
+/// One habit: its done button for the shown day, name and schedule, streaks, and its strip of due
+/// days (T-003 §5, T-041).
 struct HabitRow: View {
     @Environment(AppModel.self) private var model
     let habit: Habit

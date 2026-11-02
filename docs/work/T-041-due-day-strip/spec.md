@@ -104,7 +104,7 @@ E.1 WHEN a check-off changes (done button, another Mac, a new day) THE SYSTEM SH
 
 E.2 WHEN the schedule changes from today THE SYSTEM SHALL keep past dots on the schedule then in force (only days due then appear), and new due days follow the new schedule.
 
-E.3 WHEN a habit is new THE SYSTEM SHALL still show 30 dots, the ones before it was added as missed (B.10, T-028).
+E.3 WHEN a habit is new THE SYSTEM SHALL still show 30 dots, the ones before it was added faint (B.5a), unless done.
 
 E.4 WHEN today changes at midnight with the popover open THE SYSTEM SHALL move the strips with it, if today is the shown day.
 

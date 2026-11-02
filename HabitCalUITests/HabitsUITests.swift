@@ -89,7 +89,6 @@ final class HabitsUITests: HabitCalUITestCase {
         for label in ["Add habit", "Edit Push-ups", "Push-ups, not done today"] {
             XCTAssertTrue(element(label).exists, "missing \(label)")
         }
-        XCTAssertFalse(popover.descendants(matching: .any)["strip-Push-ups"].exists, "the strip is hidden (T-041)")
 
         popover.buttons["Edit Push-ups"].click()
         for label in ["Name", "Notes", "Close", "Delete habit"] + ["Sunday", "Monday", "Saturday"] {
@@ -108,7 +107,10 @@ final class HabitsUITests: HabitCalUITestCase {
         XCTAssertEqual(streaks.label, "Current streak 1 day, best streak 1 day")
         // Fix the 28th from the calendar (T-022): the strip isn't clickable (T-041).
         element("Wednesday, October 28, 2026").click()
-        element("Push-ups, not done on October 28").click()
+        let fix = element("Push-ups, not done on October 28")
+        XCTAssertTrue(fix.waitForExistence(timeout: 5), "the list didn't show the 28th")
+        fix.click()
+        XCTAssertTrue(element("Push-ups, done on October 28").waitForExistence(timeout: 5))
         XCTAssertEqual(streaks.label, "Current streak 3 days, best streak 3 days")
         showRunsSunday()
         XCTAssertEqual(
