@@ -17,6 +17,10 @@ struct LaunchOptions {
     let dataDirectory: URL
     /// Under `-HabitCalSeedData base64`, the exact bytes to write to habits.json before loading.
     let seedData: Data?
+    /// False under `-HabitCalDataDir`: tests never sync with the developer's iCloud (FM-007, T-039).
+    let syncAllowed: Bool
+    /// Under `-HabitCalSyncStatus name`, a fixed status for Settings instead of asking iCloud.
+    let syncStatusOverride: SyncStatus?
 
     init(arguments: [String]) {
         var defaults = UserDefaults.standard
@@ -25,6 +29,8 @@ struct LaunchOptions {
         let applicationSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         var dataDirectory = applicationSupport.appendingPathComponent("HabitCal", isDirectory: true)
         var seedData: Data?
+        var syncAllowed = true
+        var syncStatusOverride: SyncStatus?
         #if DEBUG
             if let suite = Self.value(after: "-HabitCalDefaultsSuite", in: arguments),
                 let suiteDefaults = UserDefaults(suiteName: suite)
@@ -40,9 +46,13 @@ struct LaunchOptions {
             if let folder = Self.value(after: "-HabitCalDataDir", in: arguments) {
                 dataDirectory = applicationSupport.appendingPathComponent("HabitCal-tests", isDirectory: true)
                     .appendingPathComponent(folder, isDirectory: true)
+                syncAllowed = false
             }
             if let base64 = Self.value(after: "-HabitCalSeedData", in: arguments) {
                 seedData = Data(base64Encoded: base64)
+            }
+            if let name = Self.value(after: "-HabitCalSyncStatus", in: arguments) {
+                syncStatusOverride = SyncStatus(debugName: name)
             }
         #endif
         self.defaults = defaults
@@ -50,6 +60,8 @@ struct LaunchOptions {
         self.macFirstWeekday = macFirstWeekday
         self.dataDirectory = dataDirectory
         self.seedData = seedData
+        self.syncAllowed = syncAllowed
+        self.syncStatusOverride = syncStatusOverride
     }
 
     private static func value(after flag: String, in arguments: [String]) -> String? {

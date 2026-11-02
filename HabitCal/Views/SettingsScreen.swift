@@ -2,7 +2,8 @@ import AppKit
 import HabitCalKit
 import SwiftUI
 
-/// Settings: About, General (launch at login, week start), and Quit (T-002 B.11–B.19).
+/// Settings: About, General (launch at login, week start), Data (iCloud status, T-039), and Quit
+/// (T-002 B.11–B.19).
 /// Changes apply immediately; there is no Save.
 struct SettingsScreen: View {
     @Environment(AppModel.self) private var model
@@ -24,6 +25,14 @@ struct SettingsScreen: View {
             }
             .padding(10)
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+            Text("Data")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+            SyncStatusRow()
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
             Divider()
             quitButton
         }

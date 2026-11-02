@@ -73,6 +73,8 @@ final class AppModel {
     private(set) var dataState: DataState
     /// The leaderboard's range; it opens on the past 7 days (T-016 B.6).
     private(set) var leaderboardRange: ConsistencyRange = .past7
+    /// What Settings says about iCloud; set only by `HabitSync` (T-039).
+    private(set) var syncStatus: SyncStatus = .off
     /// The open form, while `screen == .form`.
     private(set) var form: HabitForm?
     /// Bumped on every refresh, so the switch redraws even when a failed change leaves the state
@@ -299,6 +301,15 @@ final class AppModel {
         formStart = nil
         screen = .list
     }
+
+    // MARK: Sync
+
+    func setSyncStatus(_ status: SyncStatus) {
+        syncStatus = status
+    }
+
+    /// The current moment, for the status line's "Last synced".
+    var currentMoment: Date { now() }
 
     // MARK: Leaderboard
 

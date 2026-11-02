@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
     let panel: PanelController
     private let dayWatcher: DayWatcher
+    private let sync: HabitSync
 
     override init() {
         Self.exitIfAnotherCopyIsRunning()
@@ -43,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.model = model
         panel = PanelController(model: model)
         dayWatcher = DayWatcher(source: options.todaySource, macFirstWeekday: options.macFirstWeekday, model: model)
+        sync = HabitSync(model: model, allowed: options.syncAllowed, statusOverride: options.syncStatusOverride)
         super.init()
     }
 

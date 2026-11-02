@@ -32,6 +32,8 @@ XCODEBUILD = [
     "-scheme", "HabitCal",
     "-destination", "platform=macOS",
     "-derivedDataPath", DERIVED,
+    # Debug signs with the team and an iCloud entitlement (T-039): Xcode must be signed into the account.
+    "-allowProvisioningUpdates",
 ]
 
 

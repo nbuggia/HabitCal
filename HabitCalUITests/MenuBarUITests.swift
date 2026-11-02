@@ -137,6 +137,34 @@ final class MenuBarUITests: HabitCalUITestCase {
         app.menuItems[day].click()
     }
 
+    func testSettingsShowsSyncStatus() {
+        let expected = [
+            "off": "iCloud: iCloud is off, habits stay on this Mac. "
+                + "Sign into iCloud in System Settings to sync your Macs.",
+            "waiting": "iCloud: Waiting for iCloud, changes will sync when this Mac is back online.",
+            "full": "iCloud: iCloud is full, changes stay on this Mac until there's room.",
+            "updateNeeded": "iCloud: Update HabitCal to sync, another Mac has a newer version. "
+                + "Habits on this Mac still work.",
+        ]
+        for (name, spoken) in expected {
+            launch(["-HabitCalSyncStatus", name])
+            openSettings()
+            let row = popover.descendants(matching: .any)["syncStatus"]
+            XCTAssertTrue(row.waitForExistence(timeout: 5), "no status row for \(name)")
+            XCTAssertEqual(row.label, spoken)
+            app.terminate()
+        }
+    }
+
+    func testTestsNeverSync() {
+        // UI tests always pass -HabitCalDataDir, which turns sync off (FM-007, T-039).
+        launch()
+        openSettings()
+        XCTAssertEqual(
+            popover.descendants(matching: .any)["syncStatus"].label,
+            "iCloud: iCloud is off, habits stay on this Mac. Sign into iCloud in System Settings to sync your Macs.")
+    }
+
     func testQuitButtonQuits() {
         launch()
         openSettings()
