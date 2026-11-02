@@ -38,15 +38,31 @@ struct PopoverRoot: View {
     }
 }
 
-/// At least `height` tall, and taller when the content needs it. `fixedSize` asks the content for its
-/// own height first: the panel proposes its current height, and `frame(minHeight:)` alone would take
-/// that and clip taller content, such as the form's delete confirmation (T-037).
+/// At least `height` tall, and taller when the content needs it (T-032, T-037).
 private struct AtLeastListHeight: ViewModifier {
     let height: CGFloat
 
     func body(content: Content) -> some View {
-        content
-            .frame(minHeight: height, alignment: .top)
-            .fixedSize(horizontal: false, vertical: true)
+        AtLeastHeightLayout(minHeight: height) { content }
+    }
+}
+
+/// Sizes its content to its natural height or `minHeight`, whichever is taller, ignoring the height
+/// the panel proposes: the panel proposes its current height, which would clip taller content such as
+/// the form's delete confirmation (T-037). Then it hands the content that whole height, so a `Spacer`
+/// inside can push a row to the bottom, as Settings does with Quit (T-040).
+private struct AtLeastHeightLayout: Layout {
+    let minHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        let natural = content.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        return CGSize(width: proposal.width ?? natural.width, height: max(natural.height, minHeight))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(
+            at: bounds.origin, anchor: .topLeading,
+            proposal: ProposedViewSize(width: bounds.width, height: bounds.height))
     }
 }

@@ -39,6 +39,8 @@ struct SettingsScreen: View {
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+            // Quit sits at the bottom of the panel, like the main screen's bottom row (T-040).
+            Spacer(minLength: 0)
             Divider()
             quitButton
         }
