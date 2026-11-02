@@ -23,6 +23,10 @@ T-035 Export and import (Complex): spec Approved 2026-10-31 after an st-crit rev
 
 T-029 slice 2 is paused: the full UI suite still needs a complete run on the customer's screen. 5 tests failed with "popover didn't open" (`openPopover()`, HabitCalUITests/HabitCalUITestCase.swift:46) in a partial run; rerun one alone first. Then the design's open questions (refocus hooks, `MainMenu`), the §13 manual checks, and the Complex close with §16's Lasting Changes.
 
+## Up Next
+
+- 2026-11-01: v1 stays a notarized GitHub download (customer chose it over TestFlight; PRD Constraints unchanged). The customer tests later; after testing, T-005.
+
 ## Suggested Start
 
 The customer's testing pass, which unblocks six closes: run the full UI suite (`./run.py uitest`, about 20 minutes of their screen; covers T-029's open questions too), then a look at the app (strips, Settings Data section, Quit at the bottom), then docs/manual-tests/data.md (export and import with the real dialogs), then the T-039 iCloud checks (CloudKit Console edits, zone delete, Wi-Fi off, Wi-Fi drop mid first sync, change-then-quit, second Mac or macOS user). Fix what fails, then st-close T-036/T-037/T-038 (no work entries: just mark), T-041, T-035, T-039. Without the screen: T-030 (retro).
