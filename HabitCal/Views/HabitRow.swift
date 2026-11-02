@@ -10,32 +10,36 @@ struct HabitRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            // The name has its own line, the row's full width; the schedule and streaks share the second.
             HStack(spacing: 8) {
                 DoneButton(habit: habit)
-                Button {
-                    model.openEditForm(habit.id)
-                } label: {
-                    VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Button {
+                        model.openEditForm(habit.id)
+                    } label: {
                         HStack(spacing: 4) {
-                            Text(habit.name).fontWeight(.semibold).lineLimit(1)
-                            PhosphorIcon("pencil-simple", size: 11)
+                            Text(habit.name).font(.callout.weight(.semibold)).lineLimit(1)
+                            PhosphorIcon("pencil-simple", size: 10)
                                 .foregroundStyle(.secondary)
                                 .opacity(hovering ? 1 : 0)
                         }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.hover(outset: 3))
+                    .onHover { hovering = $0 }
+                    .help("Edit habit")
+                    .accessibilityLabel(HabitLabels.editSpoken(name: habit.name))
+                    .accessibilityValue(ScheduleLabel.text(for: habit.days(today: model.today)))
+                    HStack(spacing: 6) {
                         Text(ScheduleLabel.text(for: habit.days(today: model.today)))
-                            .font(.caption)
                             .lineLimit(1)
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Spacer(minLength: 0)
+                        StreakStats(habit: habit)
                     }
-                    .contentShape(Rectangle())
+                    .font(.caption)
                 }
-                .buttonStyle(.hover(outset: 3))
-                .onHover { hovering = $0 }
-                .help("Edit habit")
-                .accessibilityLabel(HabitLabels.editSpoken(name: habit.name))
-                .accessibilityValue(ScheduleLabel.text(for: habit.days(today: model.today)))
-                Spacer(minLength: 0)
-                StreakStats(habit: habit)
             }
             StripView(habit: habit)
                 .padding(.leading, 32)
@@ -88,12 +92,12 @@ private struct StreakStats: View {
         let best = Streaks.best(habit, today: model.today)
         let hot = Streaks.isHot(current: current)
         let record = Streaks.isRecord(current: current, best: best)
-        HStack(spacing: 10) {
-            HStack(spacing: 3) {
+        HStack(spacing: 8) {
+            HStack(spacing: 2) {
                 // HabitCal's own flame (T-008), in full color once the streak is above 1, grey below (T-025).
                 Image("flame")
                     .resizable()
-                    .frame(width: 14, height: 14)
+                    .frame(width: 11, height: 11)
                     .saturation(hot ? 1 : 0)
                     .opacity(hot ? 1 : 0.55)
                     .accessibilityHidden(true)
@@ -102,16 +106,16 @@ private struct StreakStats: View {
                     .foregroundStyle(hot ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
             }
             .help("Current streak")
-            HStack(spacing: 3) {
+            HStack(spacing: 2) {
                 // Gold while the current streak is the record, like the flame's orange (T-025).
-                PhosphorIcon("trophy", size: 13)
+                PhosphorIcon("trophy", size: 10)
                 Text("\(best)")
                     .fontWeight(record ? .semibold : .regular)
             }
             .foregroundStyle(record ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.secondary))
             .help("Best streak")
         }
-        .font(.callout.monospacedDigit())
+        .font(.caption.monospacedDigit())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Streaks.spoken(current: current, best: best))
         .accessibilityIdentifier("streaks-\(habit.name)")
