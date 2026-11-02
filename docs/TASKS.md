@@ -73,8 +73,8 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
 - [ ] T-039 Sync habits across Macs with CloudKit · high
       All 5 slices coded (slices.md; slice 5 in T-035). Outstanding: UI tests, CloudKit Console and second-Mac checks, then the diff review and close.
 - [ ] T-041 Habit strip: only due days, oldest left to newest right, not clickable, marker on the selected day · high
-      Customer, 2026-11-01. Replaces the month strip (T-003) and its click and keyboard check-offs; past days are fixed by selecting the day in the calendar (T-022). Spec first.
+      Coded (343c2c7). Outstanding: UI tests, a look on screen, diff review, close.
 - [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
       App icon chosen 2026-10-31: fire with a black outline, in AppIcon.appiconset and Settings' About. A Developer ID Application certificate (NETORION LLC) is in the keychain; notarytool credentials not checked. Left: signing, notarization, the GitHub download and README, the manual test of a downloaded build.
-- [ ] T-040 Settings' Quit button sits at the bottom of the panel, like the main screen's bottom row · medium
-      Customer, 2026-11-01.
+- [x] T-040 Settings' Quit button sits at the bottom of the panel, like the main screen's bottom row · medium · done 2026-11-01
+      Commit 084c48c. Not yet checked on screen.
