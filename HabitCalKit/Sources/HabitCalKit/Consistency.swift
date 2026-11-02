@@ -4,10 +4,20 @@ import Foundation
 public enum ConsistencyRange: CaseIterable, Hashable, Sendable {
     case past7, past30, allTime
 
+    /// The tab's text: short, so the three tabs fit the narrow popover (customer, 2026-11-01).
     public var title: String {
         switch self {
-        case .past7: "Past 7 days"
-        case .past30: "Past 30 days"
+        case .past7: "Last 7"
+        case .past30: "Last 30"
+        case .allTime: "All time"
+        }
+    }
+
+    /// What VoiceOver reads for the tab: "Last 7" alone doesn't say 7 of what.
+    public var spoken: String {
+        switch self {
+        case .past7: "Last 7 days"
+        case .past30: "Last 30 days"
         case .allTime: "All time"
         }
     }

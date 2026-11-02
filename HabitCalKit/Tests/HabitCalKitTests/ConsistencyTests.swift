@@ -17,7 +17,7 @@ private func habit(_ name: String, days: Set<Int> = everyDay, addedOn: Day = oct
 @Suite("Consistency")
 struct ConsistencyTests {
     @Test func shareCountsDueDaysCheckedOffInTheRange() {
-        // Past 7 days is Oct 23–29; today isn't done, so the due days are the 23rd to the 28th.
+        // Last 7 days is Oct 23–29; today isn't done, so the due days are the 23rd to the 28th.
         let pushUps = habit("Push-ups", done: [oct(23), oct(24), oct(25)])
         let tally = Consistency.tally(pushUps, range: .past7, today: today)
         #expect(tally == ConsistencyTally(done: 3, due: 6))
@@ -87,7 +87,8 @@ struct ConsistencyTests {
         #expect(
             Consistency.scoreSpoken(ConsistencyTally(done: 6, due: 7))
                 == "86 percent of due days done across all habits")
-        #expect(ConsistencyRange.allCases.map(\.title) == ["Past 7 days", "Past 30 days", "All time"])
+        #expect(ConsistencyRange.allCases.map(\.spoken) == ["Last 7 days", "Last 30 days", "All time"])
+        #expect(ConsistencyRange.allCases.map(\.title) == ["Last 7", "Last 30", "All time"])
         #expect(Consistency.scoreSpoken(ConsistencyTally(done: 0, due: 0)) == "No due days yet")
     }
 

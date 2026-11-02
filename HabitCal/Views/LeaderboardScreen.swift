@@ -63,7 +63,7 @@ struct LeaderboardScreen: View {
     private var rangePicker: some View {
         HStack(spacing: 2) {
             ForEach(ConsistencyRange.allCases, id: \.self) { range in
-                RangeTab(title: range.title, selected: model.leaderboardRange == range) {
+                RangeTab(title: range.title, spoken: range.spoken, selected: model.leaderboardRange == range) {
                     model.pickLeaderboardRange(range)
                 }
             }
@@ -142,6 +142,7 @@ private struct LeaderboardRow: View {
 /// One range tab: accent-filled when selected; hover and press come from the shared style (T-021).
 private struct RangeTab: View {
     let title: String
+    let spoken: String
     let selected: Bool
     let action: () -> Void
 
@@ -161,7 +162,7 @@ private struct RangeTab: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.hover(cornerRadius: 5, overLabel: true))
-        .accessibilityLabel(title)
+        .accessibilityLabel(spoken)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
