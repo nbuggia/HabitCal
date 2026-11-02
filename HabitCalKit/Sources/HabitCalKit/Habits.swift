@@ -190,51 +190,77 @@ public struct Habits: Equatable, Sendable {
         return result
     }
 
-    /// The first sync of this Mac (T-039 B.7–B.9): every habit from either side is kept. Copies of the
-    /// same habit, by ID or by name (only habits shown on both sides), become one under the iCloud ID:
-    /// check-offs of both, the earlier added date, the details of whichever changed last (or by B.8b,
-    /// the copy checked off most recently, else iCloud's), with past days due only where both copies
-    /// had them (B.8a). Deleted habits that iCloud never had are dropped, not sent (E.2).
+    /// The first sync of this Mac in one go (T-039 B.7–B.9): every fetched batch, then the finish.
     @discardableResult
     public mutating func mergeFirstSync(remote: [Habit], today: Day, now: Date) -> MergeResult {
+        let localIDs = Set(records.map(\.id))
+        var result = mergeFirstSyncBatch(remote, localIDs: localIDs, today: today, now: now)
+        let finish = finishFirstSync(localIDs: localIDs, remoteIDs: Set(remote.map(\.id)), today: today, now: now)
+        result.changed.formUnion(finish.changed)
+        result.toSend.formUnion(finish.toSend)
+        return result
+    }
+
+    /// A batch fetched during the first sync, merged by ID only. A copy of a habit this Mac had when the
+    /// first sync began (`localIDs`) meets it by the first-sync rules (B.8, B.8a, B.8b); anything else
+    /// merges as usual. Pairing by name waits for `finishFirstSync`, so it happens once, whatever the
+    /// batches (design review).
+    @discardableResult
+    public mutating func mergeFirstSyncBatch(_ remote: [Habit], localIDs: Set<UUID>, today: Day, now: Date)
+        -> MergeResult
+    {
         var result = MergeResult()
         let stamp = Self.stamp(now)
-        var remoteByID = Dictionary(uniqueKeysWithValues: remote.map { ($0.id, $0) })
-        var local = records.filter { !$0.isDeleted || remoteByID[$0.id] != nil }
-        var merged: [Habit] = []
-        // Pair by name the shown local habits with no iCloud copy of their own.
-        var shownRemoteByName: [String: [Habit]] = [:]
-        let localIDs = Set(local.map(\.id))
-        for habit in remote where !habit.isDeleted && !localIDs.contains(habit.id) {
-            shownRemoteByName[Self.nameKey(habit.name), default: []].append(habit)
-        }
-        for habit in Self.ordered(local) {
-            if let copy = remoteByID[habit.id] {
-                let pair =
-                    habit.isDeleted || copy.isDeleted
-                    ? Self.merged(habit, copy) : Self.mergedFirstSync(habit, copy, today: today, now: stamp)
-                merged.append(pair)
-                remoteByID[habit.id] = nil
-                if pair != copy { result.toSend.insert(pair.id) }
-                if pair != habit { result.changed.insert(pair.id) }
-            } else if !habit.isDeleted, let copy = shownRemoteByName[Self.nameKey(habit.name)]?.first {
-                shownRemoteByName[Self.nameKey(habit.name)]?.removeFirst()
-                let pair = Self.mergedFirstSync(habit, copy, today: today, now: stamp)
-                merged.append(pair)
-                remoteByID[copy.id] = nil
-                result.changed.formUnion([habit.id, pair.id])
-                if pair != copy { result.toSend.insert(pair.id) }
+        var byID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
+        for copy in remote {
+            let merged: Habit
+            if let mine = byID[copy.id] {
+                merged =
+                    localIDs.contains(copy.id) && !mine.isDeleted && !copy.isDeleted
+                    ? Self.mergedFirstSync(mine, copy, today: today, now: stamp) : Self.merged(mine, copy)
             } else {
-                merged.append(habit)
-                result.toSend.insert(habit.id)
+                merged = copy
             }
+            if byID[copy.id] != merged { result.changed.insert(copy.id) }
+            if merged != copy { result.toSend.insert(copy.id) }
+            byID[copy.id] = merged
         }
-        local = merged
-        for copy in remoteByID.values {
-            local.append(copy)
-            result.changed.insert(copy.id)
+        records = Self.ordered(Array(byID.values))
+        return result
+    }
+
+    /// The end of the first sync, once every batch is in. Habits this Mac had that iCloud didn't
+    /// (`localIDs` minus `remoteIDs`) are paired by name with the iCloud habits no local habit matched by
+    /// ID, shown habits only, under the iCloud ID (B.9). Deleted habits iCloud never had are dropped, not
+    /// sent (E.2); deleted habits iCloud has are kept, so deletes still win. Every habit only this Mac had
+    /// is queued for sending.
+    @discardableResult
+    public mutating func finishFirstSync(localIDs: Set<UUID>, remoteIDs: Set<UUID>, today: Day, now: Date)
+        -> MergeResult
+    {
+        var result = MergeResult()
+        let stamp = Self.stamp(now)
+        let localOnly = records.filter { localIDs.contains($0.id) && !remoteIDs.contains($0.id) }
+        let droppedIDs = Set(localOnly.filter(\.isDeleted).map(\.id))
+        records.removeAll { droppedIDs.contains($0.id) }
+        var unmatchedRemote: [String: [Habit]] = [:]
+        for habit in records where remoteIDs.contains(habit.id) && !localIDs.contains(habit.id) && !habit.isDeleted {
+            unmatchedRemote[Self.nameKey(habit.name), default: []].append(habit)
         }
-        records = Self.ordered(local)
+        for habit in Self.ordered(localOnly.filter { !$0.isDeleted }) {
+            let key = Self.nameKey(habit.name)
+            guard let copy = unmatchedRemote[key]?.first else {
+                result.toSend.insert(habit.id)
+                continue
+            }
+            unmatchedRemote[key]?.removeFirst()
+            let pair = Self.mergedFirstSync(habit, copy, today: today, now: stamp)
+            records.removeAll { $0.id == habit.id || $0.id == copy.id }
+            records.append(pair)
+            result.changed.formUnion([habit.id, pair.id])
+            if pair != copy { result.toSend.insert(pair.id) }
+        }
+        records = Self.ordered(records)
         return result
     }
 
@@ -304,10 +330,10 @@ public struct Habits: Equatable, Sendable {
                 id: remote.id, details: local.details, addedOn: local.addedOn, createdAt: local.createdAt,
                 deletedAt: local.deletedAt, checks: local.checks))
         let winner: Habit
-        if local.details.changedAt != nil || remote.details.changedAt != nil,
-            !sameTime(local.details.changedAt, remote.details.changedAt)
-        {
-            winner = isLater(local.details.changedAt, remote.details.changedAt) ? local : remote
+        // Change times decide only when both copies have them; a copy saved before sync existed has none,
+        // so then the most recent check-off decides (B.8b).
+        if let mine = local.details.changedAt, let theirs = remote.details.changedAt, mine != theirs {
+            winner = mine > theirs ? local : remote
         } else {
             let never = Day(year: 1, month: 1, day: 1)
             winner = (local.checkOffs.max() ?? never) > (remote.checkOffs.max() ?? never) ? local : remote

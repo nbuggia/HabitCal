@@ -63,3 +63,11 @@
 2026-11-01 · T-035 · MINOR · E.3 alert had text the spec doesn't · fixed
 2026-11-01 · T-035 · MINOR · Size limit bypassed when the size is unknown · fixed
 2026-11-01 · T-035 · MINOR · A stale pending dialog could fire on a later close · fixed
+2026-11-01 · T-039 · MAJOR · The final first-sync pass dropped deletes iCloud has · fixed
+2026-11-01 · T-039 · MAJOR · Name pairing per batch could pair twice · fixed
+2026-11-01 · T-039 · MAJOR · Failed sends showed "Synced" and counted as sent · fixed
+2026-11-01 · T-039 · MINOR · sync-state.json decode failed on any new field · fixed
+2026-11-01 · T-039 · MINOR · Sign-in after sign-out queued no zone; switch kept the old engine state · fixed
+2026-11-01 · T-039 · MINOR · didFetchChanges after a partial fetch could finish the first sync early · accepted risk
+2026-11-01 · T-039 · MINOR · SyncPolicy tests checked constants, not the event sequence · fixed
+2026-11-01 · T-039 · QUESTION · B.8b with one copy timestamped and one not · fixed

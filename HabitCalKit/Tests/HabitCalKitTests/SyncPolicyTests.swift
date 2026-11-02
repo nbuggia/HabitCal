@@ -19,22 +19,62 @@ struct SyncPolicyTests {
         #expect(SyncPolicy.afterFetchFinished(firstSyncDone: true) == .init(markFirstSyncDone: false, sendNow: false))
     }
 
-    @Test func fetchedHabitsUseTheFirstSyncMergeUntilItsDone() throws {
+    @Test func fetchedHabitsMergeByIDUntilTheFirstSyncIsDone() throws {
         var local = Habits()
         let mine = local.add(HabitDraft(name: "Run", note: "", days: [6]), today: oct(1), now: t(0))
         var remote = Habits()
-        let theirs = remote.add(HabitDraft(name: "run", note: "", days: [6]), today: oct(1), now: t(1))
+        remote.add(HabitDraft(name: "run", note: "", days: [6]), today: oct(1), now: t(1))
 
         var first = local
-        let firstResult = SyncPolicy.apply(
-            fetched: remote.records, to: &first, firstSyncDone: false, today: today, now: t(5))
-        #expect(first.all.count == 1)  // paired by name
-        #expect(first[theirs] != nil && first[mine] == nil)
-        #expect(firstResult.toSend.contains(theirs))
-
+        SyncPolicy.apply(fetched: remote.records, to: &first, firstSyncLocalIDs: [mine], today: today, now: t(5))
+        #expect(first.all.count == 2)  // a batch never pairs by name: that waits for the finish
         var ongoing = local
-        SyncPolicy.apply(fetched: remote.records, to: &ongoing, firstSyncDone: true, today: today, now: t(5))
-        #expect(ongoing.all.count == 2)  // after the first sync, same names are different habits
+        SyncPolicy.apply(fetched: remote.records, to: &ongoing, firstSyncLocalIDs: nil, today: today, now: t(5))
+        #expect(ongoing.all.count == 2)
+    }
+
+    @Test func firstSyncAcrossBatchesKeepsDeletesICloudHasAndPairsByNameOnce() throws {
+        // This Mac: Run (deleted here, also in iCloud) and Swim (only here). iCloud: Run, and two habits
+        // named Read arriving in different batches.
+        var habits = Habits()
+        let run = habits.add(HabitDraft(name: "Run", note: "", days: [6]), today: oct(1), now: t(0))
+        let swim = habits.add(HabitDraft(name: "Swim", note: "", days: [2]), today: oct(1), now: t(0))
+        var icloud = habits
+        habits.delete(run, now: t(1))
+        let localIDs = Set(habits.records.map(\.id))
+        let read1 = icloud.add(HabitDraft(name: "Read", note: "", days: [6]), today: oct(1), now: t(2))
+        let read2 = icloud.add(HabitDraft(name: "Read", note: "", days: [6]), today: oct(1), now: t(3))
+        let batch1 = icloud.records.filter { [run, read1].contains($0.id) }
+        let batch2 = icloud.records.filter { $0.id == read2 }
+
+        let r1 = habits.mergeFirstSyncBatch(batch1, localIDs: localIDs, today: today, now: t(5))
+        let r2 = habits.mergeFirstSyncBatch(batch2, localIDs: localIDs, today: today, now: t(5))
+        let finish = habits.finishFirstSync(
+            localIDs: localIDs, remoteIDs: [run, read1, read2], today: today, now: t(5))
+        let toSend = r1.toSend.union(r2.toSend).union(finish.toSend)
+
+        #expect(habits.records.contains { $0.id == run && $0.isDeleted })  // the delete is kept
+        #expect(toSend.contains(run))  // and goes to iCloud
+        #expect(Set(habits.all.map(\.id)) == [swim, read1, read2])  // iCloud's two Reads aren't paired with each other
+        #expect(toSend.contains(swim))
+        #expect(!toSend.contains(read1) && !toSend.contains(read2))
+    }
+
+    @Test func firstSyncWithOneCopyWithoutTimesUsesTheMostRecentCheckOff() throws {
+        let id = UUID()
+        var newer = Habits()
+        let stamped = newer.add(HabitDraft(name: "Run there", note: "", days: [6]), today: oct(1), now: t(0))
+        newer.toggle(stamped, on: oct(16), today: today, now: t(0))
+        let remoteCopy = try #require(newer.records.first)
+        let remote = Habit(
+            id: id, details: remoteCopy.details, addedOn: oct(1), createdAt: remoteCopy.createdAt, deletedAt: nil,
+            checks: remoteCopy.checks)
+        let local = Habit(
+            id: id, name: "Run here", note: "", addedOn: oct(1), schedule: [ScheduleEntry(from: oct(1), days: [6])],
+            checkOffs: [oct(23)])  // saved before sync existed: no change times
+        var habits = Habits([local])
+        habits.mergeFirstSync(remote: [remote], today: today, now: t(5))
+        #expect(habits[id]?.name == "Run here")  // checked off more recently (B.8b)
     }
 
     @Test func conflictMergesTheServerCopyAndResends() throws {

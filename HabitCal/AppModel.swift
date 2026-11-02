@@ -244,14 +244,25 @@ final class AppModel {
         habits.records.first { $0.id == id }
     }
 
-    /// Merges habits fetched from iCloud and saves them before returning: the sync engine records that
-    /// they were fetched right after this, so unsaved ones would never come again. Changes in place,
-    /// without resetting the popover (B.4); an open form on a habit that's gone closes (B.11). Returns
-    /// the habits iCloud should get back. Nothing is merged while the habits here can't be read (E.1).
-    func applyRemote(_ remote: [Habit], firstSyncDone: Bool) -> Set<UUID> {
+    /// Merges a batch fetched from iCloud and saves it before returning: the sync engine records that
+    /// it was fetched right after this, so an unsaved batch would never come again. During the first
+    /// sync, `firstSyncLocalIDs` holds the habits this Mac had when it began, and the batch merges by ID
+    /// only. Changes in place, without resetting the popover (B.4); an open form on a habit that's gone
+    /// closes (B.11). Returns the habits iCloud should get back. Nothing is merged while the habits here
+    /// can't be read (E.1).
+    func applyRemote(_ remote: [Habit], firstSyncLocalIDs: Set<UUID>?) -> Set<UUID> {
         guard dataState != .unreadable(store.fileURL.path) else { return [] }
         let result = SyncPolicy.apply(
-            fetched: remote, to: &habits, firstSyncDone: firstSyncDone, today: today, now: now())
+            fetched: remote, to: &habits, firstSyncLocalIDs: firstSyncLocalIDs, today: today, now: now())
+        if !result.changed.isEmpty { save() }
+        closeFormIfItsHabitIsGone()
+        return result.toSend
+    }
+
+    /// The end of the first sync: pairs by name once and returns the habits to send (B.7–B.9, E.2).
+    func finishFirstSync(localIDs: Set<UUID>, remoteIDs: Set<UUID>) -> Set<UUID> {
+        guard dataState != .unreadable(store.fileURL.path) else { return [] }
+        let result = habits.finishFirstSync(localIDs: localIDs, remoteIDs: remoteIDs, today: today, now: now())
         if !result.changed.isEmpty { save() }
         closeFormIfItsHabitIsGone()
         return result.toSend

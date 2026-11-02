@@ -27,6 +27,8 @@ final class HabitSync: CKSyncEngineDelegate {
     private var wakeObserver: NSObjectProtocol?
     private var timer: Timer?
     private var lastFetch: Date = .distantPast
+    /// A save failed in the current send cycle (reset when the engine starts sending).
+    private var sendFailed = false
 
     /// Sync is off when tests run (`allowed` false), when the habits on this Mac can't be read (E.1),
     /// and in any build without the CloudKit entitlement: such a process traps when it touches
@@ -74,6 +76,8 @@ final class HabitSync: CKSyncEngineDelegate {
         }
         if state.firstSyncDone {
             changed(SyncPolicy.unsent(in: model.habits, since: state.lastSentAt))
+        } else {
+            beginFirstSync()
         }
         model.habitsDidChange = { [weak self] ids in self?.changed(ids) }
         model.syncNow = { [weak self] in self?.syncNow() }
@@ -159,13 +163,20 @@ final class HabitSync: CKSyncEngineDelegate {
             handleFailedSaves(sent.failedRecordSaves)
         case .willFetchChanges:
             if !state.firstSyncDone { model.setSyncStatus(.syncing) }
+        case .willSendChanges:
+            sendFailed = false
         case .didFetchChanges:
             let next = SyncPolicy.afterFetchFinished(firstSyncDone: state.firstSyncDone)
             if next.markFirstSyncDone {
-                // Batches merge as they arrive; this pass queues every habit only this Mac has,
-                // including all of them when iCloud was empty and nothing arrived (B.7).
-                changed(model.applyRemote([], firstSyncDone: false))
+                // Batches merged by ID as they arrived; now pair by name, once, and queue what only this
+                // Mac has (all of it when iCloud was empty). "In iCloud" is every record fetched or ever
+                // sent (cached system fields), so deletes iCloud has are kept (B.7, E.2).
+                let remoteIDs = Set(
+                    (state.seenInICloud + state.systemFields.keys.compactMap(UUID.init(uuidString:))))
+                changed(model.finishFirstSync(localIDs: Set(state.firstSyncLocalIDs ?? []), remoteIDs: remoteIDs))
                 state.firstSyncDone = true
+                state.firstSyncLocalIDs = nil
+                state.seenInICloud = []
                 saveState()
             }
             markSynced()
@@ -173,6 +184,9 @@ final class HabitSync: CKSyncEngineDelegate {
                 detached(syncEngine) { try await $0.sendChanges() }
             }
         case .didSendChanges:
+            // A failed save keeps its status (full, offline, error) and doesn't count as sent, so it's
+            // queued again at the next start (B.5, E.5, E.10).
+            guard !sendFailed else { break }
             if syncEngine.state.pendingRecordZoneChanges.isEmpty {
                 state.lastSentAt = Date()
                 saveState()
@@ -271,8 +285,12 @@ final class HabitSync: CKSyncEngineDelegate {
         saveState()
         let habits = records.compactMap(decode)
         guard !habits.isEmpty else { return }
-        let toSend = model.applyRemote(habits, firstSyncDone: state.firstSyncDone)
-        changed(toSend)
+        let firstSyncLocalIDs = state.firstSyncDone ? nil : Set(state.firstSyncLocalIDs ?? [])
+        if !state.firstSyncDone {
+            state.seenInICloud += habits.map(\.id)
+            saveState()
+        }
+        changed(model.applyRemote(habits, firstSyncLocalIDs: firstSyncLocalIDs))
     }
 
     private func handleFailedSaves(_ failures: [CKSyncEngine.Event.SentRecordZoneChanges.FailedRecordSave]) {
@@ -285,6 +303,8 @@ final class HabitSync: CKSyncEngineDelegate {
                     cacheSystemFields(server)
                     if let habit = decode(server), let id = model.resolveConflict(server: habit) {
                         changed([id])
+                    } else {
+                        sendFailed = true
                     }
                 }
             case .zoneNotFound, .userDeletedZone:
@@ -294,9 +314,19 @@ final class HabitSync: CKSyncEngineDelegate {
                 state.systemFields[recordID.recordName] = nil
                 engine.state.add(pendingRecordZoneChanges: [.saveRecord(recordID)])
             default:
+                sendFailed = true
                 report(failure.error)
             }
         }
+        saveState()
+    }
+
+    /// Remembers which habits this Mac had when its first sync began, so batches merge by ID and the
+    /// finish pairs by name only those (design review).
+    private func beginFirstSync() {
+        guard state.firstSyncLocalIDs == nil else { return }
+        state.firstSyncLocalIDs = model.habits.records.map(\.id)
+        state.seenInICloud = []
         saveState()
     }
 
@@ -348,8 +378,10 @@ final class HabitSync: CKSyncEngineDelegate {
         let kind: SyncPolicy.AccountChange
         switch change {
         case .signIn:
-            // The first launch reports a sign-in too; with no first sync yet there's nothing to reset.
+            // The first launch reports a sign-in too; with no first sync yet there's nothing to reset,
+            // but the zone may not exist in this account yet.
             guard state.firstSyncDone else {
+                engine?.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
                 refreshAccountStatus()
                 return
             }
@@ -360,12 +392,12 @@ final class HabitSync: CKSyncEngineDelegate {
         }
         let decision = SyncPolicy.accountChanged(kind)
         if decision.resetState {
-            let engineState = state.engineState
+            // The engine writes its own state for the new account at its next state update.
             state = SyncState()
-            state.engineState = engineState
             saveState()
             if kind != .signOut {
                 engine?.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+                beginFirstSync()
             }
         }
         model.setSyncStatus(decision.status)
@@ -434,4 +466,24 @@ private struct SyncState: Codable {
     var lastSentAt: Date?
     /// A record was skipped as written by a newer HabitCal (E.6).
     var updateNeeded = false
+    /// During the first sync: the habits this Mac had when it began.
+    var firstSyncLocalIDs: [UUID]?
+    /// During the first sync: the habits fetched so far.
+    var seenInICloud: [UUID] = []
+
+    init() {}
+
+    /// Every field is optional on read, so a state file from an earlier build still loads instead of
+    /// forcing a new first sync.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        engineState = try c.decodeIfPresent(CKSyncEngine.State.Serialization.self, forKey: .engineState)
+        firstSyncDone = try c.decodeIfPresent(Bool.self, forKey: .firstSyncDone) ?? false
+        systemFields = try c.decodeIfPresent([String: Data].self, forKey: .systemFields) ?? [:]
+        lastSynced = try c.decodeIfPresent(Date.self, forKey: .lastSynced)
+        lastSentAt = try c.decodeIfPresent(Date.self, forKey: .lastSentAt)
+        updateNeeded = try c.decodeIfPresent(Bool.self, forKey: .updateNeeded) ?? false
+        firstSyncLocalIDs = try c.decodeIfPresent([UUID].self, forKey: .firstSyncLocalIDs)
+        seenInICloud = try c.decodeIfPresent([UUID].self, forKey: .seenInICloud) ?? []
+    }
 }

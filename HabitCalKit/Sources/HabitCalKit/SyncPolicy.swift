@@ -93,13 +93,15 @@ public enum SyncPolicy {
             ? AfterFetch(markFirstSyncDone: false, sendNow: false) : AfterFetch(markFirstSyncDone: true, sendNow: true)
     }
 
-    /// Merges habits fetched from iCloud: by the first-sync rules until the first sync is done (B.7–B.9),
-    /// then the ongoing merge. The result's `toSend` lists what iCloud should get back.
+    /// Merges a batch fetched from iCloud: by ID with the first-sync rules while the first sync runs
+    /// (`firstSyncLocalIDs`: the habits this Mac had when it began), then the ongoing merge. The
+    /// result's `toSend` lists what iCloud should get back.
     @discardableResult
-    public static func apply(fetched: [Habit], to habits: inout Habits, firstSyncDone: Bool, today: Day, now: Date)
-        -> MergeResult
-    {
-        firstSyncDone ? habits.merge(fetched) : habits.mergeFirstSync(remote: fetched, today: today, now: now)
+    public static func apply(
+        fetched: [Habit], to habits: inout Habits, firstSyncLocalIDs: Set<UUID>?, today: Day, now: Date
+    ) -> MergeResult {
+        guard let localIDs = firstSyncLocalIDs else { return habits.merge(fetched) }
+        return habits.mergeFirstSyncBatch(fetched, localIDs: localIDs, today: today, now: now)
     }
 
     /// A save that iCloud refused because its copy changed since: merge iCloud's copy in, and send the
