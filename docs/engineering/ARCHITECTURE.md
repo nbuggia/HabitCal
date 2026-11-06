@@ -8,7 +8,7 @@ Describes what is built: the menu bar shell (T-002), habits (T-003), and streaks
 - SwiftUI for every screen; AppKit for the menu bar item, the popover, and app lifecycle.
 - macOS 15 (Sequoia) or later, universal binary (Apple silicon and Intel).
 - No third-party dependencies (PRD Constraints).
-- Distribution: Developer ID–signed, notarized, hardened runtime, App Sandbox, downloaded from GitHub (PRD Constraints, D-007).
+- Distribution: Mac App Store (D-011). Release is signed with the team, archived, and exported by `./run.py appstore` with `ExportOptions-AppStore.plist` (Apple Distribution, the "HabitCal App Store" profile, a Mac Installer Distribution–signed `.pkg`); hardened runtime, App Sandbox (D-007). Export sets `aps-environment` and the iCloud container environment to production.
 - Bundle IDs: `com.muchfiner.HabitCal` (Release) and `com.muchfiner.HabitCal.debug` (Debug), so dev and test runs never share the installed copy's container, UserDefaults, or single-instance check.
 - The project file is hand-written (`objectVersion 77`) with folder-synced groups: every file in `HabitCal/` and `HabitCalUITests/` is in its target automatically. XcodeGen and Tuist were considered and not needed.
 
@@ -104,7 +104,3 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 | ⌘Q quits | `MainMenu` |
 | About link URL | `SettingsScreen` |
 | Saved habit data (habits.json v1) | `HabitStore` in HabitCalKit |
-
-## Open Questions
-
-- Developer ID team and notarization credentials aren't set up yet. They're needed before the first release, not before T-002.

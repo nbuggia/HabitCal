@@ -64,4 +64,4 @@ These live in `docs/manual-tests/<area>.md` (`menu-bar.md`, `habits.md`):
 - **Launch at login:** a real logout and login, approval in System Settings › Login Items, and running from Downloads versus /Applications.
 - **VoiceOver:** spoken labels, the order things are read in, and that it skips the strip (T-041).
 - **Habits:** colors in every appearance, scrolling with many habits, a failed save (read-only folder), copy and paste.
-- **Distribution:** a notarized build opening cleanly from a GitHub download.
+- **Distribution:** a TestFlight or App Store install opening cleanly, with iCloud sync on CloudKit production.

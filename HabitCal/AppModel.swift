@@ -426,12 +426,12 @@ final class AppModel {
         }
     }
 
-    /// Replaces every habit with the file's, as new habits, and saves; sync sends the deletes and adds.
-    /// The list then shows today (B.8).
     func setDebugLastError(_ title: String) {
         debugLastError = title
     }
 
+    /// Replaces every habit with the file's, as new habits, and saves; sync sends the deletes and adds.
+    /// The list then shows today (B.8).
     func applyImport(_ incoming: Habits) {
         let changed = habits.replaceAll(with: incoming.all, now: now())
         selectedDay = nil

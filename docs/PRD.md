@@ -28,7 +28,7 @@ HabitCal is a free macOS menu bar app for people building daily habits. The menu
 - macOS only, as a menu bar app with no Dock icon.
 - Free to users, forever.
 - Native: Swift and SwiftUI, no third-party dependencies, macOS 15 (Sequoia) or later.
-- Distributed as a signed, notarized download from GitHub; the Mac App Store can come later.
+- Distributed through the Mac App Store (D-011).
 
 ## Feature: Menu Bar Date
 

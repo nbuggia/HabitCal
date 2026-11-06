@@ -11,6 +11,7 @@ Standard library only; works with the Python 3.9 that ships with macOS.
     ./run.py uitest [Suite]   UI tests, all or one suite/test (drives the real screen)
     ./run.py lint             format check
     ./run.py format           fix formatting in place
+    ./run.py appstore         archive Release and export a signed App Store .pkg (doesn't upload)
     ./run.py clean            delete the build folder
 """
 
@@ -92,6 +93,30 @@ def fmt(args):
     sh(["swift", "format", "--in-place", "--recursive"] + SOURCES)
 
 
+ARCHIVE = os.path.join(ROOT, "build", "HabitCal.xcarchive")
+EXPORT = os.path.join(ROOT, "build", "appstore")
+
+
+def appstore(args):
+    """Archive Release, export it signed for the Mac App Store, and show what it was signed with.
+
+    Needs the Apple Distribution and Mac Installer Distribution certificates and the
+    "HabitCal App Store" profile (ExportOptions-AppStore.plist). Upload the .pkg with
+    Transporter or Xcode's Organizer; this command never uploads.
+    """
+    for path in (ARCHIVE, EXPORT):
+        if os.path.exists(path):
+            shutil.rmtree(path)
+    sh(["xcodebuild", "-project", "HabitCal.xcodeproj", "-scheme", "HabitCal", "-configuration", "Release",
+        "-destination", "generic/platform=macOS", "-derivedDataPath", DERIVED, "-archivePath", ARCHIVE,
+        "-allowProvisioningUpdates", "archive", "-quiet"])
+    sh(["xcodebuild", "-exportArchive", "-archivePath", ARCHIVE, "-exportPath", EXPORT,
+        "-exportOptionsPlist", os.path.join(ROOT, "ExportOptions-AppStore.plist")])
+    pkg = os.path.join(EXPORT, "HabitCal.pkg")
+    sh(["pkgutil", "--check-signature", pkg])
+    print("Exported " + os.path.relpath(pkg, ROOT))
+
+
 def clean(args):
     path = os.path.join(ROOT, "build")
     if os.path.isdir(path):
@@ -118,6 +143,7 @@ def main():
         ("uitest", uitest, "UI tests; optionally one suite or Suite/test"),
         ("lint", lint, "format check"),
         ("format", fmt, "fix formatting in place"),
+        ("appstore", appstore, "archive Release and export a signed App Store .pkg"),
         ("clean", clean, "delete the build folder"),
     ]
     for name, func, help_text in commands:

@@ -13,6 +13,14 @@ Rejected: Alternatives considered and why not. (optional)
 Affects: Task IDs and files this touches. (optional)
 -->
 
+## D-011 · v1 ships on the Mac App Store · 2026-11-05
+Status: Active
+Context: The PRD planned a notarized download from GitHub, with the App Store later. The customer chose the Mac App Store for v1.
+Decision: Distribute HabitCal through the Mac App Store, free. The Release build is signed with Apple Distribution and the "HabitCal App Store" profile, and exported as an installer package for App Store Connect. There's no Developer ID download for v1.
+Why: Users get installs, updates, and trust from the store with nothing for us to host. The app already meets the store's rules: App Sandbox (D-007), CloudKit in the user's private database (D-010), no network entitlement.
+Rejected: GitHub or muchfiner.com downloads signed with Developer ID, which need notarization and our own update story. Both, for now: a second build to sign, notarize, and test for little gain in v1.
+Affects: PRD Constraints, D-007 (its context mentioned GitHub), T-005, ARCHITECTURE.md
+
 ## D-010 · Habits sync across the user's Macs through CloudKit · 2026-10-31
 Status: Active
 Context: The customer wants their habits on every Mac they use. D-004 kept data on the Mac only, and the PRD listed sync under Not Doing.

@@ -74,7 +74,7 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       All 5 slices coded (slices.md; slice 5 in T-035). Outstanding: UI tests, CloudKit Console and second-Mac checks, then the diff review and close.
 - [ ] T-041 Habit strip: only due days, oldest left to newest right, not clickable, marker on the selected day · high
       Coded (343c2c7). Outstanding: UI tests, a look on screen, diff review, close.
-- [ ] T-005 Release v1: app icon, Developer ID signing, notarization, GitHub download · high
-      App icon chosen 2026-10-31: fire with a black outline, in AppIcon.appiconset and Settings' About. A Developer ID Application certificate (NETORION LLC) is in the keychain; notarytool credentials not checked. Left: signing, notarization, the GitHub download and README, the manual test of a downloaded build.
+- [ ] T-005 Release v1 on the Mac App Store: app icon, App Store signing, listing, review · high
+      Switched from a GitHub download to the Mac App Store (D-011, 2026-11-05). App icon chosen 2026-10-31. Signing is set up: Apple Distribution and Mac Installer Distribution certificates, the App ID, and the "HabitCal App Store" profile; `./run.py appstore` exports a signed .pkg (checked: entitlements production, universal). Left: launch at login turns itself on at first launch (likely rejected under guideline 2.4.5(iii), needs a decision); the App Store Connect app record; CloudKit schema deployed to production; listing (screenshots, description, privacy policy and support URLs, App Privacy); upload, TestFlight check, submit.
 - [x] T-040 Settings' Quit button sits at the bottom of the panel, like the main screen's bottom row · medium · done 2026-11-01
       Commit 084c48c. Not yet checked on screen.
