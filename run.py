@@ -12,10 +12,12 @@ Standard library only; works with the Python 3.9 that ships with macOS.
     ./run.py lint             format check
     ./run.py format           fix formatting in place
     ./run.py appstore         archive Release and export a signed App Store .pkg (doesn't upload)
+    ./run.py appstore --upload  archive Release and upload it to App Store Connect (TestFlight)
     ./run.py clean            delete the build folder
 """
 
 import argparse
+import plistlib
 import os
 import shutil
 import subprocess
@@ -110,8 +112,21 @@ def appstore(args):
     sh(["xcodebuild", "-project", "HabitCal.xcodeproj", "-scheme", "HabitCal", "-configuration", "Release",
         "-destination", "generic/platform=macOS", "-derivedDataPath", DERIVED, "-archivePath", ARCHIVE,
         "-allowProvisioningUpdates", "archive", "-quiet"])
+    options = os.path.join(ROOT, "ExportOptions-AppStore.plist")
+    if args.upload:
+        # Same options, but Xcode uploads with the account it's signed into; no keys or passwords here.
+        with open(options, "rb") as f:
+            plist = plistlib.load(f)
+        plist["destination"] = "upload"
+        os.makedirs(EXPORT)
+        options = os.path.join(EXPORT, "ExportOptions-Upload.plist")
+        with open(options, "wb") as f:
+            plistlib.dump(plist, f)
     sh(["xcodebuild", "-exportArchive", "-archivePath", ARCHIVE, "-exportPath", EXPORT,
-        "-exportOptionsPlist", os.path.join(ROOT, "ExportOptions-AppStore.plist")])
+        "-exportOptionsPlist", options, "-allowProvisioningUpdates"])
+    if args.upload:
+        print("Uploaded. It shows in App Store Connect > TestFlight once processed (usually 5-30 minutes).")
+        return
     pkg = os.path.join(EXPORT, "HabitCal.pkg")
     sh(["pkgutil", "--check-signature", pkg])
     print("Exported " + os.path.relpath(pkg, ROOT))
@@ -149,6 +164,8 @@ def main():
     for name, func, help_text in commands:
         p = sub.add_parser(name, help=help_text)
         p.set_defaults(func=func)
+        if name == "appstore":
+            p.add_argument("--upload", action="store_true", help="upload to App Store Connect instead of exporting")
         if name == "uitest":
             p.add_argument("only", nargs="?", help="e.g. HabitFormUITests or HabitFormUITests/testAddIsDisabledWithoutADay")
     args = parser.parse_args()
