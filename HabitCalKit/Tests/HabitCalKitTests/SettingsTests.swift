@@ -17,14 +17,6 @@ struct SettingsTests {
         #expect(WeekStart.overrideAfterPicking(.sunday, current: nil, mac: .monday) == .sunday)
     }
 
-    @Test func launchAtLoginRegistersOnlyFirstLaunchFromApplications() {
-        #expect(LaunchAtLoginPolicy.shouldRegisterAtLaunch(inApplications: true, initialized: false))
-        // Already done once, or the user has touched the switch: leave it alone.
-        #expect(!LaunchAtLoginPolicy.shouldRegisterAtLaunch(inApplications: true, initialized: true))
-        // A copy in Downloads or a translocated path never registers (E.9).
-        #expect(!LaunchAtLoginPolicy.shouldRegisterAtLaunch(inApplications: false, initialized: false))
-    }
-
     @Test func onlyTheApplicationsFolderCountsAsInstalled() {
         #expect(LaunchAtLoginPolicy.isInApplications(bundlePath: "/Applications/HabitCal.app"))
         #expect(LaunchAtLoginPolicy.isInApplications(bundlePath: "/Applications/Utilities/HabitCal.app"))

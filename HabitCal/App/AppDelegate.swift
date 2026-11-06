@@ -56,6 +56,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         MainMenu.install()
         sync.didFinishLaunching()
-        model.applyFirstLaunchLoginItemDefault()
     }
 }

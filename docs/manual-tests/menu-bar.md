@@ -72,14 +72,15 @@
 
 **Expect:** no HabitCal icon in either.
 
-## Launch at login turns on once, on the first launch from Applications
+## Launch at login is off until the user turns it on
 
-**Setup:** a build of HabitCal copied to /Applications that has never run there. Log out and in afterward.
+**Setup:** a build of HabitCal in /Applications that has never run on this Mac (or a new macOS user). Log out and in afterward.
 
-1. Open it from /Applications, then open Settings.
+1. Open it from /Applications. No prompt about login appears. Open Settings.
 2. Log out and back in.
+3. Turn Launch at login on, then log out and back in.
 
-**Expect:** Launch at login is on, and HabitCal is in the menu bar after logging in. (Repeat on T-005's signed build; ad hoc signing can behave differently.)
+**Expect:** after step 1 the switch is off, and after step 2 HabitCal doesn't start at login (App Store guideline 2.4.5(iii), D-011). After step 3 HabitCal is in the menu bar. (Repeat on the TestFlight build.)
 
 ## Turning Launch at login off sticks
 

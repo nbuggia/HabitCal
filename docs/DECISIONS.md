@@ -13,6 +13,14 @@ Rejected: Alternatives considered and why not. (optional)
 Affects: Task IDs and files this touches. (optional)
 -->
 
+## D-012 · Launch at login is off until the user turns it on · 2026-11-05
+Status: Active
+Context: Since T-002, HabitCal turned launch at login on by itself on its first launch from /Applications. App Store guideline 2.4.5(iii) forbids Mac apps starting at login without the user's consent, and D-011 moved v1 to the store.
+Decision: HabitCal never turns launch at login on by itself, and doesn't ask at first launch. The user turns it on with the switch in Settings.
+Why: It's what the store requires, and the smallest change: the switch already exists.
+Rejected: A one-time "Open HabitCal at login?" prompt at first launch (customer's choice: no prompt).
+Affects: T-002 B.17 (superseded), T-005, docs/manual-tests/menu-bar.md
+
 ## D-011 · v1 ships on the Mac App Store · 2026-11-05
 Status: Active
 Context: The PRD planned a notarized download from GitHub, with the App Store later. The customer chose the Mac App Store for v1.

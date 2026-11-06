@@ -25,7 +25,7 @@ T-029 slice 2 is paused: the full UI suite still needs a complete run on the cus
 
 ## Up Next
 
-- 2026-11-05: v1 ships on the Mac App Store (D-011; PRD Constraints updated). Signing is done and `./run.py appstore` exports a signed .pkg; nothing uploaded. Open for T-005: the first-launch launch-at-login default vs guideline 2.4.5(iii) (customer decision); App Store Connect record and CloudKit production schema (customer, in the browser); listing; upload and TestFlight after the testing pass.
+- 2026-11-05: v1 ships on the Mac App Store (D-011; PRD Constraints updated). Signing is done and `./run.py appstore` exports a signed .pkg; nothing uploaded. Launch at login is off by default, no prompt (D-012). Open for T-005: App Store Connect record and CloudKit production schema (customer, in the browser); listing; upload and TestFlight after the testing pass.
 
 ## Suggested Start
 

@@ -76,7 +76,7 @@ HabitCalKit/             local Swift package; no AppKit or SwiftUI
 | Habits, schedule histories, check-offs | `AppModel.habits`, saved by `HabitStore` | Forever, until a habit is deleted | `~/Library/Containers/<bundle id>/Data/Library/Application Support/HabitCal/habits.json` |
 | Habit form | `AppModel.form` (with `Screen.form`) | Until saved, cancelled, or the popover closes | Memory only |
 | Data state (ok / unreadable / save failed) | `AppModel.dataState` | Process | Memory only |
-| Week-start override, "launch at login initialized" flag | `AppModel` | Forever | `UserDefaults` keys `weekStartOverride` ("sunday"/"monday", absent = follow the Mac) and `launchAtLoginInitialized` (set once a first-launch registration succeeds, or when the user touches the switch) |
+| Week-start override | `AppModel` | Forever | `UserDefaults` key `weekStartOverride` ("sunday"/"monday", absent = follow the Mac). Builds before D-011 also wrote `launchAtLoginInitialized`; nothing reads it now. |
 | Launch at login | macOS (`SMAppService`) | Forever | Read from macOS each time Settings opens; never cached |
 | Displayed month, current screen, open form | `AppModel` | Until the popover closes | Memory only |
 

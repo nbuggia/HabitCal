@@ -47,7 +47,6 @@ final class AppModel {
 
     private enum Key {
         static let weekStartOverride = "weekStartOverride"
-        static let launchAtLoginInitialized = "launchAtLoginInitialized"
     }
 
     /// Today on the Mac's calendar. Only `DayWatcher` sets it. A new day can take a habit whose done
@@ -477,33 +476,12 @@ final class AppModel {
     }
 
     func setLaunchAtLogin(_ on: Bool) {
-        // Touching the switch settles the first-launch default, so a user's "off" is never undone (B.17).
-        markLaunchAtLoginInitialized()
         loginItem.set(on)
         refreshLoginItemState()
     }
 
     func openLoginItemsSettings() {
         loginItem.openSystemSettings()
-    }
-
-    /// Turns launch at login on, once, on the first launch from /Applications (B.17, E.9).
-    func applyFirstLaunchLoginItemDefault() {
-        let initialized = defaults.bool(forKey: Key.launchAtLoginInitialized)
-        guard
-            LaunchAtLoginPolicy.shouldRegisterAtLaunch(
-                inApplications: loginItem.inApplications, initialized: initialized)
-        else { return }
-        loginItem.set(true)
-        refreshLoginItemState()
-        // Settle the default only once registration took, so a failure is retried next launch.
-        if loginItemState == .on || loginItemState == .requiresApproval {
-            markLaunchAtLoginInitialized()
-        }
-    }
-
-    private func markLaunchAtLoginInitialized() {
-        defaults.set(true, forKey: Key.launchAtLoginInitialized)
     }
 
     private func setWeekStartOverride(_ override: WeekStart?) {
