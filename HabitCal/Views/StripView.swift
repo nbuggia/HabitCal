@@ -1,8 +1,8 @@
 import HabitCalKit
 import SwiftUI
 
-/// A habit's last 30 due days, oldest first, ending at the day the list shows, which carries the
-/// ring (T-041). Display only: no tap, no keyboard focus, and hidden from VoiceOver, since past days
+/// A habit's last 30 due days, oldest first, always ending at today. The day the list shows carries
+/// the ring when it's one of them (T-041). Display only: no tap, no keyboard focus, and hidden from VoiceOver, since past days
 /// are fixed from the calendar and the done button (T-022) and the row already speaks for the habit.
 struct StripView: View {
     /// How far the shown day's ring draws outside its square: its 1.5 pt inset plus half its stroke.
@@ -12,7 +12,7 @@ struct StripView: View {
     let habit: Habit
 
     var body: some View {
-        let strip = habit.dueStrip(endingAt: model.shownDay, today: model.today)
+        let strip = habit.dueStrip(today: model.today, shownDay: model.shownDay)
         HStack(spacing: 1.5) {
             ForEach(Array(strip.enumerated()), id: \.offset) { _, square in
                 StripSquare(square: square)
@@ -33,9 +33,6 @@ private struct StripSquare: View {
         RoundedRectangle(cornerRadius: 2)
             .fill(fill)
             .overlay {
-                RoundedRectangle(cornerRadius: 2).strokeBorder(outline, lineWidth: 1)
-            }
-            .overlay {
                 if square?.isShown == true {
                     RoundedRectangle(cornerRadius: 3)
                         .stroke(Color.accentColor, lineWidth: 1.5)
@@ -52,11 +49,7 @@ private struct StripSquare: View {
         case .missed: .red.opacity(0.28)
         // Before the habit was added: faint, so it doesn't read as a failure (T-041 B.5a).
         case .beforeAdded: .secondary.opacity(0.18)
-        case .future, nil: .clear
+        case nil: .clear
         }
-    }
-
-    private var outline: Color {
-        square?.state == .future ? .secondary.opacity(0.7) : .clear
     }
 }

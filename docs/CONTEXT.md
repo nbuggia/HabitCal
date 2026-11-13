@@ -9,7 +9,7 @@
 | Due day | A day the habit's schedule includes, on or after the habit was added. Only due days count toward a streak. | Scheduled day, active day |
 | Check-off | Marking a habit done on a due day, either today or a past day selected in the calendar. | Completion, log, entry |
 | Streak | The current streak is the unbroken run of done due days up to today, and today doesn't break it until it's over. The best streak is the longest such run ever. | Chain, run (in the UI) |
-| Strip | The row of squares under a habit showing its last 30 due days, ending at the day shown: done, missed, future, or before the habit was added. Not clickable. | Heatmap, history bar |
+| Strip | The row of squares under a habit showing its last 30 due days, ending today: done, missed, or before the habit was added. The selected day is ringed when it's among them. Not clickable. | Heatmap, history bar |
 | Popover | The panel that opens from the menu bar icon, holding the calendar, the habits, and Settings. | Window, menu, dropdown |
 | Week start | The first day of the week, Sunday or Monday. It follows the Mac until the user overrides it in Settings. | First weekday |
 

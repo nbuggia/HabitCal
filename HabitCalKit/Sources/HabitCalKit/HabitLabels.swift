@@ -1,13 +1,12 @@
 /// Tooltips and spoken labels for habit rows (T-003 §5).
 public enum HabitLabels {
-    /// A strip square's tooltip: "Oct 5 · done", or just the date in the future (T-041 B.5).
+    /// A strip square's tooltip: "Oct 5 · done" (T-041 B.5).
     public static func stripTooltip(_ square: DueSquare) -> String {
         let date = "\(MonthNames.name(of: square.day.month).prefix(3)) \(square.day.day)"
         switch square.state {
         case .done: return "\(date) · done"
         case .missed: return "\(date) · missed"
         case .beforeAdded: return "\(date) · before added"
-        case .future: return date
         }
     }
 

@@ -21,7 +21,7 @@ private func habit(days: Set<Int>, addedOn: Day = Day(year: 2026, month: 1, day:
 struct StripTests {
     @Test func dueStripShowsLast30DueDaysOldestFirst() throws {
         let (habits, id) = habit(days: [mon, wed, fri])
-        let strip = try #require(habits[id]).dueStrip(endingAt: oct(28), today: today)  // a Wednesday
+        let strip = try #require(habits[id]).dueStrip(today: today, shownDay: today)  // today's a Thursday
         #expect(strip.count == 30)
         let days = strip.compactMap { $0?.day }
         #expect(days.count == 30)
@@ -31,33 +31,43 @@ struct StripTests {
         #expect(days.first == Day(year: 2026, month: 8, day: 21))  // 30 M/W/F back: Friday, Aug 21
     }
 
-    @Test func dueStripEndsAtTheShownDayMarked() throws {
+    @Test func dueStripAlwaysEndsAtTodayAndMarksTheShownDay() throws {
         var (habits, id) = habit(days: Set(1...7))
         habits.toggle(id, on: oct(20), today: today, now: t0)
         let habit = try #require(habits[id])
-        let todayStrip = habit.dueStrip(endingAt: today, today: today)
+        let todayStrip = habit.dueStrip(today: today, shownDay: today)
         #expect(todayStrip.last??.day == today && todayStrip.last??.isShown == true)
         #expect(todayStrip.compactMap { $0 }.filter(\.isShown).count == 1)
-        let selected = habit.dueStrip(endingAt: oct(20), today: today)
-        #expect(selected.last??.day == oct(20))
-        #expect(selected.last??.state == .done)
-        #expect(selected.last??.isShown == true)
-        #expect(!selected.contains { $0?.day == today })  // today isn't marked, or shown, past the end
+        // A selected past day leaves the strip where it is and moves the ring to that day (B.1, B.3).
+        let selected = habit.dueStrip(today: today, shownDay: oct(20))
+        #expect(selected.map { $0?.day } == todayStrip.map { $0?.day })
+        #expect(selected.last??.day == today && selected.last??.isShown == false)
+        let ringed = selected.compactMap { $0 }.filter(\.isShown)
+        #expect(ringed.map(\.day) == [oct(20)] && ringed.first?.state == .done)
     }
 
-    @Test func dueStripShowsDueDaysAfterTodayAsFuture() throws {
+    @Test func dueStripMarksNothingWhenTheShownDayIsOutsideIt() throws {
         let (habits, id) = habit(days: Set(1...7))
-        let strip = try #require(habits[id]).dueStrip(endingAt: Day(year: 2026, month: 11, day: 2), today: today)
-        let future = strip.compactMap { $0 }.filter { $0.day > today }
-        #expect(future.count == 4)  // Oct 30, 31, Nov 1, 2
-        #expect(future.allSatisfy { $0.state == .future })
-        #expect(strip.compactMap { $0 }.first { $0.day == today }?.state == .missed)
+        let habit = try #require(habits[id])
+        // Older than the 30 days shown, or after today (B.9a).
+        for shown in [Day(year: 2026, month: 9, day: 1), Day(year: 2026, month: 11, day: 2)] {
+            let strip = habit.dueStrip(today: today, shownDay: shown)
+            #expect(strip.last??.day == today)
+            #expect(!strip.contains { $0?.isShown == true })
+        }
+    }
+
+    @Test func dueStripEndsAtTheLastDueDayWhenTodayIsntDue() throws {
+        let (habits, id) = habit(days: [mon, wed, fri])
+        let strip = try #require(habits[id]).dueStrip(today: today, shownDay: oct(26))  // today's a Thursday
+        #expect(strip.last??.day == oct(28))
+        #expect(strip.compactMap { $0 }.filter(\.isShown).map(\.day) == [oct(26)])
     }
 
     @Test func dueStripShowsDaysBeforeAddedFaintUnlessDone() throws {
         var (habits, id) = habit(days: Set(1...7), addedOn: oct(20))
         habits.toggle(id, on: oct(10), today: today, now: t0)  // checked off before it was added (T-028)
-        let strip = try #require(habits[id]).dueStrip(endingAt: today, today: today)
+        let strip = try #require(habits[id]).dueStrip(today: today, shownDay: today)
         let squares = strip.compactMap { $0 }
         #expect(squares.first { $0.day == oct(9) }?.state == .beforeAdded)
         #expect(squares.first { $0.day == oct(10) }?.state == .done)
@@ -68,7 +78,7 @@ struct StripTests {
         var (habits, id) = habit(days: [fri])
         // Mondays from the 19th
         habits.setDetails(id, HabitDraft(name: "Run", note: "", days: [mon]), today: oct(19), now: t0)
-        let days = try #require(habits[id]).dueStrip(endingAt: oct(26), today: today).compactMap { $0?.day }
+        let days = try #require(habits[id]).dueStrip(today: today, shownDay: today).compactMap { $0?.day }
         #expect(days.suffix(3) == [oct(16), oct(19), oct(26)])  // a Friday, then Mondays
     }
 
@@ -78,7 +88,7 @@ struct StripTests {
         let habit = Habit(
             id: id, name: "Run", note: "", addedOn: oct(1), schedule: [ScheduleEntry(from: oct(1), days: [fri])],
             checkOffs: [oct(21)])  // a Wednesday
-        let days = habit.dueStrip(endingAt: oct(23), today: today).compactMap { $0?.day }
+        let days = habit.dueStrip(today: today, shownDay: today).compactMap { $0?.day }
         #expect(days.suffix(3) == [oct(16), oct(21), oct(23)])
     }
 
@@ -88,7 +98,7 @@ struct StripTests {
             id: UUID(), name: "Run", note: "", addedOn: oct(1),
             schedule: [ScheduleEntry(from: oct(1), days: []), ScheduleEntry(from: oct(16), days: [fri])],
             checkOffs: [])
-        let strip = habit.dueStrip(endingAt: oct(23), today: today)
+        let strip = habit.dueStrip(today: today, shownDay: today)
         #expect(strip.count == 30)
         #expect(strip.compactMap { $0?.day } == [oct(16), oct(23)])
         #expect(strip.prefix(28).allSatisfy { $0 == nil })  // blank slots on the left
@@ -101,6 +111,5 @@ struct StripTests {
         #expect(HabitLabels.stripTooltip(square(oct(5), .done)) == "Oct 5 · done")
         #expect(HabitLabels.stripTooltip(square(oct(5), .missed)) == "Oct 5 · missed")
         #expect(HabitLabels.stripTooltip(square(oct(5), .beforeAdded)) == "Oct 5 · before added")
-        #expect(HabitLabels.stripTooltip(square(oct(30), .future)) == "Oct 30")
     }
 }

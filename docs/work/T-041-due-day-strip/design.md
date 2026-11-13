@@ -9,13 +9,13 @@ date created: 2026-11-01
 
 ## Summary
 
-The strip becomes 30 rounded squares of the habit's due days, ending at the shown day (marked), oldest on the left. Days before the habit was added are faint unless done. It isn't clickable, takes no focus, and is hidden from VoiceOver (spec B.1–B.9a, E.1–E.5). Scope as the approved spec. Simple: no saved format, contract, component, or concurrency change, and every rule is unit-testable.
+The strip becomes 30 rounded squares of the habit's due days, ending at today, oldest on the left; the shown day is marked when it's among them (revised 2026-11-12). Days before the habit was added are faint unless done. It isn't clickable, takes no focus, and is hidden from VoiceOver (spec B.1–B.9a, E.1–E.5). Scope as the approved spec. Simple: no saved format, contract, component, or concurrency change, and every rule is unit-testable.
 
 ## Approach
 
-- **HabitCalKit, `Habit.swift`:** `Habit.dueStrip(endingAt: Day, today: Day) -> [DueSquare?]` replaces `strip(for:today:)`. It walks back from the shown day one day at a time, at most 1,096 days (three years, E.5), keeps days where `isDue(on:)` (so B.21 check-offs count, B.2), stops at 30, reverses them, and pads the front with nil (blank slots). `DueSquare` holds `day`, `state` (`done`, `missed`, `beforeAdded`, `future`), and `isShown` (the newest). The state is `future` when after today, else `done` when done, else `beforeAdded` before `addedOn`, else `missed`. `StripDay` and `strip(for:)` are removed with their only users.
-- **`HabitLabels`:** `stripTooltip(_ square: DueSquare)` gives "Oct 5 · done / missed / before added", or just the date for future. `stripSpoken` is removed (B.7).
-- **`StripView`:** a plain `HStack` of 30 `StripSquare`s from `habit.dueStrip(endingAt: model.shownDay, today: model.today)`, with `.help` tooltips and `.accessibilityHidden(true)`. No focus, key handlers, cursor, or tap (B.6, B.7). The ring goes on `isShown` (B.3, B.9a). `beforeAdded` uses today's not-scheduled grey (B.5a); a blank slot is clear. The squares keep `aspectRatio(1)` and `frame(maxWidth: .infinity)`, so 30 fill the same width.
+- **HabitCalKit, `Habit.swift`:** `Habit.dueStrip(today: Day, shownDay: Day) -> [DueSquare?]` replaces `strip(for:today:)`. It walks back from today one day at a time, at most 1,096 days (three years, E.5), keeps days where `isDue(on:)` (so B.21 check-offs count, B.2), stops at 30, reverses them, and pads the front with nil (blank slots). `DueSquare` holds `day`, `state` (`done`, `missed`, `beforeAdded`), and `isShown` (the shown day, if present). The state is `done` when done, else `beforeAdded` before `addedOn`, else `missed`. `StripDay` and `strip(for:)` are removed with their only users.
+- **`HabitLabels`:** `stripTooltip(_ square: DueSquare)` gives "Oct 5 · done / missed / before added". `stripSpoken` is removed (B.7).
+- **`StripView`:** a plain `HStack` of 30 `StripSquare`s from `habit.dueStrip(today: model.today, shownDay: model.shownDay)`, with `.help` tooltips and `.accessibilityHidden(true)`. No focus, key handlers, cursor, or tap (B.6, B.7). The ring goes on `isShown` (B.3, B.9a). `beforeAdded` uses today's not-scheduled grey (B.5a); a blank slot is clear. The squares keep `aspectRatio(1)` and `frame(maxWidth: .infinity)`, so 30 fill the same width.
 - **Tests:** the kit `stripShows…` tests are rewritten for `dueStrip`, and the UI tests listed in the spec's Removed section are removed or rewritten.
 
 ## Test Points
@@ -23,8 +23,9 @@ The strip becomes 30 rounded squares of the habit's due days, ending at the show
 | Test (named for the behavior it proves) | Kind | Spec rules proved |
 | --- | --- | --- |
 | `dueStripShowsLast30DueDaysOldestFirst` (a M/W/F habit) | unit | B.1, B.2, B.9, Limits |
-| `dueStripEndsAtTheShownDayMarked` (today and a selected past day) | unit | B.3, B.9a, UC-2 |
-| `dueStripShowsDueDaysAfterTodayAsFuture` | unit | B.4 |
+| `dueStripAlwaysEndsAtTodayAndMarksTheShownDay` (today and a selected past day) | unit | B.1, B.3, UC-2 |
+| `dueStripMarksNothingWhenTheShownDayIsOutsideIt` (older, and after today) | unit | B.4, B.9a |
+| `dueStripEndsAtTheLastDueDayWhenTodayIsntDue` | unit | B.9b |
 | `dueStripShowsDaysBeforeAddedFaintUnlessDone` | unit | B.5a, B.10 |
 | `dueStripKeepsPastDaysOnTheScheduleThenInForce` | unit | E.2 |
 | `dueStripIncludesACheckOffOnAnUnscheduledDay` | unit | B.2 (T-039 B.21) |
@@ -43,5 +44,5 @@ The strip becomes 30 rounded squares of the habit's due days, ending at the show
 
 | Change | Goes to |
 | --- | --- |
-| The strip is `Habit.dueStrip`: 30 due days ending at the shown day, three-year search cap, before-added faint; display only | ARCHITECTURE.md (The Popover) |
+| The strip is `Habit.dueStrip`: 30 due days ending at today, the shown day ringed when present, three-year search cap, before-added faint; display only | ARCHITECTURE.md (The Popover) |
 | Manual test changes (habits.md) | docs/manual-tests/habits.md |

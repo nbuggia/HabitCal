@@ -73,3 +73,5 @@
 2026-11-01 · T-039 · QUESTION · B.8b with one copy timestamped and one not · fixed
 2026-11-01 · T-039 · MAJOR · Verification: failed sends still hidden by Sync Now, the fetch, and later sends · fixed
 2026-11-01 · T-039 · MAJOR · Verification: sign-out then sign-in without relaunch skipped the first sync · fixed
+2026-11-12 · T-041 strip ends at today · MINOR · ARCHITECTURE.md still said the strip ends at shownDay · fixed
+2026-11-12 · T-041 strip ends at today · MINOR · PRD Done Means didn't say the selected day is marked only when among the 30 · fixed

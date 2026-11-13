@@ -9,7 +9,7 @@
 1. Look at the popover in light mode, dark mode, and with Increase Contrast on.
 2. Select a day in the calendar the habit not due today is due on.
 
-**Expect:** each strip shows only the habit's due days, 30 squares, oldest on the left; done squares and the filled done button are clearly green; missed squares soft red; squares before the habit was added faint grey; future days outlined; the newest square (the day shown) ringed in the accent color; clicking a square does nothing, and VoiceOver skips the strip; the habit not due today isn't listed until you select one of its days. Nothing is hard to tell apart.
+**Expect:** each strip shows only the habit's due days, 30 squares, oldest on the left; done squares and the filled done button are clearly green; missed squares soft red; squares before the habit was added faint grey; the newest square is today (or the habit's last due day before today), ringed in the accent color; selecting a past day in the calendar leaves the strip in place and moves the ring to that day's square, or shows no ring if the day is older than the strip or after today; clicking a square does nothing, and VoiceOver skips the strip; the habit not due today isn't listed until you select one of its days. Nothing is hard to tell apart.
 
 ## Many habits scroll inside the popover
 

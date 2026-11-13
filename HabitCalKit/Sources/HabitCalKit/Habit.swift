@@ -121,17 +121,18 @@ public struct Habit: Identifiable, Hashable, Sendable {
         checks[day]?.done == true
     }
 
-    /// The strip (T-041): the habit's last `stripLength` due days up to and including `shownDay`,
-    /// oldest first, so a Monday/Wednesday/Friday habit shows only those days. Due means `isDue`, so a
-    /// check-off on a day the schedule leaves out counts (T-039 B.21). The search stops three years
-    /// back; slots with no due day in that time are nil, on the left (E.5).
-    public func dueStrip(endingAt shownDay: Day, today: Day) -> [DueSquare?] {
+    /// The strip (T-041): the habit's last `stripLength` due days up to and including today, oldest
+    /// first, so a Monday/Wednesday/Friday habit shows only those days. It always ends at today,
+    /// whatever day is selected (B.1); the day the list shows is marked only if it's one of them (B.3).
+    /// Due means `isDue`, so a check-off on a day the schedule leaves out counts (T-039 B.21). The
+    /// search stops three years back; slots with no due day in that time are nil, on the left (E.5).
+    public func dueStrip(today: Day, shownDay: Day) -> [DueSquare?] {
         var found: [DueSquare] = []
-        var day = shownDay
+        var day = today
         var looked = 0
         while found.count < Self.stripLength && looked < Self.stripSearchDays {
             if isDue(on: day) {
-                found.append(DueSquare(day: day, state: stripState(day, today: today), isShown: day == shownDay))
+                found.append(DueSquare(day: day, state: stripState(day), isShown: day == shownDay))
             }
             day = day.adding(days: -1)
             looked += 1
@@ -145,8 +146,7 @@ public struct Habit: Identifiable, Hashable, Sendable {
     /// weekly schedule (T-041 E.5).
     public static let stripSearchDays = 1_096
 
-    private func stripState(_ day: Day, today: Day) -> DueSquare.State {
-        if day > today { return .future }
+    private func stripState(_ day: Day) -> DueSquare.State {
         if isDone(on: day) { return .done }
         return day < addedOn ? .beforeAdded : .missed
     }
@@ -159,13 +159,11 @@ public struct DueSquare: Equatable, Sendable {
         case missed
         /// Not done, before the habit was added: shown faint, not as a failure (B.5a).
         case beforeAdded
-        /// After today, when a future day is shown.
-        case future
     }
 
     public let day: Day
     public let state: State
-    /// The shown day, which carries the ring.
+    /// The day the list shows (the selected day, or today), which carries the ring.
     public let isShown: Bool
 
     public init(day: Day, state: State, isShown: Bool) {
