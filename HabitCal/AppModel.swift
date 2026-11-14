@@ -296,17 +296,22 @@ final class AppModel {
     func openAddForm() {
         guard canAddHabits else { return }
         form = HabitForm(mode: .add, draft: HabitDraft(name: "", note: "", days: Set(1...7)))
+        formReturn = screen == .leaderboard ? .leaderboard : .list
         screen = .form
     }
 
     /// The edited habit as it was when the Edit form opened: its days, for the "starts today" hint,
     /// and whether today was done, so ticking today's weekday back on checks today off again (T-038).
     private var formStart: Habit?
+    /// Where Close goes back to: the screen the form opened from, the list or the leaderboard.
+    private var formReturn: Screen = .list
 
-    /// The form filled with the habit's name, current days, and note (B.9).
+    /// The form filled with the habit's name, current days, and note (B.9). It opens from the list
+    /// or the leaderboard, and Close goes back there (customer, 2026-11-13).
     func openEditForm(_ id: UUID) {
         guard let habit = habits[id] else { return }
         formStart = habit
+        formReturn = screen == .leaderboard ? .leaderboard : .list
         form = HabitForm(
             mode: .edit(id), draft: HabitDraft(name: habit.name, note: habit.note, days: habit.days(today: today)))
         screen = .form
@@ -362,11 +367,13 @@ final class AppModel {
         closeForm()
     }
 
-    /// Close, or Esc: discards a new habit; an edit is already saved (T-038).
+    /// Close, or Esc: discards a new habit; an edit is already saved (T-038). Back to the screen the
+    /// form opened from; the leaderboard keeps its range.
     func closeForm() {
         form = nil
         formStart = nil
-        screen = .list
+        screen = formReturn
+        formReturn = .list
     }
 
     // MARK: Sync

@@ -41,8 +41,7 @@ struct HabitListScreen: View {
     /// list sits right under the calendar (T-031, which reverses T-014's header row).
     private var bottomRow: some View {
         HStack(spacing: 6) {
-            rowButton("plus-circle", size: 17, label: "Add habit") { model.openAddForm() }
-                .disabled(!model.canAddHabits)
+            AddHabitButton()
             Spacer()
             rowButton("trophy", size: 15, label: "Leaderboard") { model.openLeaderboard() }
                 .disabled(!model.canAddHabits)

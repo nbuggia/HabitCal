@@ -16,7 +16,7 @@ struct HabitFormScreen: View {
             VStack(alignment: .leading, spacing: 10) {
                 header(form)
                 label("Name")
-                TextField("e.g. Push-ups", text: $name)
+                TextField("e.g. Lights out by 10:30", text: $name)
                     .textFieldStyle(.roundedBorder)
                     .focused($nameFocused)
                     .onSubmit { model.saveForm() }

@@ -34,6 +34,29 @@ struct ConsistencyTests {
         #expect(ConsistencyRange.year.start(today: today, weekStart: .sunday) == Day(year: 2026, month: 1, day: 1))
     }
 
+    @Test func scoreBoxNamesThePeriodStartAndDaysLeft() {
+        let friday = Day(year: 2026, month: 11, day: 13)
+        func left(_ range: ConsistencyRange, _ today: Day = friday, _ weekStart: WeekStart = .sunday) -> [String] {
+            let figure = range.daysLeftFigure(today: today, weekStart: weekStart)
+            return [figure.value, figure.label]
+        }
+        #expect(ConsistencyRange.week.startText(today: friday, weekStart: .monday) == "11/9")
+        #expect(left(.week, friday, .monday) == ["2", "days left"])
+        #expect(ConsistencyRange.week.startText(today: friday, weekStart: .sunday) == "11/8")
+        #expect(left(.week) == ["1", "day left"])
+        #expect(left(.month) == ["17", "days left"])
+        #expect(ConsistencyRange.year.startText(today: friday, weekStart: .sunday) == "1/1")
+        #expect(left(.year) == ["48", "days left"])
+        let lastOfYear = Day(year: 2026, month: 12, day: 31)
+        #expect(left(.month, lastOfYear) == ["Last", "day"])
+        #expect(left(.year, lastOfYear) == ["Last", "day"])
+        #expect(
+            ConsistencyRange.month.end(today: Day(year: 2028, month: 2, day: 3), weekStart: .sunday)
+                == Day(year: 2028, month: 2, day: 29))
+        #expect(
+            ConsistencyRange.week.periodSpoken(today: friday, weekStart: .monday) == "Since November 9, 2 days left")
+    }
+
     @Test func rangesAreWeekMonthAndYearToDate() {
         let pushUps = habit("Push-ups", addedOn: Day(year: 2026, month: 9, day: 1), done: [oct(25), oct(26)])
         func tally(_ range: ConsistencyRange, _ weekStart: WeekStart = .sunday) -> ConsistencyTally {
@@ -114,6 +137,12 @@ struct ConsistencyTests {
                 == ["Monday to date", "Month to date", "Year to date"])
         #expect(ConsistencyRange.week.caption(weekStart: .sunday) == "Sunday to date")
         #expect(ConsistencyRange.week.spoken(weekStart: .monday) == "Week, Monday to date")
+        #expect(
+            ConsistencyRange.allCases.map(\.noHabitsMessage)
+                == [
+                    "Start a habit\ntoday!", "Give it a month,\nsee what happens!",
+                    "Imagine what you could do in a year!",
+                ])
         #expect(Consistency.scoreSpoken(ConsistencyTally(done: 0, due: 0)) == "No due days yet")
     }
 

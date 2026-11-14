@@ -60,4 +60,35 @@ final class LeaderboardUITests: HabitCalUITestCase {
         popover.buttons["Back"].click()
         XCTAssertTrue(popover.staticTexts["calendarTitle"].waitForExistence(timeout: 5), "Back didn't go back")
     }
+
+    func testEditingFromTheLeaderboardReturnsToIt() {
+        openLeaderboard()
+        element("Month, Month to date").click()
+        // The row is one accessibility element, so open the Edit form from its right-click menu.
+        popover.descendants(matching: .any)["leaderboard-Run"].rightClick()
+        app.menuItems["Edit…"].click()
+        XCTAssertTrue(popover.textFields["nameField"].waitForExistence(timeout: 5), "the Edit form didn't open")
+        popover.buttons["Close"].click()
+        XCTAssertTrue(score.waitForExistence(timeout: 5), "Close should go back to the leaderboard")
+        // Still on Month: Push-ups 1 of 28 (4 percent).
+        XCTAssertEqual(rowLabel("Push-ups"), "1st, Push-ups, 4 percent")
+    }
+
+    func testWithNoHabitsEachTabNudgesAndAddReturnsHere() {
+        launch(["-HabitCalMacFirstWeekday", "1"])
+        openPopover()
+        popover.buttons["Leaderboard"].click()
+        XCTAssertTrue(popover.staticTexts["Start a habit today!"].waitForExistence(timeout: 5))
+        element("Month, Month to date").click()
+        XCTAssertTrue(popover.staticTexts["Give it a month, see what happens!"].exists)
+        element("Year, Year to date").click()
+        XCTAssertTrue(popover.staticTexts["Imagine what you could do in a year!"].exists)
+
+        popover.buttons["Add habit"].click()
+        XCTAssertTrue(popover.textFields["nameField"].waitForExistence(timeout: 5), "Add didn't open the form")
+        app.typeText("Read\r")
+        XCTAssertTrue(
+            popover.descendants(matching: .any)["leaderboard-Read"].waitForExistence(timeout: 5),
+            "adding should come back to the leaderboard, with the new habit")
+    }
 }

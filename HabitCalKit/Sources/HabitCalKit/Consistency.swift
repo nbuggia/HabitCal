@@ -36,6 +36,66 @@ public enum ConsistencyRange: CaseIterable, Hashable, Sendable {
         case .year: Day(year: today.year, month: 1, day: 1)
         }
     }
+
+    /// The last day of the period containing `today`.
+    public func end(today: Day, weekStart: WeekStart) -> Day {
+        switch self {
+        case .week:
+            return start(today: today, weekStart: weekStart).adding(days: 6)
+        case .month:
+            let next =
+                today.month == 12
+                ? Day(year: today.year + 1, month: 1, day: 1)
+                : Day(year: today.year, month: today.month + 1, day: 1)
+            return next.adding(days: -1)
+        case .year:
+            return Day(year: today.year, month: 12, day: 31)
+        }
+    }
+
+    /// The leaderboard's message when there are no habits yet, one per tab (customer, 2026-11-13).
+    /// The week's and month's break onto two lines by design; VoiceOver reads each as one line.
+    public var noHabitsMessage: String {
+        switch self {
+        case .week: "Start a habit\ntoday!"
+        case .month: "Give it a month,\nsee what happens!"
+        case .year: "Imagine what you could do in a year!"
+        }
+    }
+
+    /// The score box's "Since" figure: the period's first day, "11/9" (customer, 2026-11-13).
+    public func startText(today: Day, weekStart: WeekStart) -> String {
+        let start = start(today: today, weekStart: weekStart)
+        return "\(start.month)/\(start.day)"
+    }
+
+    /// The score box's days-left figure and its label: the days after today left in the period,
+    /// ("2", "days left"), ("1", "day left"), or ("Last", "day") on its last day.
+    public func daysLeftFigure(today: Day, weekStart: WeekStart) -> (value: String, label: String) {
+        switch daysLeft(today: today, weekStart: weekStart) {
+        case 0: ("Last", "day")
+        case 1: ("1", "day left")
+        case let left: ("\(left)", "days left")
+        }
+    }
+
+    /// What VoiceOver reads after the score: "Since November 9, 2 days left".
+    public func periodSpoken(today: Day, weekStart: WeekStart) -> String {
+        let start = start(today: today, weekStart: weekStart)
+        let left = daysLeftFigure(today: today, weekStart: weekStart)
+        return "Since \(MonthNames.name(of: start.month)) \(start.day), \(left.value) \(left.label)"
+    }
+
+    func daysLeft(today: Day, weekStart: WeekStart) -> Int {
+        var day = today
+        var count = 0
+        let last = end(today: today, weekStart: weekStart)
+        while day < last {
+            day = day.adding(days: 1)
+            count += 1
+        }
+        return count
+    }
 }
 
 /// Due days checked off, out of due days, over a range.
