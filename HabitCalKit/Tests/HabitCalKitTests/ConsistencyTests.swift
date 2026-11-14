@@ -17,61 +17,82 @@ private func habit(_ name: String, days: Set<Int> = everyDay, addedOn: Day = oct
 @Suite("Consistency")
 struct ConsistencyTests {
     @Test func shareCountsDueDaysCheckedOffInTheRange() {
-        // Last 7 days is Oct 23–29; today isn't done, so the due days are the 23rd to the 28th.
-        let pushUps = habit("Push-ups", done: [oct(23), oct(24), oct(25)])
-        let tally = Consistency.tally(pushUps, range: .past7, today: today)
-        #expect(tally == ConsistencyTally(done: 3, due: 6))
+        // The week from Sunday is Oct 25–29; today isn't done, so the due days are the 25th to the 28th.
+        let pushUps = habit("Push-ups", done: [oct(25), oct(26)])
+        let tally = Consistency.tally(pushUps, range: .week, today: today, weekStart: .sunday)
+        #expect(tally == ConsistencyTally(done: 2, due: 4))
         #expect(tally.share == 0.5)
     }
 
-    @Test func rangesAreRollingWindowsEndingToday() {
-        let pushUps = habit("Push-ups", addedOn: Day(year: 2026, month: 9, day: 1), done: [oct(22), oct(23)])
-        // Oct 22 is outside the past 7 days (Oct 23–29) but inside the past 30 (Sep 30 – Oct 29).
-        #expect(Consistency.tally(pushUps, range: .past7, today: today) == ConsistencyTally(done: 1, due: 6))
-        #expect(Consistency.tally(pushUps, range: .past30, today: today) == ConsistencyTally(done: 2, due: 29))
+    @Test func rangesStartAtTheFirstDayOfTheirPeriod() {
+        #expect(ConsistencyRange.week.start(today: today, weekStart: .sunday) == oct(25))
+        #expect(ConsistencyRange.week.start(today: today, weekStart: .monday) == oct(26))
+        let sunday = Day(year: 2026, month: 11, day: 1)
+        #expect(ConsistencyRange.week.start(today: sunday, weekStart: .sunday) == sunday)
+        #expect(ConsistencyRange.week.start(today: sunday, weekStart: .monday) == oct(26))
+        #expect(ConsistencyRange.month.start(today: today, weekStart: .sunday) == oct(1))
+        #expect(ConsistencyRange.year.start(today: today, weekStart: .sunday) == Day(year: 2026, month: 1, day: 1))
     }
 
-    @Test func allTimeStartsAtTheEarlierOfAddedAndFirstCheckOff() {
+    @Test func rangesAreWeekMonthAndYearToDate() {
+        let pushUps = habit("Push-ups", addedOn: Day(year: 2026, month: 9, day: 1), done: [oct(25), oct(26)])
+        func tally(_ range: ConsistencyRange, _ weekStart: WeekStart = .sunday) -> ConsistencyTally {
+            Consistency.tally(pushUps, range: range, today: today, weekStart: weekStart)
+        }
+        #expect(tally(.week, .sunday) == ConsistencyTally(done: 2, due: 4))  // Sun 25 – Wed 28
+        #expect(tally(.week, .monday) == ConsistencyTally(done: 1, due: 3))  // Mon 26 – Wed 28
+        #expect(tally(.month) == ConsistencyTally(done: 2, due: 28))  // Oct 1–28
+        #expect(tally(.year) == ConsistencyTally(done: 2, due: 58))  // from Sep 1, when it was added
+    }
+
+    @Test func rangesStartNoEarlierThanTheHabit() {
         let run = habit("Run", days: [6, 1], addedOn: oct(9), done: [oct(9)])  // Fri, Sun; added Friday Oct 9
-        // All time from Oct 9: Oct 9, 11, 16, 18, 23, 25 (today, Thursday, isn't due).
-        #expect(Consistency.tally(run, range: .allTime, today: today) == ConsistencyTally(done: 1, due: 6))
-        // A rolling window counts days before it was added too (T-028): add Fri 2 and Sun 4.
-        #expect(Consistency.tally(run, range: .past30, today: today) == ConsistencyTally(done: 1, due: 8))
-        // A check-off before it was added starts All time there: Sun 4, then Fri 9 onward.
+        // Month to date from Oct 9, not Oct 1: Oct 9, 11, 16, 18, 23, 25 (today, Thursday, isn't due).
+        #expect(
+            Consistency.tally(run, range: .month, today: today, weekStart: .sunday) == ConsistencyTally(done: 1, due: 6)
+        )
+        #expect(
+            Consistency.tally(run, range: .year, today: today, weekStart: .sunday) == ConsistencyTally(done: 1, due: 6))
+        // A check-off before it was added starts it there: Sun 4, then Fri 9 onward.
         let early = habit("Run", days: [6, 1], addedOn: oct(9), done: [oct(4), oct(9)])
-        #expect(Consistency.tally(early, range: .allTime, today: today) == ConsistencyTally(done: 2, due: 7))
-    }
-
-    @Test func rollingWindowCountsDaysBeforeAHabitWasAdded() {
-        // Added today, every day: Oct 23–28 were due and missed (T-028 B.4).
+        #expect(
+            Consistency.tally(early, range: .month, today: today, weekStart: .sunday)
+                == ConsistencyTally(done: 2, due: 7))
+        // Added today: nothing before it counts, so nothing is due yet.
         let fresh = habit("Read", addedOn: today)
-        #expect(Consistency.tally(fresh, range: .past7, today: today) == ConsistencyTally(done: 0, due: 6))
+        #expect(
+            Consistency.tally(fresh, range: .week, today: today, weekStart: .sunday)
+                == ConsistencyTally(done: 0, due: 0))
     }
 
     @Test func todayCountsOnlyOnceDone() {
         let notYet = habit("Read", addedOn: today)
-        #expect(Consistency.tally(notYet, range: .allTime, today: today) == ConsistencyTally(done: 0, due: 0))
-        #expect(Consistency.tally(notYet, range: .allTime, today: today).share == nil)
+        #expect(
+            Consistency.tally(notYet, range: .year, today: today, weekStart: .sunday)
+                == ConsistencyTally(done: 0, due: 0))
+        #expect(Consistency.tally(notYet, range: .year, today: today, weekStart: .sunday).share == nil)
         let done = habit("Read", addedOn: today, done: [today])
-        #expect(Consistency.tally(done, range: .allTime, today: today) == ConsistencyTally(done: 1, due: 1))
+        #expect(
+            Consistency.tally(done, range: .year, today: today, weekStart: .sunday) == ConsistencyTally(done: 1, due: 1)
+        )
     }
 
     @Test func boardRanksByShareTiesKeepOrderAndNoDueDaysLast() {
-        let week = (23...28).map(oct)
+        let week = (25...28).map(oct)  // the week from Sunday, before today
         let fresh = habit("Fresh", addedOn: today)  // no due days yet
-        let half = habit("Half", done: Array(week.prefix(3)))
+        let half = habit("Half", done: Array(week.prefix(2)))
         let fullA = habit("Full A", done: week)
         let fullB = habit("Full B", done: week)
-        let board = Consistency.board([fresh, half, fullA, fullB], range: .allTime, today: today)
+        let board = Consistency.board([fresh, half, fullA, fullB], range: .week, today: today, weekStart: .sunday)
         #expect(board.map(\.habit.name) == ["Full A", "Full B", "Half", "Fresh"])
     }
 
     @Test func overallPoolsAllHabits() {
-        let week = (23...28).map(oct)
-        let daily = habit("Daily", done: week)  // 6 of 6
+        let week = (25...28).map(oct)
+        let daily = habit("Daily", done: week)  // 4 of 4
         let sundays = habit("Sundays", days: [1])  // Oct 25 due, missed: 0 of 1
-        let board = Consistency.board([daily, sundays], range: .past7, today: today)
-        #expect(Consistency.overall(board) == ConsistencyTally(done: 6, due: 7))
+        let board = Consistency.board([daily, sundays], range: .week, today: today, weekStart: .sunday)
+        #expect(Consistency.overall(board) == ConsistencyTally(done: 4, due: 5))
         #expect(Consistency.overall([]) == ConsistencyTally(done: 0, due: 0))
     }
 
@@ -87,9 +108,35 @@ struct ConsistencyTests {
         #expect(
             Consistency.scoreSpoken(ConsistencyTally(done: 6, due: 7))
                 == "86 percent of due days done across all habits")
-        #expect(ConsistencyRange.allCases.map(\.spoken) == ["Last 7 days", "Last 30 days", "All time"])
-        #expect(ConsistencyRange.allCases.map(\.title) == ["Last 7", "Last 30", "All time"])
+        #expect(ConsistencyRange.allCases.map(\.title) == ["Week", "Month", "Year"])
+        #expect(
+            ConsistencyRange.allCases.map { $0.caption(weekStart: .monday) }
+                == ["Monday to date", "Month to date", "Year to date"])
+        #expect(ConsistencyRange.week.caption(weekStart: .sunday) == "Sunday to date")
+        #expect(ConsistencyRange.week.spoken(weekStart: .monday) == "Week, Monday to date")
         #expect(Consistency.scoreSpoken(ConsistencyTally(done: 0, due: 0)) == "No due days yet")
+    }
+
+    @Test func rowDetailsReadEventsCompletedAndStreak() {
+        #expect(Consistency.eventsText(ConsistencyTally(done: 9, due: 12)) == "12 events · 9 completed")
+        #expect(Consistency.eventsText(ConsistencyTally(done: 1, due: 1)) == "1 event · 1 completed")
+        #expect(Consistency.eventsText(ConsistencyTally(done: 0, due: 0)) == "0 events · 0 completed")
+        #expect(Consistency.streakText(5) == "5 streak")
+        #expect(
+            Consistency.detailSpoken(ConsistencyTally(done: 9, due: 12), streak: 5)
+                == "12 events, 9 completed, 5 streak")
+    }
+
+    @Test func motivationNeverRepeatsTheLastMessage() {
+        #expect((5...10).contains(Motivation.messages.count))
+        #expect(Set(Motivation.messages).count == Motivation.messages.count)
+        #expect(Motivation.messages.allSatisfy { $0.hasSuffix("!") })  // upbeat, every one (customer)
+        for last in Motivation.messages {
+            for pick in 0..<(Motivation.messages.count - 1) {
+                #expect(Motivation.next(after: last, random: { _ in pick }) != last)
+            }
+        }
+        #expect(Motivation.next(after: nil, random: { _ in 0 }) == Motivation.messages[0])
     }
 
     @Test func onlyAPerfectRecordShowsOneHundredPercent() {

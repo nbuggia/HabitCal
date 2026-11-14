@@ -70,8 +70,11 @@ final class AppModel {
     /// The user's habits. Changed only through the methods below, each of which saves (T-003 B.18).
     private(set) var habits: Habits
     private(set) var dataState: DataState
-    /// The leaderboard's range; it opens on the past 7 days (T-016 B.6).
-    private(set) var leaderboardRange: ConsistencyRange = .past7
+    /// The leaderboard's range; it opens on Week (T-016 B.6).
+    private(set) var leaderboardRange: ConsistencyRange = .week
+    /// The leaderboard's nudge for a range with nothing due yet; a new one on every open and tab
+    /// change, never the same twice in a row.
+    private(set) var motivation = Motivation.next(after: nil)
     /// What Settings says about iCloud; set only by `HabitSync` (T-039).
     private(set) var syncStatus: SyncStatus = .off
     /// The open form, while `screen == .form`.
@@ -440,7 +443,8 @@ final class AppModel {
     // MARK: Leaderboard
 
     func openLeaderboard() {
-        leaderboardRange = .past7
+        leaderboardRange = .week
+        motivation = Motivation.next(after: motivation)
         screen = .leaderboard
     }
 
@@ -450,6 +454,9 @@ final class AppModel {
     }
 
     func pickLeaderboardRange(_ range: ConsistencyRange) {
+        if range != leaderboardRange {
+            motivation = Motivation.next(after: motivation)
+        }
         leaderboardRange = range
     }
 

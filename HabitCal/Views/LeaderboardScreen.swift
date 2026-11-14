@@ -13,7 +13,8 @@ struct LeaderboardScreen: View {
     }
 
     var body: some View {
-        let entries = Consistency.board(model.habits.all, range: model.leaderboardRange, today: model.today)
+        let entries = Consistency.board(
+            model.habits.all, range: model.leaderboardRange, today: model.today, weekStart: model.weekStart)
         VStack(alignment: .leading, spacing: 10) {
             header
             rangePicker
@@ -22,7 +23,8 @@ struct LeaderboardScreen: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(Array(entries.enumerated()), id: \.element.habit.id) { index, entry in
-                            LeaderboardRow(rank: index + 1, entry: entry)
+                            LeaderboardRow(
+                                rank: index + 1, entry: entry, streak: Streaks.current(entry.habit, today: model.today))
                         }
                     }
                     .onGeometryChange(for: CGFloat.self) {
@@ -63,7 +65,10 @@ struct LeaderboardScreen: View {
     private var rangePicker: some View {
         HStack(spacing: 2) {
             ForEach(ConsistencyRange.allCases, id: \.self) { range in
-                RangeTab(title: range.title, spoken: range.spoken, selected: model.leaderboardRange == range) {
+                RangeTab(
+                    title: range.title, spoken: range.spoken(weekStart: model.weekStart),
+                    selected: model.leaderboardRange == range
+                ) {
                     model.pickLeaderboardRange(range)
                 }
             }
@@ -76,30 +81,38 @@ struct LeaderboardScreen: View {
         HStack(spacing: 10) {
             Text(Consistency.percentText(tally))
                 .font(.system(size: 26, weight: .bold).monospacedDigit())
-            Text(caption(tally, hasHabits: hasHabits))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(model.leaderboardRange.caption(weekStart: model.weekStart))
+                    .font(.caption.weight(.semibold))
+                Text(caption(tally, hasHabits: hasHabits))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Spacer(minLength: 0)
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(hasHabits ? Consistency.scoreSpoken(tally) : "No habits yet")
+        .accessibilityLabel(
+            !hasHabits ? "No habits yet" : tally.due == 0 ? model.motivation : Consistency.scoreSpoken(tally)
+        )
         .accessibilityIdentifier("leaderboardScore")
     }
 
     private func caption(_ tally: ConsistencyTally, hasHabits: Bool) -> String {
         if !hasHabits { return "No habits yet." }
-        return tally.due == 0 ? "No due days yet." : "of due days done across all habits"
+        return tally.due == 0 ? model.motivation : "of due days done across all habits"
     }
 }
 
-/// Rank, name over a bar filled to the share, and the percentage.
+/// Rank, name over a bar filled to the share, and the percentage. Under the bar, in the habit
+/// list's small grey schedule type: the range's events and completions, then the current streak.
 private struct LeaderboardRow: View {
     let rank: Int
     let entry: ConsistencyEntry
+    let streak: Int
 
     var body: some View {
         HStack(spacing: 8) {
@@ -114,6 +127,12 @@ private struct LeaderboardRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.habit.name).fontWeight(.semibold).lineLimit(1)
                 bar
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(Consistency.eventsText(entry.tally))
+                    Text(Consistency.streakText(streak))
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             Text(Consistency.percentText(entry.tally))
                 .fontWeight(.semibold)
@@ -122,6 +141,7 @@ private struct LeaderboardRow: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Consistency.rowSpoken(rank: rank, name: entry.habit.name, tally: entry.tally))
+        .accessibilityValue(Consistency.detailSpoken(entry.tally, streak: streak))
         .accessibilityIdentifier("leaderboard-\(entry.habit.name)")
     }
 

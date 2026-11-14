@@ -68,7 +68,7 @@ The list shows only the habits due on the day shown, so it stays short; a habit 
 
 ### Not Doing
 - Ranking by current streak, or a this-week view with each day as a dot — the other two options in the T-015 prototype.
-- Calendar weeks and months. The ranges are rolling windows ending today.
+- Rolling windows ("last 7 days", "last 30") and an all-time view. The ranges are calendar periods to date (customer, 2026-11-13): the week from its first day under the week start setting ("Monday to date" or "Sunday to date"), the month, and the year. Days before a habit was added don't count against it.
 
 ## Appendix: Competitive Analysis
 

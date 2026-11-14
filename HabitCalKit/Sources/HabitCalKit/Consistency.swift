@@ -1,33 +1,39 @@
 import Foundation
 
-/// The leaderboard's ranges: rolling windows ending today (T-016 B.2).
+/// The leaderboard's ranges: calendar periods to date, each ending today (customer, 2026-11-13).
 public enum ConsistencyRange: CaseIterable, Hashable, Sendable {
-    case past7, past30, allTime
+    case week, month, year
 
-    /// The tab's text: short, so the three tabs fit the narrow popover (customer, 2026-11-01).
+    /// The tab's text: one word, so the three tabs fit the narrow popover.
     public var title: String {
         switch self {
-        case .past7: "Last 7"
-        case .past30: "Last 30"
-        case .allTime: "All time"
+        case .week: "Week"
+        case .month: "Month"
+        case .year: "Year"
         }
     }
 
-    /// What VoiceOver reads for the tab: "Last 7" alone doesn't say 7 of what.
-    public var spoken: String {
+    /// What the range covers, shown with the score: "Monday to date" follows the week start setting.
+    public func caption(weekStart: WeekStart) -> String {
         switch self {
-        case .past7: "Last 7 days"
-        case .past30: "Last 30 days"
-        case .allTime: "All time"
+        case .week: weekStart == .monday ? "Monday to date" : "Sunday to date"
+        case .month: "Month to date"
+        case .year: "Year to date"
         }
     }
 
-    /// The first day in the range, or nil for all time.
-    func start(today: Day) -> Day? {
+    /// What VoiceOver reads for the tab: "Week, Monday to date".
+    public func spoken(weekStart: WeekStart) -> String {
+        "\(title), \(caption(weekStart: weekStart))"
+    }
+
+    /// The first day of the period containing `today`: the week's first day under `weekStart`, the
+    /// 1st of the month, or January 1.
+    public func start(today: Day, weekStart: WeekStart) -> Day {
         switch self {
-        case .past7: today.adding(days: -6)
-        case .past30: today.adding(days: -29)
-        case .allTime: nil
+        case .week: today.adding(days: -((today.weekday - weekStart.weekday + 7) % 7))
+        case .month: Day(year: today.year, month: today.month, day: 1)
+        case .year: Day(year: today.year, month: 1, day: 1)
         }
     }
 }
@@ -56,10 +62,14 @@ public struct ConsistencyEntry: Sendable {
 /// The consistency leaderboard: habits ranked by the share of their due days done (T-016).
 public enum Consistency {
     /// Today counts only once it's done, so a habit isn't marked down before the day is over (B.3).
-    public static func tally(_ habit: Habit, range: ConsistencyRange, today: Day) -> ConsistencyTally {
-        // All time starts when the habit was added, or at an earlier check-off; the rolling windows
-        // count every due day in them, even before the habit was added (T-028 B.4).
-        var day = range.start(today: today) ?? min(habit.addedOn, habit.trackedFrom(today: today))
+    /// A range starts at its period's first day, or later if the habit started later: when it was
+    /// added, or at an earlier check-off. Days before a habit existed don't count against it, so one
+    /// added in November isn't scored over the whole year (customer, 2026-11-13; was T-028 B.4).
+    public static func tally(
+        _ habit: Habit, range: ConsistencyRange, today: Day, weekStart: WeekStart
+    ) -> ConsistencyTally {
+        var day = max(
+            range.start(today: today, weekStart: weekStart), min(habit.addedOn, habit.trackedFrom(today: today)))
         var done = 0
         var due = 0
         while day <= today {
@@ -75,8 +85,12 @@ public enum Consistency {
     }
 
     /// Highest share first; ties keep the order added; habits with nothing due come last (B.4).
-    public static func board(_ habits: [Habit], range: ConsistencyRange, today: Day) -> [ConsistencyEntry] {
-        let entries = habits.map { ConsistencyEntry(habit: $0, tally: tally($0, range: range, today: today)) }
+    public static func board(
+        _ habits: [Habit], range: ConsistencyRange, today: Day, weekStart: WeekStart
+    ) -> [ConsistencyEntry] {
+        let entries = habits.map {
+            ConsistencyEntry(habit: $0, tally: tally($0, range: range, today: today, weekStart: weekStart))
+        }
         return entries.enumerated().sorted { a, b in
             switch (a.element.tally.share, b.element.tally.share) {
             case (let x?, let y?) where x != y: x > y
@@ -104,6 +118,22 @@ public enum Consistency {
         let ordinal = ordinals.string(from: NSNumber(value: rank)) ?? "\(rank)"
         guard let percent = percent(tally) else { return "\(ordinal), \(name), no due days" }
         return "\(ordinal), \(name), \(percent) percent"
+    }
+
+    /// A leaderboard row's first detail line: "12 events · 9 completed" (customer, 2026-11-13). An
+    /// event is a due day in the range; today counts once it's done, as in the tally.
+    public static func eventsText(_ tally: ConsistencyTally) -> String {
+        "\(tally.due) \(tally.due == 1 ? "event" : "events") · \(tally.done) completed"
+    }
+
+    /// A leaderboard row's second detail line: the habit's current streak, "5 streak".
+    public static func streakText(_ current: Int) -> String {
+        "\(current) streak"
+    }
+
+    /// What VoiceOver reads after the row's label: "12 events, 9 completed, 5 streak".
+    public static func detailSpoken(_ tally: ConsistencyTally, streak: Int) -> String {
+        "\(tally.due) \(tally.due == 1 ? "event" : "events"), \(tally.done) completed, \(streakText(streak))"
     }
 
     /// "74 percent of due days done across all habits".
