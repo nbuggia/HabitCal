@@ -16,9 +16,13 @@ public struct Day: Hashable, Comparable, Sendable {
         self.day = day
     }
 
-    /// The date `date` falls on in `calendar`'s time zone.
+    /// The Gregorian date `date` falls on in `calendar`'s time zone. Only the time zone is taken from
+    /// `calendar`: a Mac set to the Buddhist or Japanese calendar would otherwise give years like 2569
+    /// or 8, which `Day` would treat as Gregorian.
     public init(_ date: Date, calendar: Calendar) {
-        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = calendar.timeZone
+        let parts = gregorian.dateComponents([.year, .month, .day], from: date)
         self.init(year: parts.year!, month: parts.month!, day: parts.day!)
     }
 
