@@ -131,7 +131,6 @@ final class HabitSync: CKSyncEngineDelegate {
         }
     }
 
-    /// Sync Now (B.22): fetch, then send, showing "Syncing…" and then the result.
     /// Sync Now (B.22): fetch, then send. "Syncing…" shows for at least `syncNowMinimum`, so a fast
     /// sync still reads as something happening (customer, 2026-11-01); the result follows.
     func syncNow() {
@@ -141,6 +140,9 @@ final class HabitSync: CKSyncEngineDelegate {
         syncNowUntil = started.addingTimeInterval(Self.syncNowMinimum)
         lastFetch = started
         let send = SyncPolicy.answersSendBatch(firstSyncDone: state.firstSyncDone, updateNeeded: state.updateNeeded)
+        // Saves iCloud refused are no longer pending in the engine: queue them again, as a launch does,
+        // so Sync Now retries them (T-042).
+        changed(Set(state.failedSends.compactMap(UUID.init(uuidString:))))
         let minimum = Self.syncNowMinimum
         Task.detached { [weak self] in
             var failure: Error?
@@ -235,11 +237,14 @@ final class HabitSync: CKSyncEngineDelegate {
                 let record = makeRecord(for: habit)
             else {
                 gone.append(change)
+                // It can't be sent again either, so it no longer counts as a refused change (T-042).
+                state.failedSends.remove(recordID.recordName)
                 continue
             }
             records[recordID] = record
         }
         syncEngine.state.remove(pendingRecordZoneChanges: gone)
+        if !gone.isEmpty { saveState() }
         let provided = records
         return await CKSyncEngine.RecordZoneChangeBatch(pendingChanges: pending.filter { !gone.contains($0) }) {
             provided[$0]
@@ -354,18 +359,19 @@ final class HabitSync: CKSyncEngineDelegate {
 
     // MARK: Status
 
-    /// "Synced" only when nothing is waiting on a failed save; until then the failure's status stays
-    /// (B.5, E.5).
+    /// "Synced" only when nothing is waiting on a failed save; until then the failure's status stays,
+    /// and "Syncing…" never does (B.5, E.5, T-042).
     private func markSynced() {
         if let syncNowUntil, syncNowUntil > Date() { return }
-        guard !state.updateNeeded else {
-            model.setSyncStatus(.updateNeeded)
-            return
+        let now = Date()
+        let status = SyncPolicy.statusWhenSyncFinished(
+            current: model.syncStatus, updateNeeded: state.updateNeeded, hasFailedSends: !state.failedSends.isEmpty,
+            now: now)
+        if status == .synced(now) {
+            state.lastSynced = now
+            saveState()
         }
-        guard state.failedSends.isEmpty else { return }
-        state.lastSynced = Date()
-        saveState()
-        model.setSyncStatus(.synced(state.lastSynced ?? Date()))
+        model.setSyncStatus(status)
     }
 
     private func report(_ error: Error) {
@@ -438,7 +444,7 @@ final class HabitSync: CKSyncEngineDelegate {
                 switch try await container.accountStatus() {
                 case .available:
                     if !self.state.failedSends.isEmpty {
-                        self.model.setSyncStatus(.error("Some changes haven't reached iCloud yet."))
+                        self.model.setSyncStatus(.error(SyncPolicy.refusedChangesMessage))
                     } else if let lastSynced = self.state.lastSynced {
                         self.model.setSyncStatus(.synced(lastSynced))
                     } else {

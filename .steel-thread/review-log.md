@@ -77,3 +77,5 @@
 2026-11-12 · T-041 strip ends at today · MINOR · PRD Done Means didn't say the selected day is marked only when among the 30 · fixed
 2026-11-13 · leaderboard week/month/year to date · MINOR · AppModel comment still said the leaderboard opens on the past 7 days · fixed
 2026-11-13 · leaderboard week/month/year to date · QUESTION · on a period's first day, before any check-off, everything reads "no due days" · put to customer
+2026-11-13 · T-042 · MINOR · A sign-out during Sync Now ended on "Synced" · fixed
+2026-11-13 · T-042 · MINOR · A failed save that can't be rebuilt stayed in failedSends forever · fixed

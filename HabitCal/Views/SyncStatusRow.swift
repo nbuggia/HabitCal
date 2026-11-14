@@ -59,8 +59,10 @@ struct SyncStatusRow: View {
         .accessibilityLabel("Sync Now")
     }
 
-    /// Shown whenever iCloud can be used; disabled while syncing.
+    /// Shown whenever iCloud can be used; disabled while syncing. Hidden while the habits can't be
+    /// read, since sync never starts then (E.1, T-042).
     private var showsSyncNow: Bool {
+        guard model.canAddHabits else { return false }
         switch model.syncStatus {
         case .off, .updateNeeded: return false
         default: return true

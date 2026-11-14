@@ -35,6 +35,27 @@ public enum SyncPolicy {
         }
     }
 
+    /// What a refused change shows when nothing more specific is showing.
+    public static let refusedChangesMessage = "Some changes haven't reached iCloud yet."
+
+    /// The status line once a fetch or send finishes. A newer format on another Mac wins (E.6), and off
+    /// stays off (E.3). With a
+    /// change iCloud refused still waiting, a failure already showing stays (B.5, E.5), and anything
+    /// else, "Syncing…" included, says changes haven't reached iCloud: Sync Now never stays on
+    /// "Syncing…" (T-042). Otherwise synced, now.
+    public static func statusWhenSyncFinished(
+        current: SyncStatus, updateNeeded: Bool, hasFailedSends: Bool, now: Date
+    ) -> SyncStatus {
+        if updateNeeded { return .updateNeeded }
+        // Signed out while the sync ran: a fetch that was already running doesn't turn sync back on.
+        if current == .off { return .off }
+        guard hasFailedSends else { return .synced(now) }
+        switch current {
+        case .waiting, .full, .error: return current
+        case .syncing, .synced, .notSyncedYet, .off, .updateNeeded: return .error(refusedChangesMessage)
+        }
+    }
+
     public enum AccountChange: Sendable {
         case signIn
         case switchAccounts

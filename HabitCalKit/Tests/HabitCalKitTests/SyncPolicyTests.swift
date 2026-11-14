@@ -14,6 +14,38 @@ struct SyncPolicyTests {
         #expect(SyncPolicy.answersSendBatch(firstSyncDone: true))
     }
 
+    /// A sync that finishes with a change iCloud refused never leaves "Syncing…" up (T-042).
+    @Test(arguments: [SyncStatus.syncing, .synced(t(0)), .notSyncedYet])
+    func syncThatFinishesWithRefusedChangesSaysSoInsteadOfSyncing(_ current: SyncStatus) {
+        #expect(
+            SyncPolicy.statusWhenSyncFinished(current: current, updateNeeded: false, hasFailedSends: true, now: t(9))
+                == .error("Some changes haven't reached iCloud yet."))
+    }
+
+    @Test(arguments: [SyncStatus.waiting, .full, .error("The request timed out.")])
+    func syncThatFinishesKeepsAFailureAlreadyShown(_ current: SyncStatus) {
+        #expect(
+            SyncPolicy.statusWhenSyncFinished(current: current, updateNeeded: false, hasFailedSends: true, now: t(9))
+                == current)
+    }
+
+    @Test func syncThatFinishesCleanlyIsSyncedAndANewerFormatWins() {
+        #expect(
+            SyncPolicy.statusWhenSyncFinished(current: .syncing, updateNeeded: false, hasFailedSends: false, now: t(9))
+                == .synced(t(9)))
+        #expect(
+            SyncPolicy.statusWhenSyncFinished(current: .syncing, updateNeeded: true, hasFailedSends: true, now: t(9))
+                == .updateNeeded)
+    }
+
+    /// Signing out while Sync Now runs leaves "iCloud is off", not "Synced" (T-042 review).
+    @Test(arguments: [false, true])
+    func syncThatFinishesAfterASignOutStaysOff(_ hasFailedSends: Bool) {
+        #expect(
+            SyncPolicy.statusWhenSyncFinished(
+                current: .off, updateNeeded: false, hasFailedSends: hasFailedSends, now: t(9)) == .off)
+    }
+
     @Test func syncPolicySendsWhenFirstSyncFinishes() {
         #expect(SyncPolicy.afterFetchFinished(firstSyncDone: false) == .init(markFirstSyncDone: true, sendNow: true))
         #expect(SyncPolicy.afterFetchFinished(firstSyncDone: true) == .init(markFirstSyncDone: false, sendNow: false))

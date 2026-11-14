@@ -76,5 +76,8 @@ finished phases get " ✓ YYYY-MM-DD" after their name.
       Coded (343c2c7). Outstanding: UI tests, a look on screen, diff review, close.
 - [ ] T-005 Release v1 on the Mac App Store: app icon, App Store signing, listing, review · high
       Switched from a GitHub download to the Mac App Store (D-011, 2026-11-05). App icon chosen 2026-10-31. Signing is set up: Apple Distribution and Mac Installer Distribution certificates, the App ID, and the "HabitCal App Store" profile; `./run.py appstore` exports a signed .pkg (checked: entitlements production, universal). Launch at login is now off until the user turns it on (D-012). Build 1.0 (2) uploaded for TestFlight 2026-11-12 (strip ends at today); the next upload needs CURRENT_PROJECT_VERSION raised. Left: the customer's TestFlight check; CloudKit schema deployed to production; listing (screenshots, description, privacy policy and support URLs, App Privacy); upload, TestFlight check, submit.
+- [ ] T-042 Bug: Sync Now sticks on "Syncing…" and never retries a change iCloud refused · high
+      Found in a code audit 2026-11-13; customer asked for the fix. A save iCloud won't retry stays in failedSends: Sync Now doesn't queue it again, and markSynced leaves "Syncing…" up. Also, Sync Now shows but does nothing when the habits file can't be read.
+      Coded and diff-reviewed (CONCERNS, 2 minor fixed). Outstanding: the manual CloudKit check (a refused save, then Sync Now), close.
 - [x] T-040 Settings' Quit button sits at the bottom of the panel, like the main screen's bottom row · medium · done 2026-11-01
       Commit 084c48c. Not yet checked on screen.
