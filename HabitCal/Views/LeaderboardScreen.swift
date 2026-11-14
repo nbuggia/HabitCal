@@ -115,15 +115,10 @@ private struct LeaderboardRow: View {
     let streak: Int
 
     var body: some View {
-        HStack(spacing: 8) {
-            Group {
-                if rank == 1 && entry.tally.share != nil {
-                    PhosphorIcon("trophy", size: 14).foregroundStyle(Color.yellow)
-                } else {
-                    Text("\(rank)").fontWeight(.bold).monospacedDigit().foregroundStyle(.secondary)
-                }
-            }
-            .frame(width: 16)
+        HStack(alignment: .top, spacing: 8) {
+            RankShield(rank: rank, perfect: entry.tally.due > 0 && entry.tally.done == entry.tally.due)
+                // The shield's outline starts 4 pt into its frame; this puts its top level with the name's.
+                .offset(y: -1)
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.habit.name).fontWeight(.semibold).lineLimit(1)
                 bar
@@ -156,6 +151,34 @@ private struct LeaderboardRow: View {
                         .frame(width: proxy.size.width * (entry.tally.share ?? 0))
                 }
             }
+    }
+}
+
+/// A shield beside each habit: a gold cup for a perfect record in the range, otherwise the rank
+/// (customer, 2026-11-13). Every 100% habit gets the cup, so several can share it.
+private struct RankShield: View {
+    let rank: Int
+    let perfect: Bool
+
+    var body: some View {
+        ZStack {
+            PhosphorIcon("shield", size: 26)
+            Group {
+                if perfect {
+                    PhosphorIcon("trophy-fill", size: 13)
+                } else {
+                    Text("\(rank)")
+                        .font(.system(size: 12, weight: .bold).monospacedDigit())
+                        .minimumScaleFactor(0.7)
+                        .frame(width: 15)
+                }
+            }
+            // The shield narrows to a point, so the middle of its body sits a little above center.
+            .offset(y: -1)
+        }
+        .foregroundStyle(perfect ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.secondary))
+        .frame(width: 26, height: 26)
+        .help(perfect ? "Every due day done" : "Rank \(rank)")
     }
 }
 
