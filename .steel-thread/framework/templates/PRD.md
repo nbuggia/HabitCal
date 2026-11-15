@@ -22,4 +22,4 @@
 
 - 
 
-<!-- Feature sections, "## Feature: Name", go below. The close adds one the first time a task adds a feature. -->
+<!-- Feature sections, "## Feature: Name", go below. A task adds one, when it is finished, the first time it adds a feature. -->

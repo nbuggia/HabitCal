@@ -15,7 +15,7 @@ date created: YYYY-MM-DD
 
 ## Approach
 
-\[The files and functions the change touches, and the existing pattern it follows, by file. If it sets a new convention, say so here and list it under Lasting Changes. If it takes two slices, name them in one line each.\]
+\[The files and functions the change touches, and the existing code whose pattern it follows, by file. For any departure from that pattern, one line on why. If the pattern itself is wrong, say so and whether this change fixes it. If it takes two slices, name them in one line each.\]
 
 ## Test Points
 
@@ -29,8 +29,8 @@ date created: YYYY-MM-DD
 
 ## Lasting Changes
 
-\[What this change adds to the lasting documents. The close applies these; anything not listed is lost then. Write "None." when it adds nothing.\]
+\[What this change adds to the lasting documents. st-verify applies these when the task is finished; anything not listed is lost then. Write "None." when it adds nothing.\]
 
 | Change | Goes to |
 | --- | --- |
-|  | ARCHITECTURE.md / CONVENTIONS.md / CONTRACTS.md / COMMON-FAILURE-MODES.md / DECISIONS.md |
+|  | ARCHITECTURE.md / CONTRACTS.md / COMMON-FAILURE-MODES.md / DECISIONS.md / PRD.md / BACKLOG.md |

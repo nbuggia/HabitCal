@@ -37,10 +37,10 @@ The PRD holds the product's intent: why it exists, what done means, and for each
 
 ## Creating and changing it
 
-The st-whats-next skill writes the objective during setup, from `.steel-thread/framework/templates/PRD.md`. The close (the st-close skill) adds a feature section the first time a task adds a feature.
+The st-whats-next skill writes the objective during setup, from `.steel-thread/framework/templates/PRD.md`. A task adds a feature section the first time it adds a feature: its design lists the section under Lasting Changes, and finishing the task (the st-verify skill) writes it.
 
 - Change the objective when the customer changes direction, scope, or what done means. Every change to it also gets a DECISIONS.md entry recording what changed and why.
-- Feature sections change when a task closes, approved with the rest of that task's changes to the customer's files. They need a DECISIONS.md entry only when the change meets DECISIONS.md's bar.
+- Feature sections change when a task is finished, approved with the rest of that task's changes to the customer's files. They need a DECISIONS.md entry only when the change meets DECISIONS.md's bar.
 - An older install may have `docs/OBJECTIVE.md`. Propose moving its sections into the PRD, and delete it in the same approved change.
 
 ## When the PRD already exists elsewhere

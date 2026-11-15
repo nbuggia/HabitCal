@@ -24,6 +24,6 @@ Affects: T-003, PRD.md
 
 - Entries are never edited or deleted. When a decision changes, add a new entry and change only the old entry's Status line to `Superseded by D-NNN`.
 - Record a decision only if future work has to follow it, and it is also expensive to undo or likely to be proposed the other way later. A choice that shapes only the current task stays in the document where it was made: its spec, design, or slicing plan.
-- Planning docs are scaffolding that nothing reads once their task closes, so DECISIONS.md is the only lasting home for a rejected alternative. The close asks of each one: "Will someone propose this again?" and proposes all of a task's entries in one approval.
+- Planning docs are scaffolding that nothing reads once their task is done, so DECISIONS.md is the only lasting home for a rejected alternative. The design asks of each one: "Will someone propose this again?" and lists those under its Lasting Changes; finishing the task proposes all of a task's entries in one approval.
 - Code comments, lasting documents, and done tasks cite decisions by ID: "(D-003)".
 - DECISIONS.md never states the current rule. The rule lives where it applies — CONTEXT.md, or the documents in `.steel-thread/framework/docs-layout.md`'s "Where information lives" — and cites the decision for the reason: "UI code never touches the filesystem (D-003)."

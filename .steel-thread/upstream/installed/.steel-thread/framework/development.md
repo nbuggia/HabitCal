@@ -14,7 +14,7 @@ Each step produces one document, and the next step reads it. Move through the st
 
 Stop for the customer only when the work is blocked, for one of two reasons:
 
-- **A high-judgment decision.** The choice is hard to reverse, changes what users would notice in a way the spec does not settle, or trades off things the customer cares about with no clear winner. A choice you can make well from the spec, the code, and the project's conventions is not one of these; make it and record why.
+- **A high-judgment decision.** The choice is hard to reverse, changes what users would notice in a way the spec does not settle, or trades off things the customer cares about with no clear winner. A choice you can make well from the spec, the code, and the patterns it already follows is not one of these; make it and record why.
 - **Critical input.** Something only the customer can supply, such as a fact, an access, or an intent the spec leaves open, without which the next step would be a guess.
 
 When you stop, ask one question, give your recommendation, and keep working on anything that does not depend on the answer.
@@ -27,16 +27,19 @@ A step is skipped only when the task's rigor level or the rules below say so. Wh
 
 **Every change gets a rigor level before work starts: Trivial, Simple, or Complex.** The level decides which steps run and how heavy each one is, so a one-line fix doesn't pay for a feature's process. Set it once, at the start of the task, and tell the customer in one line which criterion decided it: "This is Trivial: one comparison, and a failing test proves the fix."
 
-Check the Trivial criteria first; they need no file reads. If the change isn't clearly Trivial, read `AGENTS.md`, `docs/engineering/ARCHITECTURE.md`, and `docs/engineering/CONTRACTS.md` before choosing between Simple and Complex.
+Size by what the change touches, never by how the request sounds. "Quick", "just", "polish", or a list of small tweaks still gets sized, each tweak on its own; a batch that goes into one commit takes the level of its largest tweak.
+
+Check the Trivial criteria first; they need no file reads, except to check a product rule when the change might alter one. If the change isn't clearly Trivial, read `AGENTS.md`, `docs/engineering/ARCHITECTURE.md`, and `docs/engineering/CONTRACTS.md` before choosing between Simple and Complex.
 
 | Rigor level | Criteria | Examples |
 | --- | --- | --- |
-| Trivial | All of these:<br>1. One local edit; nothing else depends on what it changes.<br>2. No promise changes, unless a bug fix restores one.<br>3. A mistake is visible on sight, or one test settles it. | A copy fix, a style value, a default. A wrong comparison in one function, with a failing test that reproduces the bug. |
+| Trivial | All of these:<br>1. One local edit; nothing else depends on what it changes.<br>2. No product rule changes: nothing the PRD, CONTRACTS.md, an Active decision, or an existing test or manual test states. A bug fix that restores a rule is fine.<br>3. A mistake is visible on sight, or one test settles it. | A copy fix, a style value, a default. A wrong comparison in one function, with a failing test that reproduces the bug. |
 | Simple | Anything that is not Trivial and hits no Complex trigger. | A save handler that skips a validation the other handlers apply. A new settings screen built from existing components and commands. |
 | Complex | Any of these triggers:<br>1. **Not revertible:** it changes a persisted format or stored data, so reverting the commit can't undo it.<br>2. **Contract:** it adds or changes a promise in CONTRACTS.md, such as a file format, URL scheme, or public API.<br>3. **Structure:** it adds a component, a process or thread boundary, or a dependency, or moves a boundary in ARCHITECTURE.md.<br>4. **Risky ground:** it touches concurrency, security, or permissions.<br>5. **Not fully testable:** correctness depends on timing or on behavior invented as you go. | Adding a field to the persisted settings file. Builds already shipped wrote the old shape to disk, so reverting a commit can't undo it. |
 
 - A close call is Simple. Choosing Complex names its trigger: "Complex: it adds a field to the settings file."
-- Following an existing convention is a sign a change is Simple, not a requirement. In a new project, the first change in an area sets its conventions: record them in the design's Lasting Changes rather than raising the level.
+- **A change to a product rule is never Trivial, however small the edit.** It gets a task, and a spec that states the rule as it was and as it becomes. If it reverses a rule that was set on purpose, propose a DECISIONS.md entry too, so the old rule isn't restored by a later change.
+- Following the pattern the surrounding code uses is a sign a change is Simple, not a requirement. A Trivial change always follows it; needing a new pattern means it isn't Trivial. In a new project, the first change in an area sets the pattern the next ones follow.
 - A bug with more than one independent cause is more than one task. Size each one.
 - **Re-size when the work shows the level was wrong,** in either direction, and say so: "This touches the export format, so it's Complex now." The steps the new level adds start from there. A Trivial change that grows gets a task and a work entry; a Simple design that grows is rewritten from the Complex template.
 
@@ -49,11 +52,11 @@ What each level runs:
 | Spec (step 1) | None | When users would notice the change | When users would notice the change |
 | Prototype (step 2) | None | When step 2 calls for one | When step 2 calls for one |
 | Bug diagnosis review | None; the failing test is the proof | Only when a failing test doesn't prove the cause | Always |
-| Tech design (step 3) | None | Simple template, no review pass | Complex template, two review passes, plus at most one blocker-verification pass |
+| Tech design (step 3) | None | Simple template, no review pass | Complex template, reviewed until READY, at most three passes |
 | Slicing plan (step 4) | None | None; needing more than two slices is a reason to re-size | When the design needs more than two slices |
 | Tests and code (step 5) | A bug's reproducing test, then the fix | Tests first, at the design's test points, then validate against the spec | Tests first, slice by slice, then validate against the spec |
-| Diff review (step 5) | None | One st-crit pass on the diff | One st-crit pass on the diff |
-| Close (step 6) | None; the commit message records the cause and the test | st-close steps 1–4 and 6; check the rows by eye | Every st-close step, including the searches |
+| Diff review (step 5) | None | st-crit on the diff until READY, at most three passes | st-crit on the diff until READY, at most three passes |
+| Finish (step 6) | None; the commit message records the cause and the test | Apply the design's Lasting Changes | Apply the design's Lasting Changes |
 
 ## Trivial Changes
 
@@ -82,20 +85,30 @@ A prototype answers a question, and it is thrown away. Its `README.md` starts wi
 
 ## Step 5 — Tests and Code
 
-**Produces:** the tests and code, a commit per slice, and a reviewed diff. Write the code your own way, inside the st-verify skill's gates: tests first at the design's test points, a commit per slice, validation against the spec and design, and one st-crit pass on the whole diff.
+**Produces:** the tests and code, a commit per slice, and a reviewed diff. Write the code your own way, inside the st-verify skill's gates: tests first at the design's test points, a commit per slice, validation against the spec and design, and an st-crit review of the whole diff until it is READY.
 
-## Step 6 — Close
+## Step 6 — Finish
 
-**Produces:** `close.md` in the work entry. **Skip when:** the task is Trivial, or has no work entry. Use the st-close skill as soon as the diff review is clean. A task with a work entry is not done until it is closed.
+**Produces:** the design's Lasting Changes, applied to the lasting documents, and the task marked done, or awaiting test when checks are left for the customer's test pass. **Skip when:** the task is Trivial, or has no work entry. Follow Finish the task in the st-verify skill as soon as the diff review is clean. A task with a work entry is not done until its Lasting Changes are applied and its test-pass checks have passed.
 
 ## Commits
 
-Commit the work yourself, so the record never depends on someone remembering to: one commit for a Trivial change, one per slice (or for the whole design, if it has no slicing plan), one for the fixes from validation and the diff review, and one for the close.
+Commit the work yourself, so the record never depends on someone remembering to: one commit for a Trivial change, one per slice (or for the whole design, if it has no slicing plan), one for the fixes from validation and the diff review, and one for the lasting documents and TASKS.md when the task is finished.
 
 - Stage only the files the work changed. Leave the customer's unrelated changes out; if a file holds both, ask before committing it.
+- Steel Thread's own files go in the next commit with the work, so they travel with the code: TASKS.md, `.steel-thread/review-log.md`, `.steel-thread/customizations.md`, and approved edits to PRD.md, CONTEXT.md, BACKLOG.md, and DECISIONS.md. When the customer stops and only these have changed, commit them on their own: `Update Steel Thread files`.
 - The first line names the change and cites the task ID. The body records the evidence: the tests added and that they pass, any drift from the design and why, and for a bug the cause and the reproducing test.
 - Commit on the current branch. Never push, amend, rebase, or rewrite history unless the customer asks, and follow CONTEXT.md's never-do rules.
-- In a project without version control, the close records the evidence in close.md instead.
+- In a project without version control, add the evidence to an Evidence section at the end of the design instead.
+
+## Code Comments
+
+The code is the project's convention: changes follow the patterns the surrounding code uses. Comments carry what the code can't show. Keep these defaults unless the code follows other rules:
+
+- Comments explain why: a reason that isn't obvious, a workaround, an unexpected edge case, or a trap where the obvious approach breaks. Never restate what the code does. Cite D-NNN or FM-NNN when one holds the full reason.
+- Comments describe the code as it is. What a change did goes in its commit message, never in a comment such as "changed from X" or "added for T-014".
+- Explain each thing once: in the doc comment on the declaration, not again at each call site. A doc comment describes behavior, not its callers.
+- Don't remove a comment during an unrelated change. Change it only when the code it describes changes.
 
 ## Testing
 
@@ -111,6 +124,7 @@ Choose the kind of test by what it has to prove:
 - Each use case gets at least one automated UI or integration test. Unit tests alone do not prove a use case works.
 - Follow the project's `docs/engineering/TESTING.md` for tools and commands, and for its validation order: which checks a change runs, and when the full suite runs. If it does not exist, propose creating it the first time you write a test, with the commands that run each kind.
 - When automated testing can't reach a behavior, add a step to its product area's manual test in `docs/manual-tests/<area>.md`, from st-dev-setup's `manual-test-template.md`, instead of skipping the check. Without one, that behavior has no lasting home.
+- Run every check you can. A check you can't run, or one TESTING.md or the customer leaves for their test pass, waits in `docs/manual-tests/next-pass.md`, and the task waits as `awaiting test` until it passes (see the st-verify skill). Never mark a task done with checks that haven't run.
 
 ## Bugs
 
@@ -121,11 +135,11 @@ A bug follows the same flow with a shorter spec:
 3. **Spec,** only if the correct behavior was never a promise or the promise was wrong: use the st-spec skill to write the rule for the fixed behavior, and `SHALL CONTINUE TO` rules for what must not change.
 4. **Tech design,** unless the fix is Trivial.
 5. **Tests and code,** starting with the failing reproduction.
-6. **Close,** unless the fix is Trivial.
+6. **Finish,** unless the fix is Trivial.
 
 ## Between Steps
 
 - **When a step finishes,** start the next one and say so in one line: "Spec approved after review. Starting the tech design."
 - **st-elevate** is for when a step is blocked: it resolves a high-judgment decision or gathers critical input with the customer in one focused session.
-- **st-crit** comes after work is written: its review is what lets a spec become Approved, and what lets a diff go to the close. Every review's findings are settled as `.steel-thread/framework/reviews.md` says.
-- **Steel Thread files stay current throughout.** Each approved document is a checkpoint for pickup.md. Choices all future work has to follow go to DECISIONS.md, new terms to CONTEXT.md, future features to BACKLOG.md, and follow-up work to TASKS.md through the st-tasks skill, each with the customer's approval.
+- **st-crit** comes after work is written: its READY verdict is what lets a spec become Approved, and what lets a task be finished. Every review's findings are settled as `.steel-thread/framework/reviews.md` says.
+- **Steel Thread files stay current throughout.** Choices all future work has to follow go to DECISIONS.md, new terms to CONTEXT.md, future features to BACKLOG.md, and follow-up work to TASKS.md through the st-tasks skill, each with the customer's approval.

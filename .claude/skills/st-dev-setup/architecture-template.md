@@ -1,6 +1,6 @@
 # Architecture
 
-\[What is there: the shape of the system as it is now. Describe, don't instruct — rules for making changes go in CONVENTIONS.md, and the reasons behind choices go in DECISIONS.md, cited here as D-NNN. Leave out any section with nothing in it.\]
+\[What is there: the shape of the system as it is now. Describe, don't instruct: changes follow the patterns the code already uses, and the reasons behind choices go in DECISIONS.md, cited here as D-NNN. Boundaries a change must not cross belong here, stated as facts: "Only the Rust core touches the filesystem (D-003)." Leave out any section with nothing in it.\]
 
 ## Stack
 

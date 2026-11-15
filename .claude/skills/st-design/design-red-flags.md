@@ -20,7 +20,7 @@ Multiple places depend on the same internal decision, so changing that decision 
 
 Watch for:
 
-- A value in an internal representation (a storage key, a raw path, a database ID format) appearing outside the module that owns it — in UI code, in another service, or in persisted state. If the project's conventions name a boundary where that translation happens, a value crossing it untranslated is leakage, not just a style violation.
+- A value in an internal representation (a storage key, a raw path, a database ID format) appearing outside the module that owns it — in UI code, in another service, or in persisted state. If ARCHITECTURE.md names a boundary where that translation happens, a value crossing it untranslated is leakage, not just a style violation.
 - One struct's or record's internal field shape driving branching logic in more than one place. If its shape changes, every one of those branches has to change with it.
 - A generated or shared type being reshaped, narrowed, or partially hand-copied at a call site instead of used as-is.
 

@@ -9,7 +9,7 @@ This is step 4 of `.steel-thread/framework/development.md`. Use only after an Ap
 
 ## 1. Load
 
-Read the design, `tech-design-slices-template.md`, `AGENTS.md`, and `docs/engineering/CONVENTIONS.md` in full, and the convention skills it lists for the areas the design touches. Read the task's spec where boundaries need it. Record the design commit; if dirty, also record `uncommitted working tree`.
+Read the design, `tech-design-slices-template.md`, and `AGENTS.md` in full, and the convention skills for the areas the design touches. Read the task's spec where boundaries need it. Record the design commit; if dirty, also record `uncommitted working tree`.
 
 If no design is named, use the one for the task in progress in TASKS.md. Ask only if that leaves more than one candidate.
 
@@ -19,7 +19,7 @@ Find the design's slicing strategy: `Implementation Slicing Strategy` in the Com
 
 ## 3. Slice
 
-Create `slices.md` from the template, in the same task folder as the design: `docs/work/T-NNN-<name>/slices.md`. Do not copy slices into TASKS.md: the task stays the unit of work there. Keep its detail line, through the st-tasks skill, naming the slice in progress: `Slice 2 of 4 in docs/work/T-014-first-save-filename/slices.md.`
+Create `slices.md` from the template, in the same task folder as the design: `docs/work/T-NNN-<name>/slices.md`. Do not copy slices into TASKS.md: the task stays the unit of work there. Keep its Notes, through the st-tasks skill, naming the slice in progress: `Slice 2 of 4 in docs/work/T-014-first-save-filename/slices.md.`
 
 - Prefer few slices.
 - Each slice closes one cohesive, independently verifiable outcome.
@@ -30,7 +30,7 @@ Create `slices.md` from the template, in the same task folder as the design: `do
 
 ## 4. Review
 
-Budget: one broad pass, plus one targeted blocker-verification pass if needed. All reviewers and user-supplied feedback share this budget.
+Review it until the verdict is READY, at most three passes, as Passes in `.steel-thread/framework/reviews.md` says. All reviewers and user-supplied feedback share this budget.
 
 Give a reviewer in a fresh context (`.steel-thread/framework/reviews.md`) only the design, plan, and this request:
 
@@ -46,7 +46,7 @@ Classify each change:
 
 Apply accepted SLICING changes. Route DESIGN findings back to the design and block only affected slices; do not solve them in the plan. Reject/defer EXPANSION unless the user broadens scope. Independent slices remain startable.
 
-Decide each finding as Deciding Findings in `reviews.md` says. Use the second pass only to verify the original blocker against changed sections and dependency edges.
+Decide each finding as Deciding Findings in `reviews.md` says. A later pass checks only the fixes: the changed slices and their dependency edges.
 
 ## 5. Verify and exit
 
@@ -56,7 +56,7 @@ Exit when every ready slice has a valid predecessor and demo, design findings ar
 
 ## Checkpoints and drift
 
-After each slice, mark it Done, put its evidence — tests added, results, drift — in the commit message, and add a Checkpoint Log entry naming the commit. Review only affected remaining slices plus their dependency edges, and update them in place; explain why others are unchanged.
+After each slice, mark it Done, put its evidence — tests added, results, drift — in the commit message, and add a Checkpoint Log entry naming the commit. Drift that changes a lasting fact also gets a row in the design's Lasting Changes. Review only affected remaining slices plus their dependency edges, and update them in place; explain why others are unchanged.
 
 Recognize a design failure, not just a slice failure, before patching around it. A single hard case is not a design failure — some problems are legitimately complex, and complexity in the data is not complexity in the design. The signal is a pattern: the same shape of trouble recurring across two or more otherwise- unrelated slices. Tells:
 

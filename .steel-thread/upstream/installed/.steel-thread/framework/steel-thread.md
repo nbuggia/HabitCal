@@ -10,9 +10,9 @@ These never bend. The rest of this manual explains them and covers the judgment 
 2. **The customer's files change only with their approval:** PRD.md, CONTEXT.md, TASKS.md, BACKLOG.md, and DECISIONS.md. Marking progress on a task is the one exception.
 3. **Change TASKS.md only through the st-tasks skill.** Before you first create or edit PRD.md, CONTEXT.md, BACKLOG.md, DECISIONS.md, or customizations.md in a session, read its rules in `.steel-thread/framework/files/`.
 4. **Size every code change before you start it.** Read `.steel-thread/framework/development.md`, set the rigor level, and say which criterion decided it.
-5. **Never search `docs/work/`.** It is scaffolding. Open an entry only by its path, and never treat a closed one as current behavior.
-6. **Every Simple and Complex diff gets an st-crit review before the task closes.**
-7. **Keep `.steel-thread/pickup.md` current at checkpoints.** The customer can stop at any moment.
+5. **Never search `docs/work/`.** It is scaffolding. Open an entry only by its path, and never treat a done one as current behavior.
+6. **Every Simple and Complex diff gets an st-crit review before the task is done.**
+7. **Keep state in the files that own it,** as Where State Lives says. The customer can stop at any moment.
 8. **Use CONTEXT.md's vocabulary exactly, and never do what it forbids.**
 9. **Don't reopen an Active decision** unless the customer does, or new information undercuts its reasoning — and then say so.
 10. **Never edit `.steel-thread/upstream/`.** Log every change to the framework or the skills in `.steel-thread/customizations.md`.
@@ -39,40 +39,29 @@ Run this silently.
 
 1. **Read the objective.** Every suggestion you make this session should serve it.
 2. **Read docs/CONTEXT.md.** When a tenet settles a question, apply it and name the tenet instead of asking.
-3. **Read .steel-thread/pickup.md if it exists:** what was accomplished, what is in flight, blocked, or deferred. Leave it in place; the first checkpoint replaces it, and earlier notes are in git history.
-4. **Read docs/TASKS.md from the current phase onward,** skipping phases marked ✓. Form a view on what the customer should work on next.
-5. **Scan docs/DECISIONS.md:** the headings, and the full entries for any Active decision that touches the work in flight.
-6. **Read the git log since the pickup note's date,** including changes to `docs/`. Significant changes may shift priorities.
-7. **Greet the customer with orientation, not a blank slate.** Never ask "How can I help you today?" when you know what's in flight, and never make them re-explain context you already have. Be specific and brief: "You're working on \[project\]. Last session you \[what happened\]. \[The most important open task\] is up next. \[Any blockers worth flagging\]. Want to pick up there, or is something else on your mind?"
+3. **Read docs/TASKS.md from the current phase onward,** skipping phases marked ✓. Form a view on what the customer should work on next, and note any tasks awaiting the customer's test pass.
+4. **Scan docs/DECISIONS.md:** the headings, and the full entries for any Active decision that touches the work in flight.
+5. **Read the recent git log and any uncommitted changes,** including changes to `docs/`: what was done last, and what was left half-finished. Significant changes may shift priorities.
+6. **Greet the customer with orientation, not a blank slate.** Never ask "How can I help you today?" when you know what's in flight, and never make them re-explain context you already have. Be specific and brief: "You're working on \[project\]. Last session you \[what happened\]. \[The most important open task\] is up next. \[Any blockers worth flagging, and how many tasks await their test pass\]. Want to pick up there, or is something else on your mind?"
 
-If there is no `docs/PRD.md`, look for an objective the project already has, as `files/prd.md` describes, and point to it. If there is none, say once in the greeting that the project has no objective yet, and offer the st-whats-next skill to write one. If the customer doesn't take it up, write the skipped form at the first checkpoint.
+If there is no `docs/PRD.md`, look for an objective the project already has, as `files/prd.md` describes, and point to it. If there is none, say once in the greeting that the project has no objective yet, and offer the st-whats-next skill to write one. If the customer doesn't take it up, write the skipped form before the session ends.
 
 The greeting is the short version. When the customer wants the full picture — exactly where they were inside a task, what's done, what's left — run the st-whats-next skill.
 
-## Pickup Maintenance
+## Where State Lives
 
-Update pickup.md at checkpoints, without waiting to be asked, so the customer can close the terminal at any moment and lose nothing that matters. A checkpoint is a moment the next session would want to know about:
+The customer can close the terminal at any moment, so keep the project's state in the files that own it, as you work. There is no separate session note: a returning session rebuilds where things stand from these.
 
-- A task is started, finished, or blocked
-- A decision is made
-- An exchange that matters to a returning session: a change of direction, a question answered, a plan agreed
-- The customer signals they are stopping or stepping away
-- Before a long or risky step, such as a large refactor or bulk edit
+| What | Where |
+| --- | --- |
+| What was done | The git log, and done tasks in TASKS.md |
+| What is in progress, and the very next step | The task's status and Notes in TASKS.md, its slicing plan, and uncommitted changes |
+| What is blocked, and what's next | TASKS.md |
+| Choices future work must follow | DECISIONS.md |
+| Changes to the customer's files they haven't approved | Nowhere: propose them when they come up |
 
-Don't rewrite it after every small edit: constant rewrites waste effort and bury the moments that matter.
-
-The first checkpoint of a session replaces the previous note with a new one: next Session ID, today's date. Later checkpoints in the same session update it in place.
-
-**What goes in the note.** Use the headings in `.steel-thread/framework/templates/pickup.md`, and leave out any with nothing in it:
-
-- **Accomplished** — what was done this session, verified, not assumed.
-- **In Flight** — which task, the files and locations involved, what is done, what is left, the very next step, and open questions. Write it so a cold reader could resume mid-task without asking anything.
-- **Blocked** — what is blocked and what would unblock it.
-- **Up Next** — what the customer said they want to do next.
-- **Suggested Start** — where the next session should begin.
-- **Proposed Updates** — changes to the customer's files they have not yet approved.
-
-The `Session:` line is `S-` plus three digits: the previous note's ID plus one, or S-001 for the first note. Reference tasks and decisions by ID (T-003, D-002) and files by path; don't copy what the other Steel Thread files already hold.
+- **Before a stop or a long step,** make sure the task in progress names its very next step in Notes, and commit finished work and Steel Thread's files (Commits in development.md).
+- **Write anything a returning session needs into the document it belongs to:** the spec, the design, or a task's Notes. If it fits none of them, it probably doesn't need keeping.
 
 ## Keeping the Customer's Files
 
@@ -85,8 +74,8 @@ The `Session:` line is `S-` plus three digits: the previous note's ID plus one, 
 
 ## Skills
 
-Skills load on demand, and their names and descriptions are already in your context. The customer only needs to know **st-whats-next**, the entry point for every project; pickup, task, decision, and context upkeep happen in the background, so the system feels like it just works. `development.md` names the skill for each development step.
+Skills load on demand, and their names and descriptions are already in your context. The customer only needs to know **st-whats-next**, the entry point for every project; task, decision, and context upkeep happen in the background, so the system feels like it just works. `development.md` names the skill for each development step.
 
 Suggest a skill naturally when the moment calls for one — "This is a good moment for an st-crit — want me to run one?" — rather than telling the customer to invoke it.
 
-A project can also have **convention skills**: rules for one area of the code, or the steps for one recurring kind of change. `docs/engineering/CONVENTIONS.md` lists them, and st-design and st-verify load the ones for the areas a change touches. They don't start with `st-`, and Steel Thread updates never touch them.
+A project can also have **convention skills**: rules for one area of the code, or the steps for one recurring kind of change. st-design and st-verify load the ones whose descriptions match the areas a change touches. They don't start with `st-`, and Steel Thread updates never touch them.

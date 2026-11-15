@@ -13,8 +13,6 @@ Start from what the Session Start Protocol in `.steel-thread/framework/steel-thr
 
 If there is no objective or no CONTEXT.md, first look for one the project already has, as `files/prd.md` and `files/context.md` describe, and point to it.
 
-Also list `docs/work/`. A task marked done whose folder has no `close.md` was never closed.
-
 Then find the first row that matches. A skipped objective counts as done, unless the customer asked for one:
 
 | State | Next step |
@@ -24,10 +22,10 @@ Then find the first row that matches. A skipped objective counts as done, unless
 | No `docs/engineering/ARCHITECTURE.md` | Setup: tailor development |
 | TASKS.md has no phases | Setup: plan phases and first tasks |
 | The customer says the direction has changed | Reframe |
-| A task was marked done without being closed | Close the task |
-| The current task's code is finished, and it has a work entry | Close the task |
-| Open tasks in the current phase | Resume |
-| Every task in the current phase is done | Close the phase |
+| The current task's code is finished, and it has a work entry | Finish the task |
+| Tasks await a test pass, and either the current phase has no other open work, three or more are waiting, or one has waited a week | Run the test pass |
+| Open or in-progress tasks in the current phase | Resume |
+| Every task in the current phase is done or dropped | Close the phase |
 | Every phase is done | Check against Done Means |
 
 ## Setup steps
@@ -49,7 +47,7 @@ Interview, in order:
 3. **Not doing** — what is explicitly out of scope? Get at least two items. If the customer can't name any, the project isn't scoped yet — say so.
 4. **Constraints** — deadlines, platforms, budgets, anything that cannot change.
 
-Write `docs/PRD.md` from the template. Feature sections come later, as tasks close. At the same time, create whichever of these don't exist yet, from the templates: `docs/DECISIONS.md`, and in `.steel-thread/`, pickup.md and customizations.md. Never overwrite a file that exists.
+Write `docs/PRD.md` from the template. Feature sections come later, as tasks close. At the same time, create whichever of these don't exist yet, from the templates: `docs/DECISIONS.md`, and `.steel-thread/customizations.md`. Never overwrite a file that exists.
 
 If `docs/OBJECTIVE.md` exists from an older install, propose moving its sections into the PRD instead of interviewing (see `files/prd.md`).
 
@@ -92,14 +90,14 @@ This is the moment the customer would otherwise spend reconstructing where they 
 
 ### Rebuild where they left off
 
-1. Start from pickup.md's In Flight and Suggested Start, and the current task in TASKS.md with its detail lines.
+1. Start from the current task in TASKS.md and its Notes, its slicing plan if it has one, and the recent git log.
 2. Read the Active decisions that touch that task.
-3. Open the actual files the in-flight work lives in. Check that their state matches the pickup note. Files may have changed outside the session — if version control is available, check what changed since the date on the pickup note.
-4. If the note and the files disagree, trust the files and say so: "The pickup note says calculate_window() has no logic, but it's half written — the frost offset is done, the crop lookup isn't."
+3. Open the actual files the in-flight work lives in, and check for uncommitted changes. Files may have changed outside the session.
+4. If the Notes and the files disagree, trust the files, say so, and correct the Notes: "T-002's Notes say calculate_window() has no logic, but it's half written — the frost offset is done, the crop lookup isn't."
 
 ### Choose the next step
 
-Default to the current task: the first incomplete task in the current phase. Recommend something else only when it is clearly better, and say why in one sentence:
+Default to the current task, as the st-tasks skill defines it: the first task in the current phase that is in progress, or else open. Recommend something else only when it is clearly better, and say why in one sentence:
 
 - **Work is half done** — finishing it beats starting something new
 - **A blocker can be cleared now** — if a decision would unblock a task and the objective or existing decisions already point to the answer, propose making it
@@ -120,13 +118,17 @@ Want to start there?"
 
 The next step must be concrete and small enough to start immediately — a specific file, function, section, or question. Not "continue working on T-002."
 
-## Close the task
+## Finish the task
 
-A task's code is finished, or a task was marked done without being closed. Say so in one line, "T-014's code is done, so the next step is closing it — moving what lasts into the tests and docs," and use the st-close skill. If the code hasn't been validated against its spec and its diff reviewed yet, do that first with the st-verify skill. Then come back to Choose the next step.
+A task's code is finished. Say so in one line, "T-014's code is done, so the next step is finishing it — applying its design's Lasting Changes to the docs," and use the st-verify skill: it validates the code and reviews the diff first if that hasn't happened yet. Then come back to Choose the next step.
+
+## Run the test pass
+
+Checks have piled up in `docs/manual-tests/next-pass.md`, or nothing else in the phase can move until they run. Say how many tasks and checks are waiting and roughly how long they'll take, and offer to walk the customer through them: "Three tasks are waiting on your test pass — 7 checks, about 15 minutes. Want to run them now?" If they'd rather keep going, recommend the next open task instead. When they report back, use Record a Test Pass in the st-verify skill.
 
 ## Close the phase
 
-Every task in the current phase is done.
+Every task in the current phase is done or dropped.
 
 - Summarize what the phase produced, in two or three lines
 - Mark the phase complete with the st-tasks skill
@@ -138,4 +140,4 @@ Every phase is done. Go through each Done Means criterion in the objective, or t
 
 ## After the recommendation
 
-Update pickup.md with the recommendation as the Suggested Start. If the customer picks something else, that's their call — update pickup.md and help them start it.
+If the customer picks something else, that's their call — help them start it, and set that task to `in progress` with the st-tasks skill.
