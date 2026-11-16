@@ -55,6 +55,6 @@ Finished phases get " ✓ YYYY-MM-DD" after their name.
 | T-035 | Export and import habit data from Settings | high | in progress | Coded (5bc17cb, f7c0573); next: UI tests, data.md manual checks, diff review |
 | T-039 | Sync habits across Macs with CloudKit | high | in progress | Coded, review BLOCK fixed; next: UI tests, CloudKit and second-Mac checks |
 | T-041 | Habit strip: only due days, oldest left to newest right, not clickable, marker on the selected day | high | in progress | Coded and diff-reviewed; next: UI tests and a look on screen |
-| T-005 | Release v1 on the Mac App Store: app icon, App Store signing, listing, review | high | in progress | D-011 · D-012 · build 1.0 (2) on TestFlight; next: CloudKit prod schema, listing |
+| T-005 | Release v1 on the Mac App Store: app icon, App Store signing, listing, review | high | in progress | D-011 · D-012 · build 1.0 (4) on TestFlight 2026-11-15; next: CloudKit prod schema, listing |
 | T-042 | Bug: Sync Now sticks on "Syncing…" and never retries a change iCloud refused | high | in progress | df5d09d, diff-reviewed; next: manual CloudKit check (refused save, then Sync Now) |
 | T-040 | Settings' Quit button sits at the bottom of the panel, like the main screen's bottom row | medium | done 2026-11-01 | 084c48c · not yet checked on screen |
