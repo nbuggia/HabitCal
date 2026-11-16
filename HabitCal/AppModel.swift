@@ -77,6 +77,9 @@ final class AppModel {
     private(set) var motivation = Motivation.next(after: nil)
     /// What Settings says about iCloud; set only by `HabitSync` (T-039).
     private(set) var syncStatus: SyncStatus = .off
+    /// The example in the New habit form's empty fields; a new one each time the form opens, never
+    /// the same twice in a row.
+    private(set) var suggestion = HabitSuggestion.next(after: nil)
     /// The open form, while `screen == .form`.
     private(set) var form: HabitForm?
     /// Bumped on every refresh, so the switch redraws even when a failed change leaves the state
@@ -295,6 +298,7 @@ final class AppModel {
     /// An empty form, every day selected (T-003 B.8).
     func openAddForm() {
         guard canAddHabits else { return }
+        suggestion = HabitSuggestion.next(after: suggestion)
         form = HabitForm(mode: .add, draft: HabitDraft(name: "", note: "", days: Set(1...7)))
         formReturn = screen == .leaderboard ? .leaderboard : .list
         screen = .form

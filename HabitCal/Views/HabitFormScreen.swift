@@ -16,7 +16,7 @@ struct HabitFormScreen: View {
             VStack(alignment: .leading, spacing: 10) {
                 header(form)
                 label("Name")
-                TextField("e.g. Lights out by 10:30", text: $name)
+                TextField("e.g. \(model.suggestion.name)", text: $name)
                     .textFieldStyle(.roundedBorder)
                     .focused($nameFocused)
                     .onSubmit { model.saveForm() }
@@ -110,7 +110,7 @@ struct HabitFormScreen: View {
             .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
             .overlay(alignment: .topLeading) {
                 if note.isEmpty {
-                    Text("Optional details, e.g. 3 sets of 20, or the route you run")
+                    Text("Optional details, e.g. \(model.suggestion.note)")
                         .font(.callout)
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, 9)
