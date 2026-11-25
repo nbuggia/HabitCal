@@ -82,7 +82,7 @@ struct SettingsScreen: View {
                     NSWorkspace.shared.open(Self.website)
                     model.closePopover()
                 }
-                .buttonStyle(.link)
+                .buttonStyle(.habitLink)
                 .accessibilityLabel("muchfiner.com")
             }
         }
@@ -121,7 +121,7 @@ struct SettingsScreen: View {
             Button("Needs approval in System Settings › General › Login Items") {
                 model.openLoginItemsSettings()
             }
-            .buttonStyle(.link)
+            .buttonStyle(.habitLink)
             .font(.caption)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)

@@ -58,3 +58,27 @@ extension ButtonStyle where Self == HoverButtonStyle {
         HoverButtonStyle(cornerRadius: cornerRadius, outset: outset, overLabel: overLabel)
     }
 }
+
+/// Text links: link blue whether or not they've been clicked, red while the pointer is over them
+/// (customer, 2026-11-24). The system's link style dims after a click, so it isn't used.
+struct LinkButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        LinkButtonBody(configuration: configuration)
+    }
+}
+
+private struct LinkButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    @State private var hovering = false
+
+    var body: some View {
+        configuration.label
+            .foregroundStyle(hovering ? Color.red : Color(nsColor: .linkColor))
+            .contentShape(Rectangle())
+            .onHover { hovering = $0 }
+    }
+}
+
+extension ButtonStyle where Self == LinkButtonStyle {
+    static var habitLink: LinkButtonStyle { LinkButtonStyle() }
+}
