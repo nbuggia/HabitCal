@@ -30,7 +30,8 @@ struct LeaderboardScreen: View {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(Array(entries.enumerated()), id: \.element.habit.id) { index, entry in
                             LeaderboardRow(
-                                rank: index + 1, entry: entry, streak: Streaks.current(entry.habit, today: model.today))
+                                rank: index + 1, entry: entry, streak: Streaks.current(entry.habit, today: model.today),
+                                best: Streaks.best(entry.habit, today: model.today))
                         }
                     }
                     .onGeometryChange(for: CGFloat.self) {
@@ -162,10 +163,11 @@ private struct LeaderboardRow: View {
     let rank: Int
     let entry: ConsistencyEntry
     let streak: Int
+    let best: Int
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            RankShield(rank: rank, perfect: entry.tally.due > 0 && entry.tally.done == entry.tally.due)
+            RankShield(rank: rank, cup: Consistency.cup(tally: entry.tally, current: streak, best: best))
                 // The shield's outline starts 4 pt into its frame; this puts its top level with the name's.
                 .offset(y: -1)
             VStack(alignment: .leading, spacing: 4) {
@@ -226,17 +228,16 @@ private struct LeaderboardRow: View {
     }
 }
 
-/// A shield beside each habit: a gold cup for a perfect record in the range, otherwise the rank
-/// (customer, 2026-11-13). Every 100% habit gets the cup, so several can share it.
+/// A shield beside each habit: a gold cup when `Consistency.cup` awards one, otherwise the rank.
 private struct RankShield: View {
     let rank: Int
-    let perfect: Bool
+    let cup: CupReason
 
     var body: some View {
         ZStack {
             PhosphorIcon("shield", size: 26)
             Group {
-                if perfect {
+                if !cup.isEmpty {
                     PhosphorIcon("trophy-fill", size: 13)
                 } else {
                     Text("\(rank)")
@@ -248,9 +249,9 @@ private struct RankShield: View {
             // The shield narrows to a point, so the middle of its body sits a little above center.
             .offset(y: -1)
         }
-        .foregroundStyle(perfect ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.secondary))
+        .foregroundStyle(!cup.isEmpty ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.secondary))
         .frame(width: 26, height: 26)
-        .help(perfect ? "Every due day done" : "Rank \(rank)")
+        .help(cup.isEmpty ? "Rank \(rank)" : Consistency.cupHelp(cup))
     }
 }
 

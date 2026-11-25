@@ -174,4 +174,26 @@ struct ConsistencyTests {
         #expect(Consistency.percentText(ConsistencyTally(done: 1, due: 300)) == "1%")
         #expect(Consistency.percentText(ConsistencyTally(done: 0, due: 300)) == "0%")
     }
+
+    @Test func cupForAPerfectRecordSoFar() {
+        #expect(Consistency.cup(tally: ConsistencyTally(done: 1, due: 1), current: 1, best: 1) == .perfect)
+        #expect(Consistency.cup(tally: ConsistencyTally(done: 3, due: 4), current: 1, best: 1).isEmpty)
+        #expect(Consistency.cup(tally: ConsistencyTally(done: 0, due: 0), current: 0, best: 0).isEmpty)
+    }
+
+    @Test func cupForAHabitOnItsBestStreak() {
+        let tally = ConsistencyTally(done: 3, due: 4)
+        #expect(Consistency.cup(tally: tally, current: 5, best: 5) == .bestStreak)
+        #expect(Consistency.cup(tally: tally, current: 4, best: 5).isEmpty)
+        // A single check-off isn't a streak yet, as on the habit list's trophy (T-025).
+        #expect(Consistency.cup(tally: tally, current: 1, best: 1).isEmpty)
+        let both = Consistency.cup(tally: ConsistencyTally(done: 4, due: 4), current: 2, best: 2)
+        #expect(both == [.perfect, .bestStreak])
+    }
+
+    @Test func cupHelpNamesWhatEarnedIt() {
+        #expect(Consistency.cupHelp(.perfect) == "Every due day done")
+        #expect(Consistency.cupHelp(.bestStreak) == "On its best streak")
+        #expect(Consistency.cupHelp([.perfect, .bestStreak]) == "Every due day done, on its best streak")
+    }
 }

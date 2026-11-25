@@ -114,6 +114,17 @@ public struct ConsistencyTally: Equatable, Sendable {
     }
 }
 
+/// Why a leaderboard row earns the gold cup (T-043). Empty means it shows its rank.
+public struct CupReason: OptionSet, Sendable {
+    public let rawValue: Int
+    public init(rawValue: Int) { self.rawValue = rawValue }
+
+    /// Every due day in the range so far is done.
+    public static let perfect = CupReason(rawValue: 1)
+    /// The current streak is a record for the habit, as the habit list's trophy shows (T-025).
+    public static let bestStreak = CupReason(rawValue: 2)
+}
+
 public struct ConsistencyEntry: Sendable {
     public let habit: Habit
     public let tally: ConsistencyTally
@@ -165,6 +176,25 @@ public enum Consistency {
     public static func overall(_ entries: [ConsistencyEntry]) -> ConsistencyTally {
         ConsistencyTally(
             done: entries.reduce(0) { $0 + $1.tally.done }, due: entries.reduce(0) { $0 + $1.tally.due })
+    }
+
+    /// What earns a row the cup: a perfect record so far, or a habit on its own best streak
+    /// (customer, 2026-11-24). Several rows can share it.
+    public static func cup(tally: ConsistencyTally, current: Int, best: Int) -> CupReason {
+        var reason: CupReason = []
+        if tally.due > 0 && tally.done == tally.due { reason.insert(.perfect) }
+        if Streaks.isRecord(current: current, best: best) { reason.insert(.bestStreak) }
+        return reason
+    }
+
+    /// The cup's tooltip: "Every due day done", "On its best streak", or both.
+    public static func cupHelp(_ reason: CupReason) -> String {
+        switch (reason.contains(.perfect), reason.contains(.bestStreak)) {
+        case (true, true): "Every due day done, on its best streak"
+        case (true, false): "Every due day done"
+        case (false, true): "On its best streak"
+        case (false, false): ""
+        }
     }
 
     /// "93%", or "—" when nothing was due.
