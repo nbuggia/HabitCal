@@ -79,3 +79,4 @@
 2026-11-13 · leaderboard week/month/year to date · QUESTION · on a period's first day, before any check-off, everything reads "no due days" · put to customer
 2026-11-13 · T-042 · MINOR · A sign-out during Sync Now ended on "Synced" · fixed
 2026-11-13 · T-042 · MINOR · A failed save that can't be rebuilt stayed in failedSends forever · fixed
+2026-11-24 · T-043 · MINOR · VoiceOver never heard the cup or why it was earned · fixed

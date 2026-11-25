@@ -55,3 +55,13 @@
 
 **Expect:** a soft highlight on hover and a darker one while pressed, shaped to the button (round for the done button and day circles). Text doesn't shift. Button colors match the previous build (borderless icons and Back may have been tinted). Disabled buttons are dimmed but still legible, and don't highlight. After reopening, no button is left highlighted. With Keyboard navigation on, the focused button shows the highlight.
 
+
+## The leaderboard cup goes to perfect records and best streaks
+
+**Setup:** three habits: A with every due day this week done; B on its best streak of 2 or more but with a missed day this week; C with neither (a missed day and a broken streak). Turn on VoiceOver for the last step.
+
+1. Open the leaderboard on Week; hover each shield.
+2. Switch to Month and Year.
+3. With VoiceOver, move to B's row.
+
+**Expect:** A and B show the gold cup; C shows its rank number. A's tooltip reads "Every due day done", B's "On its best streak"; a habit with both reads "Every due day done, on its best streak". B keeps its cup on every tab. VoiceOver reads B's details ending "…, cup: on its best streak".

@@ -196,4 +196,12 @@ struct ConsistencyTests {
         #expect(Consistency.cupHelp(.bestStreak) == "On its best streak")
         #expect(Consistency.cupHelp([.perfect, .bestStreak]) == "Every due day done, on its best streak")
     }
+
+    @Test func voiceOverHearsWhyARowHasTheCup() {
+        let tally = ConsistencyTally(done: 8, due: 12)
+        #expect(Consistency.detailSpoken(tally, streak: 5) == "12 events, 8 completed, 5 streak")
+        #expect(
+            Consistency.detailSpoken(tally, streak: 5, cup: .bestStreak)
+                == "12 events, 8 completed, 5 streak, cup: on its best streak")
+    }
 }

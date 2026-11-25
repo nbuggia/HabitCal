@@ -165,9 +165,11 @@ private struct LeaderboardRow: View {
     let streak: Int
     let best: Int
 
+    private var cup: CupReason { Consistency.cup(tally: entry.tally, current: streak, best: best) }
+
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            RankShield(rank: rank, cup: Consistency.cup(tally: entry.tally, current: streak, best: best))
+            RankShield(rank: rank, cup: cup)
                 // The shield's outline starts 4 pt into its frame; this puts its top level with the name's.
                 .offset(y: -1)
             VStack(alignment: .leading, spacing: 4) {
@@ -207,7 +209,7 @@ private struct LeaderboardRow: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Consistency.rowSpoken(rank: rank, name: entry.habit.name, tally: entry.tally))
-        .accessibilityValue(Consistency.detailSpoken(entry.tally, streak: streak))
+        .accessibilityValue(Consistency.detailSpoken(entry.tally, streak: streak, cup: cup))
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { model.openEditForm(entry.habit.id) }
         .accessibilityAction(named: "Delete") { model.openDeleteConfirmation(entry.habit.id) }

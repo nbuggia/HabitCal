@@ -221,9 +221,12 @@ public enum Consistency {
         "\(current) streak"
     }
 
-    /// What VoiceOver reads after the row's label: "12 events, 9 completed, 5 streak".
-    public static func detailSpoken(_ tally: ConsistencyTally, streak: Int) -> String {
-        "\(tally.due) \(tally.due == 1 ? "event" : "events"), \(tally.done) completed, \(streakText(streak))"
+    /// What VoiceOver reads after the row's label: "12 events, 9 completed, 5 streak", then why the
+    /// row has the cup, if it does: ", cup: on its best streak".
+    public static func detailSpoken(_ tally: ConsistencyTally, streak: Int, cup: CupReason = []) -> String {
+        let events = "\(tally.due) \(tally.due == 1 ? "event" : "events")"
+        let detail = "\(events), \(tally.done) completed, \(streakText(streak))"
+        return cup.isEmpty ? detail : "\(detail), cup: \(cupHelp(cup).lowercased())"
     }
 
     /// "74 percent of due days done across all habits".

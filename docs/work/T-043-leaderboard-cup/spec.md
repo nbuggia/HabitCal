@@ -10,7 +10,7 @@ A leaderboard row shows a gold cup in its shield when every due day in the range
   - (a) the habit is on its own best streak: the current streak is above 1 and at or above its best, the same test that colors the trophy on the habit list (T-025); or
   - (b) every due day in the range so far is done (today counts once it's done), with at least one due day.
 - R2. Otherwise the row SHALL show its rank number.
-- R3. The cup's tooltip SHALL say which condition earned it: "Every due day done", "On its best streak", or both.
+- R3. The cup's tooltip SHALL say which condition earned it: "Every due day done", "On its best streak", or both. VoiceOver SHALL hear the same reason in the row's value.
 - R4. Ranking, percentages, and the score SHALL CONTINUE TO work as before.
 
 ## Not doing

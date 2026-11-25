@@ -31,3 +31,12 @@ The cup today means only "perfect so far". It becomes "perfect so far, or on its
 | Change | Goes to |
 | --- | --- |
 | The cup rule (R1–R3) under Feature: Leaderboard | PRD.md |
+
+## Reviewer Feedback
+
+| Severity | Finding | Resolution |
+| --- | --- | --- |
+| MINOR | VoiceOver never heard the cup or why it was earned | Fixed: the row's spoken value ends with the cup's reason; voiceOverHearsWhyARowHasTheCup |
+| IDEA | Add the best streak to the second detail line ("5 streak · best 5") | For the customer |
+| IDEA | Give the cup shield an accessibility identifier so a UI test can check it | For the customer |
+| IDEA | A different badge for "best streak" than for "perfect" | For the customer |

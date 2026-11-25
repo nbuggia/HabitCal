@@ -57,5 +57,5 @@ Finished phases get " ✓ YYYY-MM-DD" after their name.
 | T-041 | Habit strip: only due days, oldest left to newest right, not clickable, marker on the selected day | high | in progress | Coded and diff-reviewed; next: UI tests and a look on screen |
 | T-005 | Release v1 on the Mac App Store: app icon, App Store signing, listing, review | high | in progress | D-011 · D-012 · build 1.0 (4) on TestFlight 2026-11-15; next: CloudKit prod schema, listing |
 | T-042 | Bug: Sync Now sticks on "Syncing…" and never retries a change iCloud refused | high | in progress | df5d09d, diff-reviewed; next: manual CloudKit check (refused save, then Sync Now) |
-| T-043 | Leaderboard cup: also for a habit on its best streak; otherwise only a perfect record so far | high | in progress | Customer, 2026-11-24; next: tests, code, diff review |
+| T-043 | Leaderboard cup: also for a habit on its best streak; otherwise only a perfect record so far | high | awaiting test 2026-11-24 | 1 check in next-pass.md; PRD cup rule awaiting approval |
 | T-040 | Settings' Quit button sits at the bottom of the panel, like the main screen's bottom row | medium | done 2026-11-01 | 084c48c · not yet checked on screen |
